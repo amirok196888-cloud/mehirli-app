@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#101827" />
+<title>מחירלי</title>
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<link rel="stylesheet" href="style.css" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<div class="app-shell">
+<header class="topbar"><div class="brand"><img class="logo logo-img" src="icon-192.png" alt="מחירלי" /><div><h1>מחירלי</h1><p>מבקשים. מקבלים הצעות. בוחרים.</p></div></div></header>
+<main>
+<section id="authView" class="view active">
+  <div class="hero card"><h2>כניסה לאפליקציה</h2><p>המידע נשמר עכשיו בענן.</p></div>
+  <form id="authForm" class="card form-card">
+    <label>אימייל<input id="authEmail" type="email" required autocomplete="email" /></label>
+    <label>סיסמה<input id="authPassword" type="password" required minlength="6" autocomplete="current-password" /></label>
+    <label>אני נרשם בתור<select id="authRole"><option value="customer">לקוח</option><option value="professional">בעל מקצוע</option></select></label>
+    <label>שם<input id="authName" placeholder="שם פרטי / שם בעל העסק" /></label>
+    <button class="primary big" type="submit">כניסה</button>
+    <button id="signupBtn" class="secondary big" type="button">הרשמה חדשה</button>
+    <p id="authNote" class="note"></p>
+  </form>
+</section>
+
+<section id="homeView" class="view">
+  <div class="hero card"><h2>מה אתה צריך?</h2><p>פרסם בקשה בחינם וקבל עד 3 הצעות מבעלי מקצוע.</p>
+    <div class="role-switch"><button class="role active" data-role="customer">אני לקוח</button><button class="role" data-role="pro">אני בעל מקצוע</button></div>
+    <button id="logoutBtn" class="secondary">התנתק</button>
+  </div>
+  <div id="customerHome">
+    <div class="category-grid">
+      <button class="category" data-category="רכב"><span>🚗</span><b>רכב</b><small>צמיגים, מצבר, טיפול ועוד</small></button>
+      <button class="category" data-category="מיזוג"><span>❄️</span><b>מיזוג</b><small>תיקון, התקנה, ניקוי</small></button>
+      <button class="category" data-category="לבית"><span>🏠</span><b>לבית</b><small>אינסטלציה, חשמל, דודים</small></button>
+      <button class="category" data-category="הנדימן"><span>🔨</span><b>הנדימן</b><small>תלייה, הרכבה ותיקונים קטנים</small></button>
+    </div>
+    <button id="newRequestBtn" class="primary big">+ פרסום בקשה</button><button id="myRequestsBtn" class="secondary big">הבקשות שלי</button>
+  </div>
+  <div id="proHome" class="hidden">
+    <div class="credits card"><div><small>יתרת הצעות</small><strong id="creditCount">0</strong><span>הצעות זמינות</span></div><button id="buyCreditsBtn" class="primary">3 הצעות ב־15 ₪</button></div>
+    <button id="profileBtn" class="secondary big">פרופיל העסק שלי</button><button id="jobsBtn" class="primary big">עבודות זמינות</button>
+  </div>
+</section>
+
+<section id="requestView" class="view"><div class="section-head"><button class="back">‹</button><h2>פרסום בקשה</h2></div>
+<form id="requestForm" class="card form-card">
+<label>תחום<select id="reqCategory" required><option value="">בחר תחום</option><option>רכב</option><option>מיזוג</option><option>לבית</option><option>הנדימן</option></select></label>
+<label>מה אתה צריך?<textarea id="reqText" required placeholder="לדוגמה: צריך לתלות טלוויזיה ושני מדפים"></textarea></label>
+<button type="button" id="voiceBtn" class="voice">🎤 דבר במקום להקליד</button><p id="voiceStatus" class="note"></p>
+<label>עיר / אזור<input id="reqCity" required placeholder="לדוגמה: נתניה" /></label>
+<label>תאריך רצוי<input id="reqDate" type="date" required /></label><label>שעה רצויה<input id="reqTime" type="time" /></label>
+<button class="primary big" type="submit">פרסם וקבל עד 3 הצעות</button><p class="note">פרסום הבקשה חינם.</p>
+</form></section>
+
+<section id="requestsListView" class="view"><div class="section-head"><button class="back">‹</button><h2>הבקשות שלי</h2></div><div id="requestsList" class="stack"></div></section>
+<section id="offersView" class="view"><div class="section-head"><button class="back">‹</button><h2>הצעות שקיבלת</h2></div><div id="requestSummary" class="card"></div><div id="offersList" class="stack"></div><button id="moreOffersBtn" class="secondary big hidden">פתח סבב נוסף</button></section>
+<section id="proJobsView" class="view"><div class="section-head"><button class="back">‹</button><h2>עבודות זמינות</h2></div><div class="filter-row"><select id="jobFilter"><option value="הכל">כל התחומים</option><option>רכב</option><option>מיזוג</option><option>לבית</option><option>הנדימן</option></select></div><div id="jobsList" class="stack"></div></section>
+<section id="offerFormView" class="view"><div class="section-head"><button class="back">‹</button><h2>שליחת הצעה</h2></div><div id="jobSummary" class="card"></div>
+<form id="offerForm" class="card form-card"><label>סוג מחיר<select id="priceType"><option value="fixed">מחיר סופי</option><option value="range">טווח מחיר</option><option value="inspection">נדרשת בדיקה</option></select></label>
+<div id="singlePriceWrap"><label>מחיר / דמי בדיקה ₪<input id="offerPrice" inputmode="numeric" /></label></div><div id="rangePriceWrap" class="hidden two-cols"><label>מ־₪<input id="offerMin" inputmode="numeric" /></label><label>עד ₪<input id="offerMax" inputmode="numeric" /></label></div>
+<label>פירוט ההצעה<textarea id="offerText" placeholder="מה כולל המחיר, תנאים, אחריות וכו'"></textarea></label><label>תאריך הגעה<input id="offerDate" type="date" required /></label><label>שעת הגעה<input id="offerTime" type="time" required /></label><button class="primary big" type="submit">שלח הצעה (הצעה אחת)</button></form></section>
+<section id="profileView" class="view"><div class="section-head"><button class="back">‹</button><h2>פרופיל העסק</h2></div><form id="profileForm" class="card form-card">
+<label>שם העסק<input id="bizName" required /></label><label>תחום עיקרי<select id="bizCategory"><option>רכב</option><option>מיזוג</option><option>לבית</option><option>הנדימן</option></select></label><label>על העסק<textarea id="bizAbout"></textarea></label><label>אזורי שירות<input id="bizArea" placeholder="נתניה, חדרה והשרון" /></label><label>טלפון<input id="bizPhone" inputmode="tel" /></label><button class="primary big" type="submit">שמור פרופיל</button></form></section>
+</main><div id="toast" class="toast"></div></div>
+<script src="app.js"></script>
+</body></html>
