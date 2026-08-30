@@ -90,8 +90,8 @@
     <button class="admin-tab" data-admin-tab="customers">לקוחות</button>
   </div>
   <div id="adminPaymentsPanel" class="admin-panel"><div id="adminPaymentsList" class="stack"></div></div>
-  <div id="adminProsPanel" class="admin-panel hidden"><div id="adminProsList" class="stack"></div></div>
-  <div id="adminCustomersPanel" class="admin-panel hidden"><div id="adminCustomersList" class="stack"></div></div>
+  <div id="adminProsPanel" class="admin-panel hidden"><div class="admin-search-wrap"><input id="adminProsSearch" class="admin-search" type="search" placeholder="חיפוש בעל מקצוע לפי שם, עסק או אימייל" autocomplete="off" /></div><div id="adminProsList" class="stack"></div></div>
+  <div id="adminCustomersPanel" class="admin-panel hidden"><div class="admin-search-wrap"><input id="adminCustomersSearch" class="admin-search" type="search" placeholder="חיפוש לקוח לפי שם או אימייל" autocomplete="off" /></div><div id="adminCustomersList" class="stack"></div></div>
 </section>
 
 <section id="paymentView" class="view"><div class="section-head"><button class="back">‹</button><h2>רכישת הצעות</h2></div>
@@ -106,5 +106,5 @@
   </div>
 </section>
 </main><div id="toast" class="toast"></div></div>
-<script src="app.js?v=12"></script>
+<script src="app.js?v=14"></script>
 </body></html>
