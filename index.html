@@ -7,7 +7,7 @@
 <title>מחירלי</title>
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="apple-touch-icon" href="icon-192.png" />
-<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="style.css?v=8" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -33,18 +33,22 @@
 </section>
 
 <section id="homeView" class="view">
-  <div class="hero card"><h2>מה אתה צריך?</h2><p>פרסם בקשה בחינם וקבל עד 3 הצעות מבעלי מקצוע.</p>
-    <div class="role-switch"><button class="role active" data-role="customer">אני לקוח</button><button class="role" data-role="pro">אני בעל מקצוע</button></div>
-    <button id="logoutBtn" class="secondary">התנתק</button>
+  <div class="home-hero">
+    <div class="home-kicker">✨ פשוט לבקש. קל לבחור.</div>
+    <h2>מה צריך לעשות היום?</h2>
+    <p>ספר לנו מה אתה צריך וקבל עד 3 הצעות מבעלי מקצוע — בלי טלפונים ובלי לרדוף אחרי אף אחד.</p>
+    <div class="role-switch"><button class="role active" data-role="customer">👤 אני לקוח</button><button class="role" data-role="pro">🧰 אני בעל מקצוע</button></div>
+    <button id="logoutBtn" class="logout-link">התנתק</button>
   </div>
   <div id="customerHome">
+    <div class="home-section-title"><b>בחר תחום</b><span>התחלה מהירה</span></div>
     <div class="category-grid">
       <button class="category" data-category="רכב"><span>🚗</span><b>רכב</b><small>צמיגים, מצבר, טיפול ועוד</small></button>
       <button class="category" data-category="מיזוג"><span>❄️</span><b>מיזוג</b><small>תיקון, התקנה, ניקוי</small></button>
       <button class="category" data-category="לבית"><span>🏠</span><b>לבית</b><small>אינסטלציה, חשמל, דודים</small></button>
       <button class="category" data-category="הנדימן"><span>🔨</span><b>הנדימן</b><small>תלייה, הרכבה ותיקונים קטנים</small></button>
     </div>
-    <button id="newRequestBtn" class="primary big">+ פרסום בקשה</button><button id="myRequestsBtn" class="secondary big">הבקשות שלי</button>
+    <div class="home-actions"><button id="newRequestBtn" class="primary big">＋ פרסום בקשה חדשה</button><button id="myRequestsBtn" class="secondary big">📋 הבקשות שלי</button></div>
   </div>
   <div id="proHome" class="hidden">
     <div class="credits card"><div><small>יתרת הצעות</small><strong id="creditCount">0</strong><span>הצעות זמינות</span></div><button id="buyCreditsBtn" class="primary">3 הצעות ב־15 ₪</button></div>
@@ -72,5 +76,5 @@
 <section id="profileView" class="view"><div class="section-head"><button class="back">‹</button><h2>פרופיל העסק</h2></div><form id="profileForm" class="card form-card">
 <label>שם העסק<input id="bizName" required /></label><label>תחום עיקרי<select id="bizCategory"><option>רכב</option><option>מיזוג</option><option>לבית</option><option>הנדימן</option></select></label><label>על העסק<textarea id="bizAbout"></textarea></label><label>אזורי שירות<input id="bizArea" placeholder="נתניה, חדרה והשרון" /></label><label>טלפון<input id="bizPhone" inputmode="tel" /></label><button class="primary big" type="submit">שמור פרופיל</button></form></section>
 </main><div id="toast" class="toast"></div></div>
-<script src="app.js"></script>
+<script src="app.js?v=8"></script>
 </body></html>

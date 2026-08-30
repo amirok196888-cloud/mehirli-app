@@ -54,3 +54,34 @@ button,select,input,textarea{font:inherit}
 .auth-benefits{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:13px}.auth-benefit{padding:13px 8px;text-align:center;border-radius:19px;background:rgba(15,31,52,.55);border:1px solid var(--border)}.auth-benefit span{display:block;font-size:22px;margin-bottom:5px}.auth-benefit b{display:block;font-size:12px}.auth-benefit small{display:block;color:var(--muted);font-size:10px;margin-top:2px;line-height:1.25}
 @media(max-width:430px){.app-shell{padding:11px 10px 30px}.topbar{padding-bottom:16px}.logo-img{width:58px;height:58px}.brand h1{font-size:28px}.brand p{max-width:220px}.card{border-radius:23px}.hero h2{font-size:28px}.category-grid{grid-template-columns:1fr 1fr}.category{min-height:124px;padding:15px}.credits{align-items:stretch;flex-direction:column}.auth-benefits{gap:6px}.auth-benefit{padding:11px 5px}}
 @media(max-width:340px){.category-grid{grid-template-columns:1fr}.two-cols{grid-template-columns:1fr}.auth-benefits{grid-template-columns:1fr}}
+
+/* V8 — home redesign: softer, more app-like */
+#homeView{padding-bottom:18px}
+.home-hero{position:relative;overflow:hidden;margin:-2px 0 18px;padding:26px 21px 20px;border-radius:30px;background:
+  radial-gradient(circle at 10% 0%,rgba(83,214,163,.22),transparent 36%),
+  radial-gradient(circle at 96% 88%,rgba(77,180,234,.16),transparent 38%),
+  linear-gradient(145deg,#142b46,#0c1c31 68%);border:1px solid rgba(142,189,223,.18);box-shadow:0 20px 46px rgba(0,0,0,.25)}
+.home-hero:before{content:"";position:absolute;inset:auto -36px -80px auto;width:190px;height:190px;border-radius:50%;background:rgba(49,195,132,.07)}
+.home-kicker{display:inline-flex;align-items:center;gap:6px;padding:7px 11px;border-radius:999px;background:rgba(49,195,132,.12);border:1px solid rgba(49,195,132,.2);color:#8ee7bf;font-size:12px;font-weight:800;margin-bottom:11px}
+.home-hero h2{font-size:32px;line-height:1.1;letter-spacing:-.9px;margin:0 0 9px}
+.home-hero p{margin:0;color:#b8c7d9;line-height:1.55;font-size:14px;max-width:560px}
+.home-hero .role-switch{margin:18px 0 9px;background:rgba(2,10,20,.38);border-color:rgba(255,255,255,.06)}
+.home-hero .role{min-height:44px}
+.logout-link{display:block;margin:4px auto 0;padding:7px 11px;border:0;background:transparent;color:#8093aa;font-size:12px;text-decoration:underline;text-underline-offset:3px}
+.home-section-title{display:flex;justify-content:space-between;align-items:end;margin:0 4px 10px}.home-section-title b{font-size:18px}.home-section-title span{font-size:11px;color:#7f92a9}
+#homeView .category-grid{gap:10px;margin-top:0}
+#homeView .category{min-height:142px;border-radius:26px;border-color:rgba(170,201,228,.13);padding:16px;background:linear-gradient(145deg,rgba(24,45,72,.92),rgba(11,25,43,.94));transform:translateZ(0)}
+#homeView .category span{display:grid;place-items:center;width:50px;height:50px;border-radius:17px;background:rgba(255,255,255,.055);font-size:29px;margin-bottom:3px}
+#homeView .category b{font-size:20px;letter-spacing:-.3px}
+#homeView .category small{font-size:12px}
+#homeView .category:nth-child(1){background:linear-gradient(150deg,rgba(28,67,92,.95),rgba(12,29,48,.95))}
+#homeView .category:nth-child(2){background:linear-gradient(150deg,rgba(27,57,91,.95),rgba(12,28,49,.95))}
+#homeView .category:nth-child(3){background:linear-gradient(150deg,rgba(43,61,78,.95),rgba(15,29,43,.95))}
+#homeView .category:nth-child(4){background:linear-gradient(150deg,rgba(48,64,76,.95),rgba(17,30,42,.95))}
+.home-actions{display:grid;gap:6px;margin-top:2px}
+#newRequestBtn{min-height:58px;border-radius:19px;font-size:18px;box-shadow:0 14px 28px rgba(49,195,132,.2)}
+#myRequestsBtn{min-height:52px;border-radius:19px}
+#proHome .credits{border-radius:27px;background:linear-gradient(145deg,rgba(18,44,66,.94),rgba(11,26,42,.96))}
+#proHome .credits strong{color:#76e6b6}
+#proHome .big{border-radius:19px}
+@media(max-width:430px){.home-hero{padding:22px 17px 17px;border-radius:26px}.home-hero h2{font-size:29px}#homeView .category{min-height:136px;border-radius:23px}#homeView .category span{width:46px;height:46px;border-radius:15px}}
