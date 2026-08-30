@@ -71,7 +71,7 @@
   </div>
   <div id="proHome" class="hidden">
     <div class="credits card"><div><small>יתרת הצעות</small><strong id="creditCount">0</strong><span>הצעות זמינות</span></div><button id="buyCreditsBtn" class="primary">3 הצעות ב־15 ₪</button></div>
-    <button id="profileBtn" class="secondary big">פרופיל העסק שלי</button><button id="jobsBtn" class="primary big">עבודות זמינות</button><button id="adminBtn" class="admin-entry big hidden">⚙️ ניהול מחירלי</button>
+    <button id="profileBtn" class="secondary big">פרופיל העסק שלי</button><button id="jobsBtn" class="primary big">עבודות זמינות</button><button id="wonJobsBtn" class="secondary big">🤝 לקוחות שבחרו בי</button><button id="adminBtn" class="admin-entry big hidden">⚙️ ניהול מחירלי</button>
   </div>
 </section>
 
@@ -88,6 +88,7 @@
 <section id="requestsListView" class="view"><div class="section-head"><button class="back">‹</button><h2>הבקשות שלי</h2></div><div id="requestsList" class="stack"></div></section>
 <section id="offersView" class="view"><div class="section-head"><button class="back">‹</button><h2>הצעות שקיבלת</h2></div><div id="requestSummary" class="card"></div><div id="offersList" class="stack"></div><button id="moreOffersBtn" class="secondary big hidden">פתח סבב נוסף</button></section>
 <section id="proJobsView" class="view"><div class="section-head"><button class="back">‹</button><h2>עבודות זמינות</h2></div><div class="filter-row"><select id="jobFilter"><option value="הכל">כל התחומים</option><option>רכב</option><option>מיזוג</option><option>לבית</option><option>הנדימן</option></select></div><div id="jobsList" class="stack"></div></section>
+<section id="wonJobsView" class="view"><div class="section-head"><button class="back">‹</button><h2>לקוחות שבחרו בי</h2></div><div id="wonJobsList" class="stack"></div></section>
 <section id="offerFormView" class="view"><div class="section-head"><button class="back">‹</button><h2>שליחת הצעה</h2></div><div id="jobSummary" class="card"></div>
 <form id="offerForm" class="card form-card"><label>סוג מחיר<select id="priceType"><option value="fixed">מחיר סופי</option><option value="range">טווח מחיר</option><option value="inspection">נדרשת בדיקה</option></select></label>
 <div id="singlePriceWrap"><label>מחיר / דמי בדיקה ₪<input id="offerPrice" inputmode="numeric" /></label></div><div id="rangePriceWrap" class="hidden two-cols"><label>מ־₪<input id="offerMin" inputmode="numeric" /></label><label>עד ₪<input id="offerMax" inputmode="numeric" /></label></div>
@@ -124,5 +125,5 @@
   </div>
 </section>
 </main><div id="toast" class="toast"></div></div>
-<script src="app.js?v=16"></script>
+<script src="app.js?v=23"></script>
 </body></html>

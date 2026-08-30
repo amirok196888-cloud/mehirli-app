@@ -20,10 +20,53 @@ const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition
 $('#requestForm').onsubmit=async e=>{e.preventDefault();if(!state.user)return;const row={customer_id:state.user.id,category:catDb[$('#reqCategory').value],description:$('#reqText').value.trim(),city:$('#reqCity').value.trim(),desired_timing:[$('#reqDate').value,$('#reqTime').value].filter(Boolean).join(' ')};const {error}=await db.from('requests').insert(row);if(error){toast('שגיאה: '+error.message);return}e.target.reset();toast('הבקשה פורסמה בענן');await renderRequests();show('#requestsListView')};
 async function renderRequests(){const {data,error}=await db.from('requests').select('*').eq('customer_id',state.user.id).order('created_at',{ascending:false});if(error){toast(error.message);return}state.requests=data||[];const box=$('#requestsList');if(!state.requests.length){box.innerHTML='<div class="card"><h3>עדיין אין בקשות</h3></div>';return}const ids=state.requests.map(r=>r.id);let q=[];if(ids.length){const res=await db.from('quotes').select('request_id').in('request_id',ids);q=res.data||[]}box.innerHTML=state.requests.map(r=>{const c=q.filter(x=>x.request_id===r.id).length,he=catHe[r.category];return `<div class="item"><h3>${icon(he)} ${esc(he)}</h3><p>${esc(r.description)}</p><div class="badges"><span class="badge">📍 ${esc(r.city)}</span><span class="badge">סבב ${r.current_round}</span></div><div class="item-actions"><button class="primary" data-viewoffers="${r.id}">צפה בהצעות (${c})</button></div></div>`}).join('');box.querySelectorAll('[data-viewoffers]').forEach(b=>b.onclick=()=>openOffers(b.dataset.viewoffers))}
 async function openOffers(id){state.selectedRequest=state.requests.find(r=>r.id===id);await renderOffers();show('#offersView')}
-async function renderOffers(){const r=state.selectedRequest;if(!r)return;const {data}=await db.from('quotes').select('*, business_profiles!quotes_professional_id_fkey(*)').eq('request_id',r.id).eq('round_no',r.current_round);state.offers=data||[];const he=catHe[r.category];$('#requestSummary').innerHTML=`<h3>${icon(he)} ${esc(r.description)}</h3><p>📍 ${esc(r.city)} · ${esc(r.desired_timing||'')} · סבב ${r.current_round}</p>`;$('#offersList').innerHTML=state.offers.length?state.offers.map(o=>{let price=o.quote_type==='range'?`${o.price_min||'?'}–${o.price_max||'?'} ₪`:o.quote_type==='inspection'?`בדיקה ${o.visit_fee||0} ₪`:`${o.price_min||'?'} ₪`;return `<div class="item"><h3>${esc(o.business_profiles?.business_name||'בעל מקצוע')}</h3><div class="price">${esc(price)}</div><p>${esc(o.quote_text||'')}</p><div class="badges"><span class="badge">🕒 ${esc(o.availability||'בתיאום')}</span></div></div>`}).join(''):'<div class="card"><h3>עדיין אין הצעות</h3><p>כשתוגש הצעה היא תופיע כאן.</p></div>';$('#moreOffersBtn').classList.toggle('hidden',state.offers.length<3)}
+async function renderOffers(){
+ const r=state.selectedRequest;if(!r)return;
+ const {data,error}=await db.from('quotes').select('*, business_profiles!quotes_professional_id_fkey(*)').eq('request_id',r.id).eq('round_no',r.current_round);
+ if(error){toast(error.message);return} state.offers=data||[];
+ const he=catHe[r.category], chosen=r.selected_quote_id;
+ $('#requestSummary').innerHTML=`<h3>${icon(he)} ${esc(r.description)}</h3><p>📍 ${esc(r.city)} · ${esc(r.desired_timing||'')} · סבב ${r.current_round}</p>${chosen?'<div class="badge">✅ נבחר בעל מקצוע — פרטי הקשר פתוחים</div>':''}`;
+ const cards=[];
+ for(const o of state.offers){
+   let price=o.quote_type==='range'?`${o.price_min||'?'}–${o.price_max||'?'} ₪`:o.quote_type==='inspection'?`בדיקה ${o.visit_fee||0} ₪`:`${o.price_min||'?'} ₪`;
+   let contact='';
+   if(chosen===o.id){
+     const {data:c}=await db.rpc('get_selected_contact',{p_request_id:r.id});
+     const row=Array.isArray(c)?c[0]:c;
+     if(row?.professional_phone){
+       const digits=String(row.professional_phone).replace(/\D/g,'');
+       const wa=digits.startsWith('0')?'972'+digits.slice(1):digits;
+       contact=`<div class="contact-box"><b>📞 אפשר ליצור קשר</b><p>${esc(row.business_name||'בעל המקצוע')} · ${esc(row.professional_phone)}</p><div class="item-actions"><a class="primary" href="tel:${esc(row.professional_phone)}">התקשר</a><a class="secondary" target="_blank" rel="noopener" href="https://wa.me/${wa}">WhatsApp</a></div></div>`;
+     }
+   }
+   const choose=!chosen?`<div class="item-actions"><button class="primary" data-choosequote="${o.id}">✓ בחר בהצעה ופתח פרטי קשר</button></div>`:(chosen===o.id?'<div class="badge">✅ ההצעה שנבחרה</div>':'');
+   cards.push(`<div class="item"><h3>${esc(o.business_profiles?.business_name||'בעל מקצוע')}</h3><div class="price">${esc(price)}</div><p>${esc(o.quote_text||'')}</p><div class="badges"><span class="badge">🕒 ${esc(o.availability||'בתיאום')}</span></div>${choose}${contact}</div>`);
+ }
+ $('#offersList').innerHTML=cards.length?cards.join(''):'<div class="card"><h3>עדיין אין הצעות</h3><p>כשתוגש הצעה היא תופיע כאן.</p></div>';
+ $('#offersList').querySelectorAll('[data-choosequote]').forEach(b=>b.onclick=async()=>{
+   if(!confirm('לבחור בהצעה הזו ולפתוח פרטי קשר ביניכם?'))return;
+   const {error}=await db.rpc('select_quote',{p_quote_id:b.dataset.choosequote});
+   if(error){toast('לא ניתן לבחור: '+error.message);return}
+   const {data:rr}=await db.from('requests').select('*').eq('id',r.id).single(); state.selectedRequest=rr;
+   toast('ההצעה נבחרה. פרטי הקשר נפתחו לשני הצדדים.'); await renderOffers();
+ });
+ $('#moreOffersBtn').classList.toggle('hidden',state.offers.length<3||!!chosen);
+}
 $('#moreOffersBtn').onclick=async()=>{const r=state.selectedRequest;const {error}=await db.from('requests').update({current_round:r.current_round+1}).eq('id',r.id);if(error){toast(error.message);return}r.current_round++;toast('נפתח סבב נוסף');await renderOffers()};
 async function renderJobs(){let q=db.from('requests').select('*').eq('status','open').order('created_at',{ascending:false});const filter=$('#jobFilter').value;if(filter!=='הכל')q=q.eq('category',catDb[filter]);const {data,error}=await q;if(error){toast(error.message);return}state.jobs=data||[];const box=$('#jobsList');box.innerHTML=state.jobs.length?state.jobs.map(j=>{const he=catHe[j.category];return `<div class="item"><h3>${icon(he)} ${esc(he)}</h3><p>${esc(j.description)}</p><div class="badges"><span class="badge">📍 ${esc(j.city)}</span><span class="badge">סבב ${j.current_round}</span></div><div class="item-actions"><button class="primary" data-offerjob="${j.id}">הגש הצעה</button></div></div>`}).join(''):'<div class="card"><h3>אין כרגע עבודות</h3></div>';box.querySelectorAll('[data-offerjob]').forEach(b=>b.onclick=()=>openOfferForm(b.dataset.offerjob))}
-$('#jobFilter').onchange=renderJobs;function openOfferForm(id){state.selectedJob=state.jobs.find(j=>j.id===id);const he=catHe[state.selectedJob.category];$('#jobSummary').innerHTML=`<h3>${icon(he)} ${esc(state.selectedJob.description)}</h3><p>📍 ${esc(state.selectedJob.city)}</p>`;show('#offerFormView')}
+$('#jobFilter').onchange=renderJobs;$('#wonJobsBtn').onclick=async()=>{await renderWonJobs();show('#wonJobsView')};
+async function renderWonJobs(){
+ const box=$('#wonJobsList'); box.innerHTML='<div class="card">טוען…</div>';
+ const {data,error}=await db.rpc('get_my_selected_jobs');
+ if(error){box.innerHTML='<div class="card"><h3>נדרשת הפעלת עדכון V23</h3><p>יש להריץ פעם אחת את הקובץ v23-contact-setup.sql ב-Supabase.</p></div>';return}
+ const rows=data||[];
+ box.innerHTML=rows.length?rows.map(j=>{
+   const digits=String(j.customer_phone||'').replace(/\D/g,'');
+   const wa=digits.startsWith('0')?'972'+digits.slice(1):digits;
+   return `<div class="item"><h3>${icon(catHe[j.category])} ${esc(j.description)}</h3><p>📍 ${esc(j.city||'')} · ${esc(j.desired_timing||'')}</p><div class="contact-box"><b>הלקוח בחר בהצעה שלך ✅</b><p>${esc(j.customer_name||'לקוח')} · ${esc(j.customer_phone||'')}</p><div class="item-actions"><a class="primary" href="tel:${esc(j.customer_phone||'')}">התקשר</a>${wa?`<a class="secondary" target="_blank" rel="noopener" href="https://wa.me/${wa}">WhatsApp</a>`:''}</div></div></div>`;
+ }).join(''):'<div class="card"><h3>עדיין אין לקוחות שבחרו בהצעה שלך</h3></div>';
+}
+function openOfferForm(id){state.selectedJob=state.jobs.find(j=>j.id===id);const he=catHe[state.selectedJob.category];$('#jobSummary').innerHTML=`<h3>${icon(he)} ${esc(state.selectedJob.description)}</h3><p>📍 ${esc(state.selectedJob.city)}</p>`;show('#offerFormView')}
 $('#priceType').onchange=()=>{$('#rangePriceWrap').classList.toggle('hidden',$('#priceType').value!=='range');$('#singlePriceWrap').classList.toggle('hidden',$('#priceType').value==='range')};
 $('#offerForm').onsubmit=async e=>{e.preventDefault();if(state.credits<1){toast('אין לך הצעות זמינות. רכוש 3 הצעות ב־15 ₪ דרך PayBox.');show('#paymentView');return}const type=$('#priceType').value,price=Number($('#offerPrice').value)||null,min=Number($('#offerMin').value)||null,max=Number($('#offerMax').value)||null;const args={p_request_id:state.selectedJob.id,p_quote_type:type,p_price_min:type==='fixed'?price:min,p_price_max:type==='range'?max:null,p_visit_fee:type==='inspection'?price:null,p_quote_text:$('#offerText').value.trim(),p_availability:[$('#offerDate').value,$('#offerTime').value].filter(Boolean).join(' ')};const {error}=await db.rpc('submit_quote',args);if(error){toast('לא נשלח: '+error.message);return}await loadMe();e.target.reset();toast('ההצעה נשלחה. נוכתה הצעה אחת מהחבילה.');await renderJobs();show('#proJobsView')};
 async function fillProfile(){const {data}=await db.from('business_profiles').select('*').eq('user_id',state.user.id).maybeSingle();$('#bizName').value=data?.business_name||'';$('#bizAbout').value=data?.description||'';$('#bizArea').value=(data?.service_areas||[]).join(', ');$('#bizPhone').value=data?.business_phone||''}
