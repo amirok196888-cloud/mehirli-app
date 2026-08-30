@@ -35,3 +35,9 @@ V13 PWA install:
 - Manifest uses stable id/start_url/scope for GitHub Pages.
 - Separate maskable icons for Android launcher.
 - Install as app (not shortcut) removes browser badge.
+
+
+V14 — Share Preview
+- Added Open Graph / WhatsApp / Facebook link preview metadata.
+- Added share-preview.png.
+- Cache bumped to V14.
