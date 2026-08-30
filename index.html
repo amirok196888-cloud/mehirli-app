@@ -26,7 +26,7 @@
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="apple-touch-icon" sizes="180x180" href="icon-192.png" />
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
-<link rel="stylesheet" href="style.css?v=17" />
+<link rel="stylesheet" href="style.css?v=24" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -57,7 +57,7 @@
     <h2>מה צריך לעשות היום?</h2>
     <p>ספר לנו מה אתה צריך וקבל עד 3 הצעות מבעלי מקצוע — בלי טלפונים ובלי לרדוף אחרי אף אחד.</p>
     <div class="role-switch"><button class="role active" data-role="customer">👤 אני לקוח</button><button class="role" data-role="pro">🧰 אני בעל מקצוע</button></div>
-    <button id="logoutBtn" class="logout-link">התנתק</button>
+    <div class="home-utility-row"><button id="notificationsBtn" class="notification-btn" type="button">🔔 התראות <span id="notificationBadge" class="notification-badge hidden">0</span></button><button id="enablePhoneNotificationsBtn" class="notification-permission hidden" type="button">אפשר התראות בטלפון</button></div><button id="logoutBtn" class="logout-link">התנתק</button>
   </div>
   <div id="customerHome">
     <div class="home-section-title"><b>בחר תחום</b><span>התחלה מהירה</span></div>
@@ -73,6 +73,12 @@
     <div class="credits card"><div><small>יתרת הצעות</small><strong id="creditCount">0</strong><span>הצעות זמינות</span></div><button id="buyCreditsBtn" class="primary">3 הצעות ב־15 ₪</button></div>
     <button id="profileBtn" class="secondary big">פרופיל העסק שלי</button><button id="jobsBtn" class="primary big">עבודות זמינות</button><button id="wonJobsBtn" class="secondary big">🤝 לקוחות שבחרו בי</button><button id="adminBtn" class="admin-entry big hidden">⚙️ ניהול מחירלי</button>
   </div>
+</section>
+
+<section id="notificationsView" class="view">
+  <div class="section-head"><button class="back">‹</button><h2>התראות</h2></div>
+  <div class="notifications-toolbar"><button id="markAllNotificationsBtn" class="secondary tiny" type="button">סמן הכול כנקרא</button></div>
+  <div id="notificationsList" class="stack"></div>
 </section>
 
 <section id="requestView" class="view"><div class="section-head"><button class="back">‹</button><h2>פרסום בקשה</h2></div>
@@ -125,5 +131,5 @@
   </div>
 </section>
 </main><div id="toast" class="toast"></div></div>
-<script src="app.js?v=23"></script>
+<script src="app.js?v=24"></script>
 </body></html>

@@ -2,22 +2,92 @@ const SUPABASE_URL='https://jgnbcrlvsudfqfofmvlx.supabase.co';
 const SUPABASE_KEY='sb_publishable_WnOhGZSlik7zqpO-cRYGvA_lOUz68Wp';
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const state={user:null,profile:null,role:'customer',credits:0,requests:[],offers:[],jobs:[],selectedRequest:null,selectedJob:null,isAdmin:false};
+const state={user:null,profile:null,role:'customer',credits:0,requests:[],offers:[],jobs:[],selectedRequest:null,selectedJob:null,isAdmin:false,notifications:[],unreadNotifications:0,notificationTimer:null,lastNotificationSeenAt:null};
 const catDb={'רכב':'vehicle','מיזוג':'air_conditioning','לבית':'home','הנדימן':'handyman'}, catHe={vehicle:'רכב',air_conditioning:'מיזוג',home:'לבית',handyman:'הנדימן'};
 function toast(t){const x=$('#toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),2600)}
 function show(id){$$('.view').forEach(v=>v.classList.remove('active'));$(id).classList.add('active');window.scrollTo({top:0,behavior:'smooth'})}
 function esc(s=''){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function icon(c){return({רכב:'🚗',מיזוג:'❄️',לבית:'🏠',הנדימן:'🔨'})[c]||'🧰'}
-async function loadMe(){if(!state.user)return;let {data:p}=await db.from('profiles').select('*').eq('id',state.user.id).maybeSingle();state.profile=p;state.role=p?.role==='professional'?'pro':'customer';let {data:c}=await db.from('credits').select('balance').eq('user_id',state.user.id).maybeSingle();state.credits=c?.balance||0;$('#creditCount').textContent=state.credits;let {data:a}=await db.from('admin_users').select('user_id').eq('user_id',state.user.id).maybeSingle();state.isAdmin=!!a;const ab=$('#adminBtn');if(ab)ab.classList.toggle('hidden',!state.isAdmin);$$('.role').forEach(b=>b.classList.toggle('active',b.dataset.role===state.role));$('#customerHome').classList.toggle('hidden',state.role!=='customer');$('#proHome').classList.toggle('hidden',state.role!=='pro')}
+
+function notificationIcon(kind){
+  return ({new_job:'🧰',new_quote:'💬',payment_pending:'💳',quote_selected:'🤝'})[kind]||'🔔'
+}
+function timeAgo(iso){
+  const d=new Date(iso), diff=Math.max(0,Date.now()-d.getTime()), m=Math.floor(diff/60000);
+  if(m<1)return 'עכשיו'; if(m<60)return `לפני ${m} דק׳`;
+  const h=Math.floor(m/60); if(h<24)return `לפני ${h} שעות`;
+  const days=Math.floor(h/24); return `לפני ${days} ימים`;
+}
+async function refreshNotifications(showSystem=false){
+  if(!state.user)return;
+  const {data,error}=await db.from('notifications').select('*').eq('user_id',state.user.id).order('created_at',{ascending:false}).limit(60);
+  if(error)return;
+  const rows=data||[];
+  if(showSystem && state.lastNotificationSeenAt && 'Notification' in window && Notification.permission==='granted'){
+    const fresh=rows.filter(n=>!n.is_read && new Date(n.created_at)>new Date(state.lastNotificationSeenAt));
+    fresh.slice(0,3).reverse().forEach(n=>{
+      try{new Notification(n.title||'מחירלי',{body:n.body||'',icon:'./icon-192.png',tag:`mehirli-${n.id}`})}catch{}
+    });
+  }
+  state.notifications=rows;
+  state.unreadNotifications=rows.filter(n=>!n.is_read).length;
+  state.lastNotificationSeenAt=rows[0]?.created_at||state.lastNotificationSeenAt||new Date().toISOString();
+  const badge=$('#notificationBadge');
+  if(badge){badge.textContent=state.unreadNotifications>99?'99+':state.unreadNotifications;badge.classList.toggle('hidden',state.unreadNotifications===0)}
+}
+function renderNotifications(){
+  const box=$('#notificationsList'); if(!box)return;
+  box.innerHTML=state.notifications.length?state.notifications.map(n=>`<div class="item notification-item ${n.is_read?'':'unread'}" data-notification="${n.id}" data-kind="${esc(n.kind)}">
+    <div class="notification-title-row"><b>${notificationIcon(n.kind)} ${esc(n.title||'התראה')}</b><span class="notification-time">${timeAgo(n.created_at)}</span></div>
+    <p>${esc(n.body||'')}</p>
+  </div>`).join(''):'<div class="card"><h3>אין כרגע התראות</h3><p>כאן יופיעו עבודות חדשות, הצעות ותשלומים.</p></div>';
+  box.querySelectorAll('[data-notification]').forEach(el=>el.onclick=async()=>{
+    const n=state.notifications.find(x=>x.id===el.dataset.notification);
+    if(n&&!n.is_read)await db.from('notifications').update({is_read:true}).eq('id',n.id);
+    await refreshNotifications(false);
+    const kind=el.dataset.kind;
+    if(kind==='new_job'){state.role='pro';await renderJobs();show('#proJobsView')}
+    else if(kind==='new_quote'){state.role='customer';await renderRequests();show('#requestsListView')}
+    else if(kind==='payment_pending'&&state.isAdmin){await loadAdmin();show('#adminView')}
+    else if(kind==='quote_selected'){await renderWonJobs();show('#wonJobsView')}
+    else {renderNotifications()}
+  });
+}
+async function openNotifications(){
+  await refreshNotifications(false);renderNotifications();show('#notificationsView')
+}
+function startNotificationPolling(){
+  if(state.notificationTimer)clearInterval(state.notificationTimer);
+  refreshNotifications(false);
+  state.notificationTimer=setInterval(()=>refreshNotifications(true),30000);
+}
+function stopNotificationPolling(){
+  if(state.notificationTimer){clearInterval(state.notificationTimer);state.notificationTimer=null}
+}
+
+async function loadMe(){if(!state.user)return;let {data:p}=await db.from('profiles').select('*').eq('id',state.user.id).maybeSingle();state.profile=p;state.role=p?.role==='professional'?'pro':'customer';let {data:c}=await db.from('credits').select('balance').eq('user_id',state.user.id).maybeSingle();state.credits=c?.balance||0;$('#creditCount').textContent=state.credits;let {data:a}=await db.from('admin_users').select('user_id').eq('user_id',state.user.id).maybeSingle();state.isAdmin=!!a;const ab=$('#adminBtn');if(ab)ab.classList.toggle('hidden',!state.isAdmin);$$('.role').forEach(b=>b.classList.toggle('active',b.dataset.role===state.role));$('#customerHome').classList.toggle('hidden',state.role!=='customer');$('#proHome').classList.toggle('hidden',state.role!=='pro');const np=$('#enablePhoneNotificationsBtn');if(np&&'Notification' in window)np.classList.toggle('hidden',Notification.permission!=='default');startNotificationPolling()}
 async function boot(){const {data:{session}}=await db.auth.getSession();state.user=session?.user||null;if(state.user){await loadMe();show('#homeView')}else show('#authView')}
 $('#authForm').onsubmit=async e=>{e.preventDefault();$('#authNote').textContent='מתחבר…';const {data,error}=await db.auth.signInWithPassword({email:$('#authEmail').value.trim(),password:$('#authPassword').value});if(error){$('#authNote').textContent=error.message;return}state.user=data.user;await loadMe();$('#authNote').textContent='';show('#homeView')};
 $('#signupBtn').onclick=async()=>{const email=$('#authEmail').value.trim(),password=$('#authPassword').value,name=$('#authName').value.trim(),role=$('#authRole').value;if(!email||password.length<6){toast('הזן אימייל וסיסמה של לפחות 6 תווים');return}const {data,error}=await db.auth.signUp({email,password,options:{data:{role,full_name:name}}});if(error){toast(error.message);return}if(data.session){state.user=data.user;await loadMe();show('#homeView');toast('ההרשמה הושלמה')}else{$('#authNote').textContent='נשלח אליך אימייל לאישור ההרשמה. לאחר האישור חזור והתחבר.'}};
-$('#logoutBtn').onclick=async()=>{await db.auth.signOut();state.user=null;show('#authView')};
+$('#logoutBtn').onclick=async()=>{stopNotificationPolling();await db.auth.signOut();state.user=null;show('#authView')};
 $$('.role').forEach(b=>b.onclick=()=>{state.role=b.dataset.role;$$('.role').forEach(x=>x.classList.toggle('active',x===b));$('#customerHome').classList.toggle('hidden',state.role!=='customer');$('#proHome').classList.toggle('hidden',state.role!=='pro')});
 $$('.category').forEach(b=>b.onclick=()=>{$('#reqCategory').value=b.dataset.category;show('#requestView')});
 $('#newRequestBtn').onclick=()=>show('#requestView');$('#myRequestsBtn').onclick=async()=>{await renderRequests();show('#requestsListView')};$('#jobsBtn').onclick=async()=>{await renderJobs();show('#proJobsView')};$('#profileBtn').onclick=async()=>{await fillProfile();show('#profileView')};$$('.back').forEach(b=>b.onclick=()=>show('#homeView'));
+$('#notificationsBtn').onclick=openNotifications;
+$('#markAllNotificationsBtn').onclick=async()=>{
+  const {error}=await db.from('notifications').update({is_read:true}).eq('user_id',state.user.id).eq('is_read',false);
+  if(error){toast(error.message);return}
+  await refreshNotifications(false);renderNotifications();toast('כל ההתראות סומנו כנקראו');
+};
+$('#enablePhoneNotificationsBtn').onclick=async()=>{
+  if(!('Notification' in window)){toast('התראות מערכת אינן נתמכות כאן');return}
+  const p=await Notification.requestPermission();
+  $('#enablePhoneNotificationsBtn').classList.toggle('hidden',p!=='default');
+  toast(p==='granted'?'התראות בטלפון הופעלו ✅':'לא ניתנה הרשאה להתראות');
+};
+
 const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;if(SpeechRecognition){const rec=new SpeechRecognition();rec.lang='he-IL';$('#voiceBtn').onclick=()=>{try{rec.start();$('#voiceStatus').textContent='מקשיב…'}catch{}};rec.onresult=e=>{$('#reqText').value=e.results[0][0].transcript||'';$('#voiceStatus').textContent='הטקסט נקלט.'}}else{$('#voiceBtn').disabled=true;$('#voiceStatus').textContent='הכתבה קולית אינה נתמכת בדפדפן הזה.'}
-$('#requestForm').onsubmit=async e=>{e.preventDefault();if(!state.user)return;const row={customer_id:state.user.id,category:catDb[$('#reqCategory').value],description:$('#reqText').value.trim(),city:$('#reqCity').value.trim(),desired_timing:[$('#reqDate').value,$('#reqTime').value].filter(Boolean).join(' ')};const {error}=await db.from('requests').insert(row);if(error){toast('שגיאה: '+error.message);return}e.target.reset();toast('הבקשה פורסמה בענן');await renderRequests();show('#requestsListView')};
+$('#requestForm').onsubmit=async e=>{e.preventDefault();if(!state.user)return;const row={customer_id:state.user.id,category:catDb[$('#reqCategory').value],description:$('#reqText').value.trim(),city:$('#reqCity').value.trim(),desired_timing:[$('#reqDate').value,$('#reqTime').value].filter(Boolean).join(' ')};const {error}=await db.from('requests').insert(row);if(error){toast('שגיאה: '+error.message);return}e.target.reset();toast('הבקשה פורסמה בענן');await refreshNotifications(false);await renderRequests();show('#requestsListView')};
 async function renderRequests(){const {data,error}=await db.from('requests').select('*').eq('customer_id',state.user.id).order('created_at',{ascending:false});if(error){toast(error.message);return}state.requests=data||[];const box=$('#requestsList');if(!state.requests.length){box.innerHTML='<div class="card"><h3>עדיין אין בקשות</h3></div>';return}const ids=state.requests.map(r=>r.id);let q=[];if(ids.length){const res=await db.from('quotes').select('request_id').in('request_id',ids);q=res.data||[]}box.innerHTML=state.requests.map(r=>{const c=q.filter(x=>x.request_id===r.id).length,he=catHe[r.category];return `<div class="item"><h3>${icon(he)} ${esc(he)}</h3><p>${esc(r.description)}</p><div class="badges"><span class="badge">📍 ${esc(r.city)}</span><span class="badge">סבב ${r.current_round}</span></div><div class="item-actions"><button class="primary" data-viewoffers="${r.id}">צפה בהצעות (${c})</button></div></div>`}).join('');box.querySelectorAll('[data-viewoffers]').forEach(b=>b.onclick=()=>openOffers(b.dataset.viewoffers))}
 async function openOffers(id){state.selectedRequest=state.requests.find(r=>r.id===id);await renderOffers();show('#offersView')}
 async function renderOffers(){
@@ -68,7 +138,7 @@ async function renderWonJobs(){
 }
 function openOfferForm(id){state.selectedJob=state.jobs.find(j=>j.id===id);const he=catHe[state.selectedJob.category];$('#jobSummary').innerHTML=`<h3>${icon(he)} ${esc(state.selectedJob.description)}</h3><p>📍 ${esc(state.selectedJob.city)}</p>`;show('#offerFormView')}
 $('#priceType').onchange=()=>{$('#rangePriceWrap').classList.toggle('hidden',$('#priceType').value!=='range');$('#singlePriceWrap').classList.toggle('hidden',$('#priceType').value==='range')};
-$('#offerForm').onsubmit=async e=>{e.preventDefault();if(state.credits<1){toast('אין לך הצעות זמינות. רכוש 3 הצעות ב־15 ₪ דרך PayBox.');show('#paymentView');return}const type=$('#priceType').value,price=Number($('#offerPrice').value)||null,min=Number($('#offerMin').value)||null,max=Number($('#offerMax').value)||null;const args={p_request_id:state.selectedJob.id,p_quote_type:type,p_price_min:type==='fixed'?price:min,p_price_max:type==='range'?max:null,p_visit_fee:type==='inspection'?price:null,p_quote_text:$('#offerText').value.trim(),p_availability:[$('#offerDate').value,$('#offerTime').value].filter(Boolean).join(' ')};const {error}=await db.rpc('submit_quote',args);if(error){toast('לא נשלח: '+error.message);return}await loadMe();e.target.reset();toast('ההצעה נשלחה. נוכתה הצעה אחת מהחבילה.');await renderJobs();show('#proJobsView')};
+$('#offerForm').onsubmit=async e=>{e.preventDefault();if(state.credits<1){toast('אין לך הצעות זמינות. רכוש 3 הצעות ב־15 ₪ דרך PayBox.');show('#paymentView');return}const type=$('#priceType').value,price=Number($('#offerPrice').value)||null,min=Number($('#offerMin').value)||null,max=Number($('#offerMax').value)||null;const args={p_request_id:state.selectedJob.id,p_quote_type:type,p_price_min:type==='fixed'?price:min,p_price_max:type==='range'?max:null,p_visit_fee:type==='inspection'?price:null,p_quote_text:$('#offerText').value.trim(),p_availability:[$('#offerDate').value,$('#offerTime').value].filter(Boolean).join(' ')};const {error}=await db.rpc('submit_quote',args);if(error){toast('לא נשלח: '+error.message);return}await loadMe();e.target.reset();toast('ההצעה נשלחה. נוכתה הצעה אחת מהחבילה.');await refreshNotifications(false);await renderJobs();show('#proJobsView')};
 async function fillProfile(){const {data}=await db.from('business_profiles').select('*').eq('user_id',state.user.id).maybeSingle();$('#bizName').value=data?.business_name||'';$('#bizAbout').value=data?.description||'';$('#bizArea').value=(data?.service_areas||[]).join(', ');$('#bizPhone').value=data?.business_phone||''}
 $('#profileForm').onsubmit=async e=>{e.preventDefault();const row={user_id:state.user.id,business_name:$('#bizName').value.trim(),description:$('#bizAbout').value.trim(),specialties:[$('#bizCategory').value],service_areas:$('#bizArea').value.split(',').map(x=>x.trim()).filter(Boolean),business_phone:$('#bizPhone').value.trim()};const {error}=await db.from('business_profiles').upsert(row);if(error){toast(error.message);return}await db.from('profiles').update({role:'professional'}).eq('id',state.user.id);await loadMe();toast('פרופיל העסק נשמר בענן');show('#homeView')};
 
@@ -119,7 +189,7 @@ $('#paidBtn').onclick=async()=>{
   const {error}=await db.from('payment_requests').insert({user_id:state.user.id,amount:15,credits:3,status:'pending'});
   if(error){toast('לא ניתן לסמן תשלום: '+error.message);return}
   await renderPaymentStatus();
-  toast('קיבלנו. אחרי אימות ב־PayBox יתווספו 3 הצעות אוטומטית.');
+  toast('קיבלנו. מנהל מחירלי קיבל התראה על התשלום.');
 };
 
 // PWA install flow (V13)

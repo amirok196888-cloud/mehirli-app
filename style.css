@@ -103,3 +103,18 @@ button,select,input,textarea{font:inherit}
 .install-app-btn{border:1px solid rgba(94,234,212,.28);background:rgba(13,148,136,.16);color:#c8fff5;border-radius:999px;padding:10px 14px;font-weight:800;white-space:nowrap;cursor:pointer}
 .install-app-btn:active{transform:scale(.98)}
 @media(max-width:520px){.topbar{gap:10px;align-items:center}.install-app-btn{font-size:13px;padding:9px 11px}.brand p{font-size:12px}}
+
+
+/* V24 — notifications */
+.home-utility-row{display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap;margin-top:8px}
+.notification-btn,.notification-permission{position:relative;border:1px solid rgba(142,189,223,.18);background:rgba(4,15,28,.42);color:#dce8f5;border-radius:999px;padding:9px 14px;font-weight:800;cursor:pointer}
+.notification-permission{color:#93e7c0;border-color:rgba(49,195,132,.22);background:rgba(49,195,132,.08)}
+.notification-badge{display:inline-grid;place-items:center;min-width:21px;height:21px;padding:0 6px;margin-right:5px;border-radius:999px;background:#ff5c6c;color:#fff;font-size:11px;font-weight:900;box-shadow:0 4px 12px rgba(255,92,108,.28)}
+.notifications-toolbar{display:flex;justify-content:flex-start;margin:-4px 0 12px}
+.notification-item{position:relative;cursor:pointer}
+.notification-item.unread{border-color:rgba(49,195,132,.38);background:linear-gradient(145deg,rgba(22,53,70,.97),rgba(10,30,46,.96))}
+.notification-item.unread:before{content:"";position:absolute;top:16px;left:16px;width:9px;height:9px;border-radius:50%;background:#4fe0a0;box-shadow:0 0 0 4px rgba(79,224,160,.10)}
+.notification-title-row{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.notification-title-row b{font-size:16px}
+.notification-time{font-size:11px;color:#7f92a9;white-space:nowrap}
+.notification-item p{padding-left:18px}
