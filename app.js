@@ -25,10 +25,26 @@ $('#moreOffersBtn').onclick=async()=>{const r=state.selectedRequest;const {error
 async function renderJobs(){let q=db.from('requests').select('*').eq('status','open').order('created_at',{ascending:false});const filter=$('#jobFilter').value;if(filter!=='הכל')q=q.eq('category',catDb[filter]);const {data,error}=await q;if(error){toast(error.message);return}state.jobs=data||[];const box=$('#jobsList');box.innerHTML=state.jobs.length?state.jobs.map(j=>{const he=catHe[j.category];return `<div class="item"><h3>${icon(he)} ${esc(he)}</h3><p>${esc(j.description)}</p><div class="badges"><span class="badge">📍 ${esc(j.city)}</span><span class="badge">סבב ${j.current_round}</span></div><div class="item-actions"><button class="primary" data-offerjob="${j.id}">הגש הצעה</button></div></div>`}).join(''):'<div class="card"><h3>אין כרגע עבודות</h3></div>';box.querySelectorAll('[data-offerjob]').forEach(b=>b.onclick=()=>openOfferForm(b.dataset.offerjob))}
 $('#jobFilter').onchange=renderJobs;function openOfferForm(id){state.selectedJob=state.jobs.find(j=>j.id===id);const he=catHe[state.selectedJob.category];$('#jobSummary').innerHTML=`<h3>${icon(he)} ${esc(state.selectedJob.description)}</h3><p>📍 ${esc(state.selectedJob.city)}</p>`;show('#offerFormView')}
 $('#priceType').onchange=()=>{$('#rangePriceWrap').classList.toggle('hidden',$('#priceType').value!=='range');$('#singlePriceWrap').classList.toggle('hidden',$('#priceType').value==='range')};
-$('#offerForm').onsubmit=async e=>{e.preventDefault();if(state.credits<1){toast('אין לך הצעות זמינות. רכישת 3 הצעות ב־15 ₪ תחובר בשלב הסליקה.');return}const type=$('#priceType').value,price=Number($('#offerPrice').value)||null,min=Number($('#offerMin').value)||null,max=Number($('#offerMax').value)||null;const args={p_request_id:state.selectedJob.id,p_quote_type:type,p_price_min:type==='fixed'?price:min,p_price_max:type==='range'?max:null,p_visit_fee:type==='inspection'?price:null,p_quote_text:$('#offerText').value.trim(),p_availability:[$('#offerDate').value,$('#offerTime').value].filter(Boolean).join(' ')};const {error}=await db.rpc('submit_quote',args);if(error){toast('לא נשלח: '+error.message);return}await loadMe();e.target.reset();toast('ההצעה נשלחה. נוכתה הצעה אחת מהחבילה.');await renderJobs();show('#proJobsView')};
+$('#offerForm').onsubmit=async e=>{e.preventDefault();if(state.credits<1){toast('אין לך הצעות זמינות. רכוש 3 הצעות ב־15 ₪ דרך PayBox.');show('#paymentView');return}const type=$('#priceType').value,price=Number($('#offerPrice').value)||null,min=Number($('#offerMin').value)||null,max=Number($('#offerMax').value)||null;const args={p_request_id:state.selectedJob.id,p_quote_type:type,p_price_min:type==='fixed'?price:min,p_price_max:type==='range'?max:null,p_visit_fee:type==='inspection'?price:null,p_quote_text:$('#offerText').value.trim(),p_availability:[$('#offerDate').value,$('#offerTime').value].filter(Boolean).join(' ')};const {error}=await db.rpc('submit_quote',args);if(error){toast('לא נשלח: '+error.message);return}await loadMe();e.target.reset();toast('ההצעה נשלחה. נוכתה הצעה אחת מהחבילה.');await renderJobs();show('#proJobsView')};
 async function fillProfile(){const {data}=await db.from('business_profiles').select('*').eq('user_id',state.user.id).maybeSingle();$('#bizName').value=data?.business_name||'';$('#bizAbout').value=data?.description||'';$('#bizArea').value=(data?.service_areas||[]).join(', ');$('#bizPhone').value=data?.business_phone||''}
 $('#profileForm').onsubmit=async e=>{e.preventDefault();const row={user_id:state.user.id,business_name:$('#bizName').value.trim(),description:$('#bizAbout').value.trim(),specialties:[$('#bizCategory').value],service_areas:$('#bizArea').value.split(',').map(x=>x.trim()).filter(Boolean),business_phone:$('#bizPhone').value.trim()};const {error}=await db.from('business_profiles').upsert(row);if(error){toast(error.message);return}await db.from('profiles').update({role:'professional'}).eq('id',state.user.id);await loadMe();toast('פרופיל העסק נשמר בענן');show('#homeView')};
-$('#buyCreditsBtn').onclick=()=>toast('הסליקה עדיין לא מחוברת. לא נוספו הצעות.');
+const PAYBOX_URL='https://links.payboxapp.com/OSHVo5yi15b';
+function paymentKey(){return state.user?`mehirli_payment_pending_${state.user.id}`:'mehirli_payment_pending'}
+function renderPaymentStatus(){
+  const box=$('#paymentStatus'); if(!box)return;
+  const pending=localStorage.getItem(paymentKey());
+  if(!pending){box.classList.add('hidden');box.innerHTML='';return}
+  const d=new Date(pending);
+  box.classList.remove('hidden');
+  box.innerHTML=`<b>התשלום סומן כמבוצע</b><span>ממתין לאישור לאחר בדיקה ב־PayBox${isNaN(d)?'':` · ${d.toLocaleString('he-IL')}`}</span>`;
+}
+$('#buyCreditsBtn').onclick=()=>{renderPaymentStatus();show('#paymentView')};
+$('#payboxPayBtn').href=PAYBOX_URL;
+$('#paidBtn').onclick=()=>{
+  localStorage.setItem(paymentKey(),new Date().toISOString());
+  renderPaymentStatus();
+  toast('קיבלנו את הסימון. ההצעות יתווספו לאחר אימות התשלום ב־PayBox.');
+};
 boot();
 
 if ('serviceWorker' in navigator) window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));

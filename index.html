@@ -7,7 +7,7 @@
 <title>מחירלי</title>
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="apple-touch-icon" href="icon-192.png" />
-<link rel="stylesheet" href="style.css?v=8" />
+<link rel="stylesheet" href="style.css?v=9" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -75,6 +75,18 @@
 <label>פירוט ההצעה<textarea id="offerText" placeholder="מה כולל המחיר, תנאים, אחריות וכו'"></textarea></label><label>תאריך הגעה<input id="offerDate" type="date" required /></label><label>שעת הגעה<input id="offerTime" type="time" required /></label><button class="primary big" type="submit">שלח הצעה (הצעה אחת)</button></form></section>
 <section id="profileView" class="view"><div class="section-head"><button class="back">‹</button><h2>פרופיל העסק</h2></div><form id="profileForm" class="card form-card">
 <label>שם העסק<input id="bizName" required /></label><label>תחום עיקרי<select id="bizCategory"><option>רכב</option><option>מיזוג</option><option>לבית</option><option>הנדימן</option></select></label><label>על העסק<textarea id="bizAbout"></textarea></label><label>אזורי שירות<input id="bizArea" placeholder="נתניה, חדרה והשרון" /></label><label>טלפון<input id="bizPhone" inputmode="tel" /></label><button class="primary big" type="submit">שמור פרופיל</button></form></section>
+
+<section id="paymentView" class="view"><div class="section-head"><button class="back">‹</button><h2>רכישת הצעות</h2></div>
+  <div class="payment-card card">
+    <div class="payment-badge">PayBox</div>
+    <h3>3 הצעות ב־15 ₪</h3>
+    <p>התשלום מתבצע בקבוצת PayBox של מחירלי. לאחר התשלום חזור לכאן ולחץ על „שילמתי”.</p>
+    <a id="payboxPayBtn" class="primary big pay-link" href="https://links.payboxapp.com/OSHVo5yi15b" target="_blank" rel="noopener">פתח PayBox לתשלום 15 ₪</a>
+    <button id="paidBtn" class="secondary big" type="button">✓ שילמתי ב־PayBox</button>
+    <div id="paymentStatus" class="payment-status hidden"></div>
+    <p class="note">ההצעות יתווספו לאחר אימות התשלום. לחיצה על „שילמתי” אינה מוסיפה הצעות אוטומטית.</p>
+  </div>
+</section>
 </main><div id="toast" class="toast"></div></div>
-<script src="app.js?v=8"></script>
+<script src="app.js?v=9"></script>
 </body></html>

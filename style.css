@@ -85,3 +85,12 @@ button,select,input,textarea{font:inherit}
 #proHome .credits strong{color:#76e6b6}
 #proHome .big{border-radius:19px}
 @media(max-width:430px){.home-hero{padding:22px 17px 17px;border-radius:26px}.home-hero h2{font-size:29px}#homeView .category{min-height:136px;border-radius:23px}#homeView .category span{width:46px;height:46px;border-radius:15px}}
+
+
+/* V9 — simple PayBox payment flow */
+.payment-card{padding:22px 18px;text-align:center;border-radius:28px;background:linear-gradient(145deg,rgba(18,44,66,.96),rgba(10,24,41,.97))}
+.payment-badge{display:inline-flex;padding:8px 14px;border-radius:999px;background:rgba(39,170,231,.14);border:1px solid rgba(65,188,241,.26);color:#7ad5ff;font-weight:900;letter-spacing:.2px;margin-bottom:10px}
+.payment-card h3{font-size:29px;margin:4px 0 8px}.payment-card p{color:var(--muted);line-height:1.55;margin:8px 0 18px}
+.pay-link{display:flex;align-items:center;justify-content:center;text-decoration:none}
+.payment-status{margin:14px 0 6px;padding:14px;border-radius:17px;background:rgba(49,195,132,.10);border:1px solid rgba(49,195,132,.22);text-align:right}
+.payment-status b,.payment-status span{display:block}.payment-status b{color:#8ee7bf;margin-bottom:4px}.payment-status span{color:#b8c7d9;font-size:12px;line-height:1.45}
