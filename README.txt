@@ -30,5 +30,8 @@ V9 — PayBox פשוט
 - אין שימוש ב-PayBox לעסקים, API או סליקה חיצונית בגרסה זו.
 - Cache עודכן ל-mehirli-v9 כדי למנוע הצגת גרסה ישנה.
 
-
-גרסה 13: כפתור ניהול מחירלי זמין למנהל גם במצב לקוח וגם במצב בעל מקצוע.
+V13 PWA install:
+- Dedicated Install App button when browser supports install prompt.
+- Manifest uses stable id/start_url/scope for GitHub Pages.
+- Separate maskable icons for Android launcher.
+- Install as app (not shortcut) removes browser badge.

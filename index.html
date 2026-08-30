@@ -6,13 +6,14 @@
 <meta name="theme-color" content="#101827" />
 <title>מחירלי</title>
 <link rel="manifest" href="manifest.webmanifest" />
-<link rel="apple-touch-icon" href="icon-192.png" />
-<link rel="stylesheet" href="style.css?v=12" />
+<link rel="apple-touch-icon" sizes="180x180" href="icon-192.png" />
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+<link rel="stylesheet" href="style.css?v=13" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <div class="app-shell">
-<header class="topbar"><div class="brand"><img class="logo logo-img" src="icon-192.png" alt="מחירלי" /><div><h1>מחירלי</h1><p>מבקשים. מקבלים הצעות. בוחרים.</p></div></div></header>
+<header class="topbar"><div class="brand"><img class="logo logo-img" src="icon-192.png" alt="מחירלי" /><div><h1>מחירלי</h1><p>מבקשים. מקבלים הצעות. בוחרים.</p></div></div><button id="installAppBtn" class="install-app-btn hidden" type="button">⬇ התקן אפליקציה</button></header>
 <main>
 <section id="authView" class="view active">
   <div class="hero card"><h2>כניסה למחירלי</h2><p>המקום שבו בקשה אחת יכולה להביא לך כמה הצעות — פשוט, מהיר ובמקום אחד.</p></div>
@@ -52,9 +53,8 @@
   </div>
   <div id="proHome" class="hidden">
     <div class="credits card"><div><small>יתרת הצעות</small><strong id="creditCount">0</strong><span>הצעות זמינות</span></div><button id="buyCreditsBtn" class="primary">3 הצעות ב־15 ₪</button></div>
-    <button id="profileBtn" class="secondary big">פרופיל העסק שלי</button><button id="jobsBtn" class="primary big">עבודות זמינות</button>
+    <button id="profileBtn" class="secondary big">פרופיל העסק שלי</button><button id="jobsBtn" class="primary big">עבודות זמינות</button><button id="adminBtn" class="admin-entry big hidden">⚙️ ניהול מחירלי</button>
   </div>
-  <button id="adminBtn" class="admin-entry big hidden">⚙️ ניהול מחירלי</button>
 </section>
 
 <section id="requestView" class="view"><div class="section-head"><button class="back">‹</button><h2>פרסום בקשה</h2></div>
@@ -90,8 +90,8 @@
     <button class="admin-tab" data-admin-tab="customers">לקוחות</button>
   </div>
   <div id="adminPaymentsPanel" class="admin-panel"><div id="adminPaymentsList" class="stack"></div></div>
-  <div id="adminProsPanel" class="admin-panel hidden"><div class="admin-search-wrap"><input id="adminProsSearch" class="admin-search" type="search" placeholder="חיפוש בעל מקצוע לפי שם, עסק או אימייל" autocomplete="off" /></div><div id="adminProsList" class="stack"></div></div>
-  <div id="adminCustomersPanel" class="admin-panel hidden"><div class="admin-search-wrap"><input id="adminCustomersSearch" class="admin-search" type="search" placeholder="חיפוש לקוח לפי שם או אימייל" autocomplete="off" /></div><div id="adminCustomersList" class="stack"></div></div>
+  <div id="adminProsPanel" class="admin-panel hidden"><div id="adminProsList" class="stack"></div></div>
+  <div id="adminCustomersPanel" class="admin-panel hidden"><div id="adminCustomersList" class="stack"></div></div>
 </section>
 
 <section id="paymentView" class="view"><div class="section-head"><button class="back">‹</button><h2>רכישת הצעות</h2></div>
@@ -106,5 +106,5 @@
   </div>
 </section>
 </main><div id="toast" class="toast"></div></div>
-<script src="app.js?v=14"></script>
+<script src="app.js?v=13"></script>
 </body></html>

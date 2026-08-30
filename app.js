@@ -43,13 +43,9 @@ async function loadAdmin(){
   const rows=users||[];
   const pros=rows.filter(x=>x.role==='professional');
   const customers=rows.filter(x=>x.role!=='professional');
-  state.adminPros=pros; state.adminCustomers=customers;
   const userCard=u=>`<div class="item"><h3>${esc(u.display_name||u.business_name||u.email||'משתמש')}</h3><p>${esc(u.email||'')}</p><div class="admin-user-meta"><span class="badge">${u.role==='professional'?'🧰 בעל מקצוע':'👤 לקוח'}</span>${u.business_name?`<span class="badge">${esc(u.business_name)}</span>`:''}<span class="badge">${Number(u.credit_balance||0)} הצעות</span></div></div>`;
-  const matches=(u,q)=>{q=(q||'').trim().toLowerCase();if(!q)return true;return [u.display_name,u.business_name,u.email,u.business_phone].some(v=>String(v||'').toLowerCase().includes(q))};
-  const renderPeople=(kind)=>{const isPro=kind==='pros';const input=$(isPro?'#adminProsSearch':'#adminCustomersSearch');const list=$(isPro?'#adminProsList':'#adminCustomersList');const source=isPro?(state.adminPros||[]):(state.adminCustomers||[]);const filtered=source.filter(u=>matches(u,input?.value||''));list.innerHTML=filtered.length?filtered.map(userCard).join(''):`<div class="card"><h3>${(input?.value||'').trim()?'לא נמצאו תוצאות':(isPro?'אין בעלי מקצוע':'אין לקוחות')}</h3></div>`};
-  renderPeople('pros'); renderPeople('customers');
-  const ps=$('#adminProsSearch'); if(ps&&!ps.dataset.bound){ps.addEventListener('input',()=>renderPeople('pros'));ps.dataset.bound='1'}
-  const cs=$('#adminCustomersSearch'); if(cs&&!cs.dataset.bound){cs.addEventListener('input',()=>renderPeople('customers'));cs.dataset.bound='1'}
+  $('#adminProsList').innerHTML=pros.length?pros.map(userCard).join(''):'<div class="card"><h3>אין בעלי מקצוע</h3></div>';
+  $('#adminCustomersList').innerHTML=customers.length?customers.map(userCard).join(''):'<div class="card"><h3>אין לקוחות</h3></div>';
   const {data:payments,error:pe}=await db.rpc('admin_list_pending_payments');
   if(pe){toast(pe.message);return}
   const pb=$('#adminPaymentsList');
@@ -82,6 +78,38 @@ $('#paidBtn').onclick=async()=>{
   await renderPaymentStatus();
   toast('קיבלנו. אחרי אימות ב־PayBox יתווספו 3 הצעות אוטומטית.');
 };
+
+// PWA install flow (V13)
+let deferredInstallPrompt=null;
+const installBtn=document.querySelector('#installAppBtn');
+const isStandalone=()=>window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true;
+function updateInstallButton(){
+  if(!installBtn)return;
+  installBtn.classList.toggle('hidden',isStandalone());
+}
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();
+  deferredInstallPrompt=e;
+  if(installBtn) installBtn.classList.remove('hidden');
+});
+window.addEventListener('appinstalled',()=>{
+  deferredInstallPrompt=null;
+  if(installBtn) installBtn.classList.add('hidden');
+  toast('מחירלי הותקנה כאפליקציה ✅');
+});
+if(installBtn) installBtn.onclick=async()=>{
+  if(isStandalone()){toast('מחירלי כבר מותקנת כאפליקציה');return}
+  if(deferredInstallPrompt){
+    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt=null;
+    updateInstallButton();
+    return;
+  }
+  toast('בתפריט הדפדפן בחר ״התקנת אפליקציה״ — לא ״הוסף קיצור דרך״.');
+};
+updateInstallButton();
+
 boot();
 
 if ('serviceWorker' in navigator) window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
