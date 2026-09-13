@@ -26,7 +26,7 @@
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="apple-touch-icon" sizes="180x180" href="icon-192.png" />
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
-<link rel="stylesheet" href="style.css?v=31" />
+<link rel="stylesheet" href="style.css?v=32" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -111,7 +111,7 @@
     <label>המחיר שאשלח ללקוח<input id="proQuotedPrice" type="number" min="0" step="10" required /></label>
     <label>מקדמה מבוקשת<input id="proDepositAmount" type="number" min="0" step="10" value="0" /></label>
     <label>מה כלול בהצעה?<textarea id="proQuoteScope" placeholder="עבודה, חומרים, פינוי, אחריות ומה לא כלול"></textarea></label>
-    <button class="primary big" type="submit">שמור והמשך לשליחה ב־WhatsApp</button>
+    <button class="primary big" type="submit">שמור והמשך לשליחת PDF ב־WhatsApp</button>
   </form>
 </section>
 
@@ -204,5 +204,6 @@
   </div>
 </section>
 </main><div id="toast" class="toast"></div></div>
-<script src="app.js?v=31"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"></script>
+<script src="app.js?v=32"></script>
 </body></html>
