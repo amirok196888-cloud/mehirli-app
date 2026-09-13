@@ -26,7 +26,7 @@
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="apple-touch-icon" sizes="180x180" href="icon-192.png" />
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
-<link rel="stylesheet" href="style.css?v=28" />
+<link rel="stylesheet" href="style.css?v=30" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -137,7 +137,7 @@
     <label>מקצוע עיקרי<select id="settingsTrade"><option value="handyman">היינדמן</option><option value="electrician">חשמלאי</option><option value="home">שירותי בית</option><option value="air_conditioning">מיזוג</option></select></label>
     <div class="two-cols"><label>מחיר שעה רצוי<input id="settingsHourlyRate" type="number" min="0" step="10" /></label><label>עלות נסיעה רגילה<input id="settingsTravelCost" type="number" min="0" step="10" /></label></div>
     <div class="two-cols"><label>הוצאות עסק באחוזים<input id="settingsOverhead" type="number" min="0" max="60" step="1" /></label><label>מרווח לבלת״מ באחוזים<input id="settingsRisk" type="number" min="0" max="60" step="1" /></label></div>
-    <label>קישור התשלום האישי שלך<input id="settingsPaymentLink" type="url" placeholder="קישור מקארדקום, ביט, PayBox או חברת הסליקה שלך" /></label>
+    <label>קישור התשלום האישי שלך (אופציונלי)<input id="settingsPaymentLink" type="url" placeholder="קישור מקארדקום, ביט, PayBox או חברת הסליקה שלך" /></label>
     <div id="electricianSettings" class="electrician-only hidden"><div class="two-cols"><label>מספר רישיון חשמלאי<input id="settingsLicenseNumber" /></label><label>תוקף הרישיון<input id="settingsLicenseExpiry" type="date" /></label></div></div>
     <label>תנאים שיופיעו בהצעה<textarea id="settingsQuoteTerms" placeholder="תוקף ההצעה, אחריות, מה אינו כלול"></textarea></label>
     <p class="note">הכסף מתקבל ישירות בחשבון הסליקה שלך. מחירלי אינה מחזיקה בכספי הלקוח.</p>
@@ -203,5 +203,5 @@
   </div>
 </section>
 </main><div id="toast" class="toast"></div></div>
-<script src="app.js?v=29"></script>
+<script src="app.js?v=30"></script>
 </body></html>
