@@ -26,7 +26,7 @@
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="apple-touch-icon" sizes="180x180" href="icon-192.png" />
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
-<link rel="stylesheet" href="style.css?v=30" />
+<link rel="stylesheet" href="style.css?v=31" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -62,6 +62,7 @@
       <div><span class="eyebrow">מרכז העבודה שלי</span><h3>מהפנייה ועד התשלום</h3><p>תמחור, הצעה, תיעוד ורווח אמיתי — במקום אחד.</p></div>
       <button id="proWorkspaceBtn" class="primary big">פתח מרכז עבודה</button>
     </div>
+    <button id="whatsappSetupNotice" class="whatsapp-setup big hidden" type="button">💬 להפעלת WhatsApp ללקוחות — הוסף מספר עסקי</button>
     <button id="profileBtn" class="secondary big">פרופיל העסק שלי</button><button id="adminBtn" class="admin-entry big hidden">⚙️ כניסת מנהל — כל הקטגוריות</button>
   </div>
 </section>
@@ -110,7 +111,7 @@
     <label>המחיר שאשלח ללקוח<input id="proQuotedPrice" type="number" min="0" step="10" required /></label>
     <label>מקדמה מבוקשת<input id="proDepositAmount" type="number" min="0" step="10" value="0" /></label>
     <label>מה כלול בהצעה?<textarea id="proQuoteScope" placeholder="עבודה, חומרים, פינוי, אחריות ומה לא כלול"></textarea></label>
-    <button class="primary big" type="submit">שמור והכן הצעה ללקוח</button>
+    <button class="primary big" type="submit">שמור והמשך לשליחה ב־WhatsApp</button>
   </form>
 </section>
 
@@ -174,7 +175,7 @@
 <div id="singlePriceWrap"><label>מחיר / דמי בדיקה ₪<input id="offerPrice" inputmode="numeric" /></label></div><div id="rangePriceWrap" class="hidden two-cols"><label>מ־₪<input id="offerMin" inputmode="numeric" /></label><label>עד ₪<input id="offerMax" inputmode="numeric" /></label></div>
 <label>פירוט ההצעה<textarea id="offerText" placeholder="מה כולל המחיר, תנאים, אחריות וכו'"></textarea></label><label>תאריך הגעה<input id="offerDate" type="date" required /></label><label>שעת הגעה<input id="offerTime" type="time" required /></label><button class="primary big" type="submit">שלח הצעה (הצעה אחת)</button></form></section>
 <section id="profileView" class="view"><div class="section-head"><button class="back">‹</button><h2>פרופיל העסק</h2></div><form id="profileForm" class="card form-card">
-<label>שם העסק<input id="bizName" required /></label><label>תחום עיקרי<select id="bizCategory"><option>היינדמן</option><option>חשמלאי</option><option>לבית</option><option>מיזוג</option></select></label><label>על העסק<textarea id="bizAbout"></textarea></label><label>אזורי שירות<input id="bizArea" placeholder="נתניה, חדרה והשרון" /></label><label>טלפון<input id="bizPhone" inputmode="tel" /></label><button class="primary big" type="submit">שמור פרופיל</button></form></section>
+<label>שם העסק<input id="bizName" required /></label><label>תחום עיקרי<select id="bizCategory"><option>היינדמן</option><option>חשמלאי</option><option>לבית</option><option>מיזוג</option></select></label><label>על העסק<textarea id="bizAbout"></textarea></label><label>אזורי שירות<input id="bizArea" placeholder="נתניה, חדרה והשרון" /></label><label>מספר WhatsApp של העסק<input id="bizPhone" inputmode="tel" required placeholder="לדוגמה: 0501234567" /></label><p class="note">המספר יוצג ללקוח בהצעת המחיר כדי שיוכל לחזור אליך ב־WhatsApp.</p><button class="primary big" type="submit">שמור פרופיל</button></form></section>
 
 <section id="adminView" class="view"><div class="section-head"><button class="back">‹</button><div><span class="eyebrow">גישה מלאה</span><h2>ניהול מחירלי</h2></div></div>
   <div class="admin-grid">
@@ -203,5 +204,5 @@
   </div>
 </section>
 </main><div id="toast" class="toast"></div></div>
-<script src="app.js?v=30"></script>
+<script src="app.js?v=31"></script>
 </body></html>
