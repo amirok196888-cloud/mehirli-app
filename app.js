@@ -2,15 +2,51 @@ const SUPABASE_URL='https://jgnbcrlvsudfqfofmvlx.supabase.co';
 const SUPABASE_KEY='sb_publishable_WnOhGZSlik7zqpO-cRYGvA_lOUz68Wp';
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const state={user:null,profile:null,role:'customer',credits:0,requests:[],offers:[],jobs:[],selectedRequest:null,selectedJob:null,isAdmin:false,notifications:[],unreadNotifications:0,notificationTimer:null,lastNotificationSeenAt:null};
-const catDb={'רכב':'vehicle','מיזוג':'air_conditioning','לבית':'home','הנדימן':'handyman'}, catHe={vehicle:'רכב',air_conditioning:'מיזוג',home:'לבית',handyman:'הנדימן'};
+const state={user:null,profile:null,role:'customer',credits:0,requests:[],offers:[],jobs:[],selectedRequest:null,selectedJob:null,isAdmin:false,notifications:[],unreadNotifications:0,notificationTimer:null,lastNotificationSeenAt:null,proSettings:null,proJobs:[],selectedProJob:null,proJobMedia:[]};
+const catDb={'רכב':'vehicle','מיזוג':'air_conditioning','לבית':'home','הנדימן':'handyman','היינדמן':'handyman','חשמלאי':'electrician'}, catHe={vehicle:'רכב',air_conditioning:'מיזוג',home:'לבית',handyman:'היינדמן',electrician:'חשמלאי'};
+const tradeHe={handyman:'היינדמן',electrician:'חשמלאי'};
+const jobStatusHe={lead:'פנייה חדשה',quoted:'הצעה נשלחה',approved:'ההצעה אושרה',scheduled:'נקבע מועד',in_progress:'בביצוע',completed:'העבודה הסתיימה',paid:'שולם',cancelled:'בוטל'};
+const TRADE_JOBS={
+  handyman:[['general','תיקון כללי'],['tv','תליית טלוויזיה'],['shelves','מדפים ותלייה'],['furniture','הרכבת רהיטים'],['door','דלת / ארון'],['sealing','איטום וסיליקון'],['faucet','ברז / סיפון'],['blinds','תריס / וילון'],['other','אחר']],
+  electrician:[['general','בדיקה / תקלה כללית'],['outlet','שקע או מפסק'],['lighting','תאורה'],['short','קצר / הפסקת חשמל'],['panel','לוח חשמל'],['boiler','דוד חשמל'],['three_phase','תלת־פאזי'],['ev','עמדת טעינה'],['other','אחר']]
+};
+const ANALYSIS_RULES={
+  handyman:{
+    base:{questions:['מה בדיוק צריך לבצע ובכמה נקודות?','האם יש תמונות ברורות של האזור?','האם הלקוח מספק את החלקים או שהם באחריות בעל המקצוע?','האם קיימת חניה וגישה נוחה לציוד?'],tools:['מטר וסמן','כלי עבודה ידניים','ציוד מגן בסיסי']},
+    tv:{keys:['טלוויזיה','טלויזיה','מסך'],questions:['מה גודל ומשקל הטלוויזיה?','מאיזה חומר הקיר: בטון, בלוק או גבס?','האם קיימת זרוע מתאימה והאם נדרש להסתיר כבלים?'],tools:['פלס','מקדחה ודיבלים מתאימים','גלאי תשתיות בקיר']},
+    shelves:{keys:['מדף','מדפים','תמונה','מראה','וילון'],questions:['מה משקל הפריט ומה מידותיו?','מה סוג הקיר?','באיזה גובה ומיקום נדרשת ההתקנה?'],tools:['פלס','מקדחה','דיבלים ועוגנים לפי סוג הקיר']},
+    furniture:{keys:['ארון','שידה','מיטה','רהיט','איקאה','הרכב'],questions:['מה הדגם וכמה אריזות קיימות?','האם המקום פנוי להרכבה?','האם נדרש פינוי אריזות או קיבוע לקיר?'],tools:['מברגה וביטים','פטיש גומי','ציוד לקיבוע בטיחותי']},
+    door:{keys:['דלת','ציר','מגירה','ארון'],questions:['האם נדרש כיוון, החלפת ציר או תיקון נגרות?','אפשר לקבל צילום של הצירים והנזק?','האם יש חלק חלופי מתאים?'],tools:['סט מברגים וביטים','פלס','ברגים וצירים נפוצים']},
+    sealing:{keys:['סיליקון','איטום','רטיבות'],questions:['היכן מופיעה הרטיבות ומתי?','האם צריך להסיר איטום ישן?','מה אורך האזור לטיפול?'],tools:['מסיר סיליקון','אקדח סיליקון','חומר איטום מתאים']},
+    faucet:{keys:['ברז','סיפון','נזילה'],questions:['האם קיימת נזילה פעילה כרגע?','האם הלקוח רכש ברז או סיפון חדש?','האם ברזי הניתוק המקומיים תקינים?'],tools:['מפתח מתכוונן','טפלון ואטמים','דלי וסמרטוטים']}
+  },
+  electrician:{
+    base:{questions:['האם התקלה בכל הבית או בנקודה אחת?','מתי התקלה התחילה והאם היא חוזרת?','אפשר לקבל צילום ברור של הלוח והאזור?','האם בוצע שינוי או חיבור מכשיר חדש לפני התקלה?'],tools:['ציוד מדידה תקני','ציוד מגן אישי','חלקי חילוף מתאימים'],warnings:['עבודת חשמל תבוצע רק בידי בעל רישיון חשמלאי מתאים.']},
+    outlet:{keys:['שקע','מפסק'],questions:['האם מדובר בהחלפה במקום קיים או בנקודה חדשה?','איזה מכשיר מיועד להתחבר לנקודה?','מה המרחק המשוער מהלוח או מנקודת ההזנה?'],tools:['בודק מתח וציוד מדידה','שקע או מפסק תקני','חיווט ואביזרי חיבור מתאימים']},
+    lighting:{keys:['מנורה','תאורה','גוף תאורה','ספוט'],questions:['כמה גופי תאורה ומה משקלם?','האם קיימת נקודת חשמל תקינה במקום?','מה גובה התקרה והאם נדרש סולם מיוחד?'],tools:['ציוד מדידה','סולם מתאים','מחברים ואמצעי קיבוע']},
+    short:{keys:['קצר','קופץ','נפל החשמל','אין חשמל','שרוף','ניצוצות','עשן'],questions:['איזה מפסק בלוח קופץ?','האם יש ריח שרוף, עשן או סימני חום?','האם התקלה מופיעה עם מכשיר מסוים?'],tools:['מודד בידוד','רב־מודד','ציוד איתור תקלה'],warnings:['אם יש עשן, ניצוצות או ריח שרוף — יש להרחיק אנשים, לנתק הזנה רק אם ניתן לעשות זאת בבטחה ולהזמין חשמלאי מוסמך בדחיפות.']},
+    panel:{keys:['לוח','מאמ״ת','פחת','מפסק ראשי'],questions:['האם מדובר בתיקון, הרחבה או החלפת לוח?','מה גודל החיבור ומספר המעגלים?','האם יש סימני חימום או מקום פנוי בלוח?'],tools:['ציוד מדידה ובדיקת פחת','סימון מעגלים','רכיבים תקניים התואמים ללוח']},
+    boiler:{keys:['דוד','חימום מים'],questions:['האם הדוד אינו מחמם כלל או שהחימום חלקי?','האם המפסק או הפחת קופצים?','האם קיימת נזילה באזור הדוד?'],tools:['ציוד מדידה','תרמוסטט וגוף חימום לפי הדגם','אטם מתאים']},
+    ev:{keys:['עמדת טעינה','רכב חשמלי','טעינה'],questions:['מה דגם הרכב והעמדה?','מה גודל החיבור הקיים ומה המרחק מהלוח?','האם קיימת תשתית ייעודית וחניה פרטית?'],tools:['ציוד בדיקה מתאים לעמדת טעינה','הגנות וחיווט לפי התכנון','סימון ותיעוד המעגל']}
+  }
+};
 function toast(t){const x=$('#toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),2600)}
 function show(id){$$('.view').forEach(v=>v.classList.remove('active'));$(id).classList.add('active');window.scrollTo({top:0,behavior:'smooth'})}
 function esc(s=''){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
-function icon(c){return({רכב:'🚗',מיזוג:'❄️',לבית:'🏠',הנדימן:'🔨'})[c]||'🧰'}
+function icon(c){return({רכב:'🚗',מיזוג:'❄️',לבית:'🏠',הנדימן:'🔨',היינדמן:'🔨',חשמלאי:'⚡'})[c]||'🧰'}
+function money(n){return `${Math.round(Number(n)||0).toLocaleString('he-IL')} ₪`}
+function numberValue(selector){return Number($(selector)?.value)||0}
+function round10(n){return Math.ceil(Math.max(0,n)/10)*10}
+function waNumber(phone=''){const digits=String(phone).replace(/\D/g,'');return digits.startsWith('0')?'972'+digits.slice(1):digits}
+function formatDateTime(value){if(!value)return 'לא נקבע';try{return new Date(value).toLocaleString('he-IL',{dateStyle:'short',timeStyle:'short'})}catch{return value}}
+function currentPublicQuoteToken(){const token=new URLSearchParams(location.search).get('quote');return /^[0-9a-f-]{36}$/i.test(token||'')?token:null}
+function safeHttpUrl(value=''){
+  if(!value)return '';
+  try{const url=new URL(value);return ['https:','http:'].includes(url.protocol)?url.href:''}catch{return ''}
+}
 
 function notificationIcon(kind){
-  return ({new_job:'🧰',new_quote:'💬',payment_pending:'💳',quote_selected:'🤝'})[kind]||'🔔'
+  return ({new_job:'🧰',new_quote:'💬',payment_pending:'💳',quote_selected:'🤝',direct_quote_approved:'✅'})[kind]||'🔔'
 }
 function timeAgo(iso){
   const d=new Date(iso), diff=Math.max(0,Date.now()-d.getTime()), m=Math.floor(diff/60000);
@@ -50,6 +86,7 @@ function renderNotifications(){
     else if(kind==='new_quote'){state.role='customer';await renderRequests();show('#requestsListView')}
     else if(kind==='payment_pending'&&state.isAdmin){await loadAdmin();show('#adminView')}
     else if(kind==='quote_selected'){await renderWonJobs();show('#wonJobsView')}
+    else if(kind==='direct_quote_approved'){state.role='pro';await openProWorkspace()}
     else {renderNotifications()}
   });
 }
@@ -66,13 +103,13 @@ function stopNotificationPolling(){
 }
 
 async function loadMe(){if(!state.user)return;let {data:p}=await db.from('profiles').select('*').eq('id',state.user.id).maybeSingle();state.profile=p;state.role=p?.role==='professional'?'pro':'customer';let {data:c}=await db.from('credits').select('balance').eq('user_id',state.user.id).maybeSingle();state.credits=c?.balance||0;$('#creditCount').textContent=state.credits;let {data:a}=await db.from('admin_users').select('user_id').eq('user_id',state.user.id).maybeSingle();state.isAdmin=!!a;const ab=$('#adminBtn');if(ab)ab.classList.toggle('hidden',!state.isAdmin);$$('.role').forEach(b=>b.classList.toggle('active',b.dataset.role===state.role));$('#customerHome').classList.toggle('hidden',state.role!=='customer');$('#proHome').classList.toggle('hidden',state.role!=='pro');const np=$('#enablePhoneNotificationsBtn');if(np&&'Notification' in window)np.classList.toggle('hidden',Notification.permission!=='default');startNotificationPolling()}
-async function boot(){const {data:{session}}=await db.auth.getSession();state.user=session?.user||null;if(state.user){await loadMe();show('#homeView')}else show('#authView')}
+async function boot(){const quoteToken=currentPublicQuoteToken();if(quoteToken){await loadPublicQuote(quoteToken);return}const {data:{session}}=await db.auth.getSession();state.user=session?.user||null;if(state.user){await loadMe();show('#homeView')}else show('#authView')}
 $('#authForm').onsubmit=async e=>{e.preventDefault();$('#authNote').textContent='מתחבר…';const {data,error}=await db.auth.signInWithPassword({email:$('#authEmail').value.trim(),password:$('#authPassword').value});if(error){$('#authNote').textContent=error.message;return}state.user=data.user;await loadMe();$('#authNote').textContent='';show('#homeView')};
 $('#signupBtn').onclick=async()=>{const email=$('#authEmail').value.trim(),password=$('#authPassword').value,name=$('#authName').value.trim(),role=$('#authRole').value;if(!email||password.length<6){toast('הזן אימייל וסיסמה של לפחות 6 תווים');return}const {data,error}=await db.auth.signUp({email,password,options:{data:{role,full_name:name}}});if(error){toast(error.message);return}if(data.session){state.user=data.user;await loadMe();show('#homeView');toast('ההרשמה הושלמה')}else{$('#authNote').textContent='נשלח אליך אימייל לאישור ההרשמה. לאחר האישור חזור והתחבר.'}};
 $('#logoutBtn').onclick=async()=>{stopNotificationPolling();await db.auth.signOut();state.user=null;show('#authView')};
 $$('.role').forEach(b=>b.onclick=()=>{state.role=b.dataset.role;$$('.role').forEach(x=>x.classList.toggle('active',x===b));$('#customerHome').classList.toggle('hidden',state.role!=='customer');$('#proHome').classList.toggle('hidden',state.role!=='pro')});
 $$('.category').forEach(b=>b.onclick=()=>{$('#reqCategory').value=b.dataset.category;show('#requestView')});
-$('#newRequestBtn').onclick=()=>show('#requestView');$('#myRequestsBtn').onclick=async()=>{await renderRequests();show('#requestsListView')};$('#jobsBtn').onclick=async()=>{await renderJobs();show('#proJobsView')};$('#profileBtn').onclick=async()=>{await fillProfile();show('#profileView')};$$('.back').forEach(b=>b.onclick=()=>show('#homeView'));
+$('#newRequestBtn').onclick=()=>show('#requestView');$('#myRequestsBtn').onclick=async()=>{await renderRequests();show('#requestsListView')};$('#jobsBtn').onclick=async()=>{await renderJobs();show('#proJobsView')};$('#profileBtn').onclick=async()=>{await fillProfile();show('#profileView')};$$('.back').forEach(b=>b.onclick=async()=>{if(b.dataset.backTo==='workspace'){await openProWorkspace()}else show('#homeView')});
 $('#notificationsBtn').onclick=openNotifications;
 $('#markAllNotificationsBtn').onclick=async()=>{
   const {error}=await db.from('notifications').update({is_read:true}).eq('user_id',state.user.id).eq('is_read',false);
@@ -141,6 +178,144 @@ $('#priceType').onchange=()=>{$('#rangePriceWrap').classList.toggle('hidden',$('
 $('#offerForm').onsubmit=async e=>{e.preventDefault();if(state.credits<1){toast('אין לך הצעות זמינות. רכוש 3 הצעות ב־15 ₪ דרך PayBox.');show('#paymentView');return}const type=$('#priceType').value,price=Number($('#offerPrice').value)||null,min=Number($('#offerMin').value)||null,max=Number($('#offerMax').value)||null;const args={p_request_id:state.selectedJob.id,p_quote_type:type,p_price_min:type==='fixed'?price:min,p_price_max:type==='range'?max:null,p_visit_fee:type==='inspection'?price:null,p_quote_text:$('#offerText').value.trim(),p_availability:[$('#offerDate').value,$('#offerTime').value].filter(Boolean).join(' ')};const {error}=await db.rpc('submit_quote',args);if(error){toast('לא נשלח: '+error.message);return}await loadMe();e.target.reset();toast('ההצעה נשלחה. נוכתה הצעה אחת מהחבילה.');await refreshNotifications(false);await renderJobs();show('#proJobsView')};
 async function fillProfile(){const {data}=await db.from('business_profiles').select('*').eq('user_id',state.user.id).maybeSingle();$('#bizName').value=data?.business_name||'';$('#bizAbout').value=data?.description||'';$('#bizArea').value=(data?.service_areas||[]).join(', ');$('#bizPhone').value=data?.business_phone||''}
 $('#profileForm').onsubmit=async e=>{e.preventDefault();const row={user_id:state.user.id,business_name:$('#bizName').value.trim(),description:$('#bizAbout').value.trim(),specialties:[$('#bizCategory').value],service_areas:$('#bizArea').value.split(',').map(x=>x.trim()).filter(Boolean),business_phone:$('#bizPhone').value.trim()};const {error}=await db.from('business_profiles').upsert(row);if(error){toast(error.message);return}await db.from('profiles').update({role:'professional'}).eq('id',state.user.id);await loadMe();toast('פרופיל העסק נשמר בענן');show('#homeView')};
+
+// V25 — מרכז עבודה חכם להיינדמן ולחשמלאי
+function defaultProSettings(){return {trade:'handyman',default_hourly_rate:180,default_travel_cost:50,overhead_percent:15,risk_percent:15,payment_link:'',quote_terms:'המחיר כפוף לכך שתיאור העבודה והתמונות שנמסרו מלאים ומדויקים. עבודה נוספת תבוצע רק לאחר אישור הלקוח.',electrician_license_number:'',electrician_license_expiry:null}}
+async function loadProSettings(){
+  const fallback=defaultProSettings();
+  const {data,error}=await db.from('professional_settings').select('*').eq('professional_id',state.user.id).maybeSingle();
+  if(error){state.proSettings=fallback;return fallback}
+  state.proSettings={...fallback,...(data||{})};return state.proSettings
+}
+function renderJobTypeOptions(trade,selected=''){
+  const select=$('#proJobType');if(!select)return;
+  select.innerHTML=(TRADE_JOBS[trade]||TRADE_JOBS.handyman).map(([value,label])=>`<option value="${value}" ${value===selected?'selected':''}>${label}</option>`).join('')
+}
+function setTrade(trade){
+  $('#proJobTrade').value=trade;$$('.trade-choice').forEach(b=>b.classList.toggle('active',b.dataset.trade===trade));renderJobTypeOptions(trade);
+}
+function calculateProPrice(updateQuote=true){
+  const s=state.proSettings||defaultProSettings(),hours=Math.max(.25,numberValue('#proLaborHours')),rate=numberValue('#proHourlyRate'),materials=numberValue('#proMaterialsCost'),travel=numberValue('#proTravelCost'),assistant=numberValue('#proAssistantCost');
+  const base=hours*rate+materials+travel+assistant;
+  const floor=round10(base*(1+(Number(s.overhead_percent)||0)/100));
+  const recommended=round10(floor*(1+(Number(s.risk_percent)||0)/100));
+  $('#priceFloor').textContent=money(floor);$('#recommendedPrice').textContent=money(recommended);
+  $('#priceFloor').dataset.value=String(floor);$('#recommendedPrice').dataset.value=String(recommended);
+  const quoted=$('#proQuotedPrice');if(updateQuote&&quoted&&!quoted.dataset.edited)quoted.value=recommended||'';
+  return {floor,recommended}
+}
+function uniq(items){return [...new Set(items.filter(Boolean))]}
+function analyzeProfessionalJob(render=true){
+  const trade=$('#proJobTrade').value||'handyman',description=$('#proJobDescription').value.trim(),selectedType=$('#proJobType').value,rules=ANALYSIS_RULES[trade],questions=[...(rules.base.questions||[])],tools=[...(rules.base.tools||[])],warnings=[...(rules.base.warnings||[])];
+  Object.entries(rules).forEach(([key,rule])=>{if(key==='base')return;const matches=key===selectedType||(rule.keys||[]).some(word=>description.includes(word));if(matches){questions.push(...(rule.questions||[]));tools.push(...(rule.tools||[]));warnings.push(...(rule.warnings||[]))}});
+  const result={questions:uniq(questions),tools:uniq(tools),warnings:uniq(warnings)};state.lastProAnalysis=result;
+  if(render){const box=$('#smartAnalysis');box.classList.remove('hidden');box.innerHTML=`<div class="analysis-head"><b>בדיקת הכנה לעבודה</b><span>${trade==='electrician'?'⚡ חשמלאי':'🔨 היינדמן'}</span></div><div class="analysis-columns"><div><h4>שאלות ללקוח</h4><ul>${result.questions.map(q=>`<li>${esc(q)}</li>`).join('')}</ul></div><div><h4>ציוד שכדאי לבדוק</h4><ul>${result.tools.map(t=>`<li>${esc(t)}</li>`).join('')}</ul></div></div>${result.warnings.length?`<div class="safety-box">${result.warnings.map(w=>`<p>⚠️ ${esc(w)}</p>`).join('')}</div>`:''}`}
+  return result
+}
+async function openNewProJob(){
+  const s=await loadProSettings();$('#proJobForm').reset();$('#proQuotedPrice').dataset.edited='';setTrade(s.trade||'handyman');
+  $('#proHourlyRate').value=s.default_hourly_rate||180;$('#proTravelCost').value=s.default_travel_cost||0;$('#proLaborHours').value=1;$('#proMaterialsCost').value=0;$('#proAssistantCost').value=0;$('#proDepositAmount').value=0;$('#smartAnalysis').classList.add('hidden');calculateProPrice(true);show('#proJobFormView')
+}
+async function loadProJobs(){
+  const {data,error}=await db.from('pro_jobs').select('*').eq('professional_id',state.user.id).order('created_at',{ascending:false});
+  if(error){toast('מרכז העבודה עדיין אינו מוכן: '+error.message);state.proJobs=[];return []}
+  state.proJobs=data||[];return state.proJobs
+}
+function proJobMatchesFilter(job,filter){if(filter==='open')return !['paid','cancelled'].includes(job.status);if(filter==='unpaid')return job.payment_status!=='paid'&&!['lead','cancelled'].includes(job.status);if(filter==='paid')return job.payment_status==='paid';return true}
+function renderProJobCards(){
+  const box=$('#proJobsList'),filter=$('#proJobStatusFilter').value,rows=state.proJobs.filter(j=>proJobMatchesFilter(j,filter));
+  box.innerHTML=rows.length?rows.map(j=>`<button class="job-card" data-pro-job="${j.id}"><div class="job-card-top"><span class="trade-badge ${j.trade}">${j.trade==='electrician'?'⚡':'🔨'} ${tradeHe[j.trade]||''}</span><span class="status-pill status-${j.status}">${jobStatusHe[j.status]||j.status}</span></div><h3>${esc(j.customer_name)}</h3><p>${esc(j.description)}</p><div class="job-card-bottom"><span>📍 ${esc(j.city||'לא צוין')}</span><strong>${money(j.quoted_price||j.recommended_price)}</strong></div></button>`).join(''):'<div class="empty-state card"><span>🧰</span><h3>עדיין אין עבודות במרכז</h3><p>הכנס את הפנייה הבאה ותקבל תמחור, שאלות הכנה והצעה מוכנה.</p></div>';
+  box.querySelectorAll('[data-pro-job]').forEach(b=>b.onclick=()=>openProJobDetail(b.dataset.proJob))
+}
+async function openProWorkspace(){
+  if(!state.user)return;await Promise.all([loadProSettings(),loadProJobs()]);
+  const open=state.proJobs.filter(j=>!['paid','cancelled'].includes(j.status)).length,unpaid=state.proJobs.filter(j=>j.payment_status!=='paid'&&!['lead','cancelled'].includes(j.status)).length;
+  const start=new Date();start.setDate(1);start.setHours(0,0,0,0);const revenue=state.proJobs.filter(j=>j.payment_status==='paid'&&new Date(j.updated_at)>=start).reduce((sum,j)=>sum+Number(j.actual_paid||0),0);
+  $('#proOpenCount').textContent=open;$('#proUnpaidCount').textContent=unpaid;$('#proMonthRevenue').textContent=money(revenue);renderProJobCards();show('#proWorkspaceView')
+}
+$('#proWorkspaceBtn').onclick=openProWorkspace;$('#newProJobBtn').onclick=openNewProJob;$('#proJobStatusFilter').onchange=renderProJobCards;
+$$('.trade-choice').forEach(b=>b.onclick=()=>{setTrade(b.dataset.trade);analyzeProfessionalJob(false)});
+['#proLaborHours','#proHourlyRate','#proMaterialsCost','#proTravelCost','#proAssistantCost'].forEach(id=>$(id).addEventListener('input',()=>calculateProPrice(true)));
+$('#proQuotedPrice').addEventListener('input',()=>$('#proQuotedPrice').dataset.edited='1');
+$('#analyzeJobBtn').onclick=()=>{if(!$('#proJobDescription').value.trim()){toast('כתוב קודם מה הלקוח ביקש');return}analyzeProfessionalJob(true);calculateProPrice(true)};
+if(SpeechRecognition){const proRec=new SpeechRecognition();proRec.lang='he-IL';$('#proVoiceBtn').onclick=()=>{try{proRec.start();$('#proVoiceStatus').textContent='מקשיב…'}catch{}};proRec.onresult=e=>{$('#proJobDescription').value=e.results[0][0].transcript||'';$('#proVoiceStatus').textContent='הטקסט נקלט. עכשיו אפשר לנתח את העבודה.'}}else{$('#proVoiceBtn').disabled=true;$('#proVoiceStatus').textContent='הכתבה קולית אינה נתמכת בדפדפן הזה.'}
+$('#proJobForm').onsubmit=async e=>{
+  e.preventDefault();const analysis=analyzeProfessionalJob(false),pricing=calculateProPrice(false),scheduled=$('#proScheduledAt').value;
+  const row={professional_id:state.user.id,trade:$('#proJobTrade').value,customer_name:$('#proCustomerName').value.trim(),customer_phone:$('#proCustomerPhone').value.trim(),city:$('#proCustomerCity').value.trim(),job_type:$('#proJobType').value,description:$('#proJobDescription').value.trim(),scheduled_at:scheduled?new Date(scheduled).toISOString():null,labor_hours:numberValue('#proLaborHours'),hourly_rate:numberValue('#proHourlyRate'),materials_cost:numberValue('#proMaterialsCost'),travel_cost:numberValue('#proTravelCost'),assistant_cost:numberValue('#proAssistantCost'),overhead_percent:Number(state.proSettings?.overhead_percent)||0,risk_percent:Number(state.proSettings?.risk_percent)||0,price_floor:pricing.floor,recommended_price:pricing.recommended,quoted_price:numberValue('#proQuotedPrice'),deposit_amount:numberValue('#proDepositAmount'),quote_scope:$('#proQuoteScope').value.trim(),quote_terms:state.proSettings?.quote_terms||'',customer_questions:analysis.questions,tools_needed:analysis.tools,warnings:analysis.warnings,status:'quoted',payment_status:'unpaid'};
+  const {data,error}=await db.from('pro_jobs').insert(row).select('*').single();if(error){toast('לא נשמר: '+error.message);return}state.selectedProJob=data;toast('העבודה נשמרה וההצעה מוכנה');await loadProJobs();await renderProJobDetail();show('#proJobDetailView')
+};
+function quoteUrl(job){return `${location.origin}${location.pathname}?quote=${job.public_token}`}
+function openWhatsapp(phone,message){const number=waNumber(phone);if(!number){toast('חסר מספר טלפון ללקוח');return}window.open(`https://wa.me/${number}?text=${encodeURIComponent(message)}`,'_blank','noopener')}
+function questionMessage(job){return `שלום ${job.customer_name}, כדי להכין את העבודה והמחיר בצורה מדויקת אשמח למענה קצר:\n\n${(job.customer_questions||[]).map((q,i)=>`${i+1}. ${q}`).join('\n')}\n\nתודה, ${state.profile?.full_name||state.proSettings?.business_name||'מחירלי'}`}
+function quoteMessage(job){return `שלום ${job.customer_name}, הכנתי עבורך הצעת מחיר עבור: ${job.description}\n\nמחיר: ${money(job.quoted_price)}${Number(job.deposit_amount)>0?`\nמקדמה: ${money(job.deposit_amount)}`:''}\n\nלצפייה ואישור ההצעה:\n${quoteUrl(job)}`}
+function paymentMessage(job){const amount=Math.max(0,Number(job.quoted_price||0)-Number(job.actual_paid||0)),link=safeHttpUrl(state.proSettings?.payment_link);return `שלום ${job.customer_name}, לתשלום ${money(amount)} עבור העבודה: ${job.description}.${link?`\n\nקישור מאובטח לתשלום:\n${link}`:''}\n\nתודה.`}
+async function copyText(value,success='הקישור הועתק'){
+  try{await navigator.clipboard.writeText(value);toast(success)}catch{const ta=document.createElement('textarea');ta.value=value;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast(success)}
+}
+function renderList(items,empty='לא הוגדר'){return items?.length?`<ul>${items.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:`<p class="muted">${empty}</p>`}
+async function renderProJobDetail(){
+  const j=state.selectedProJob;if(!j)return;await loadProSettings();$('#jobDetailTitle').textContent=j.customer_name;
+  const below=Number(j.quoted_price)<Number(j.price_floor),remaining=Math.max(0,Number(j.quoted_price||0)-Number(j.actual_paid||0));
+  $('#jobDetailContent').innerHTML=`<div class="job-hero card"><div class="job-card-top"><span class="trade-badge ${j.trade}">${j.trade==='electrician'?'⚡':'🔨'} ${tradeHe[j.trade]}</span><span class="status-pill status-${j.status}">${jobStatusHe[j.status]||j.status}</span></div><h3>${esc(j.description)}</h3><p>👤 ${esc(j.customer_name)} · 📍 ${esc(j.city||'לא צוין')} · 🗓️ ${esc(formatDateTime(j.scheduled_at))}</p><div class="contact-actions"><a class="secondary" href="tel:${esc(j.customer_phone)}">📞 התקשר</a><button class="secondary" data-job-action="questions">💬 שלח שאלות</button></div></div>
+  <div class="detail-price-grid"><div class="card"><small>מחיר מינימום</small><strong>${money(j.price_floor)}</strong></div><div class="card featured"><small>הצעה ללקוח</small><strong>${money(j.quoted_price)}</strong></div><div class="card"><small>יתרה לתשלום</small><strong>${money(remaining)}</strong></div></div>
+  ${below?'<div class="price-warning">⚠️ המחיר ללקוח נמוך ממחיר המינימום שחושב לעבודה.</div>':''}
+  <div class="card"><h3>הצעת המחיר</h3><p>${esc(j.quote_scope||'לא נוסף פירוט להצעה.')}</p>${j.quote_terms?`<div class="terms-box">${esc(j.quote_terms)}</div>`:''}<div class="action-grid"><button class="primary" data-job-action="quote">שלח הצעה בווטסאפ</button><button class="secondary" data-job-action="copy">העתק קישור ללקוח</button><button class="secondary" data-job-action="print">הדפס / שמור PDF</button><button class="secondary" data-job-action="payment">שלח בקשת תשלום</button></div></div>
+  <div class="card"><label class="inline-select">מצב העבודה<select id="jobStatusSelect">${Object.entries(jobStatusHe).map(([v,l])=>`<option value="${v}" ${j.status===v?'selected':''}>${l}</option>`).join('')}</select></label></div>
+  <div class="analysis-display card"><div><h3>שאלות ללקוח</h3>${renderList(j.customer_questions)}</div><div><h3>ציוד והכנה</h3>${renderList(j.tools_needed)}</div>${j.warnings?.length?`<div class="safety-box">${j.warnings.map(w=>`<p>⚠️ ${esc(w)}</p>`).join('')}</div>`:''}</div>`;
+  $('#actualHours').value=j.actual_hours||j.labor_hours||'';$('#actualMaterials').value=j.actual_materials_cost??j.materials_cost??'';$('#actualPaid').value=j.actual_paid||'';renderActualProfit(j);
+  $('#jobDetailContent').querySelector('[data-job-action="questions"]').onclick=()=>openWhatsapp(j.customer_phone,questionMessage(j));
+  $('#jobDetailContent').querySelector('[data-job-action="quote"]').onclick=()=>openWhatsapp(j.customer_phone,quoteMessage(j));
+  $('#jobDetailContent').querySelector('[data-job-action="copy"]').onclick=()=>copyText(quoteUrl(j));
+  $('#jobDetailContent').querySelector('[data-job-action="print"]').onclick=()=>printJobQuote(j);
+  $('#jobDetailContent').querySelector('[data-job-action="payment"]').onclick=()=>{if(!safeHttpUrl(state.proSettings?.payment_link)){toast('יש להוסיף קודם קישור תשלום תקין בהגדרות');return}openWhatsapp(j.customer_phone,paymentMessage(j))};
+  $('#jobStatusSelect').onchange=async e=>{const status=e.target.value,payment_status=status==='paid'?'paid':j.payment_status;const {error}=await db.from('pro_jobs').update({status,payment_status}).eq('id',j.id).eq('professional_id',state.user.id);if(error){toast(error.message);return}j.status=status;j.payment_status=payment_status;toast('מצב העבודה עודכן');await loadProJobs();await renderProJobDetail()};
+  await loadJobMedia(j.id)
+}
+async function openProJobDetail(id){state.selectedProJob=state.proJobs.find(j=>j.id===id);if(!state.selectedProJob){const {data}=await db.from('pro_jobs').select('*').eq('id',id).eq('professional_id',state.user.id).single();state.selectedProJob=data}await renderProJobDetail();show('#proJobDetailView')}
+function renderActualProfit(job){
+  const box=$('#actualProfitResult'),paid=Number(job.actual_paid||0),hours=Number(job.actual_hours||0);if(!paid||!hours){box.classList.add('hidden');box.innerHTML='';return}
+  const profit=Number(job.actual_profit ?? (paid-Number(job.actual_materials_cost||0)-Number(job.travel_cost||0)-Number(job.assistant_cost||0)-paid*(Number(job.overhead_percent||0)/100))),perHour=Number(job.actual_hourly_profit ?? profit/hours);
+  box.classList.remove('hidden');box.innerHTML=`<small>הרווח המחושב לאחר חומרים, נסיעה והוצאות העסק</small><strong>${money(profit)}</strong><span>${money(perHour)} לשעה</span>`
+}
+$('#actualProfitForm').onsubmit=async e=>{
+  e.preventDefault();const j=state.selectedProJob,hours=numberValue('#actualHours'),materials=numberValue('#actualMaterials'),paid=numberValue('#actualPaid');if(!hours||!paid){toast('יש להזין זמן וסכום שהתקבלו');return}
+  const profit=paid-materials-Number(j.travel_cost||0)-Number(j.assistant_cost||0)-paid*(Number(j.overhead_percent||0)/100),perHour=profit/hours;
+  const changes={actual_hours:hours,actual_materials_cost:materials,actual_paid:paid,actual_profit:profit,actual_hourly_profit:perHour,status:'paid',payment_status:'paid'};
+  const {data,error}=await db.from('pro_jobs').update(changes).eq('id',j.id).eq('professional_id',state.user.id).select('*').single();if(error){toast(error.message);return}state.selectedProJob=data;toast('העבודה נסגרה והרווח חושב');await loadProJobs();await renderProJobDetail()
+};
+function printJobQuote(j){
+  const win=window.open('','_blank');if(!win){toast('יש לאפשר חלונות קופצים כדי לשמור PDF');return}
+  const business=state.profile?.full_name||'בעל מקצוע',license=j.trade==='electrician'&&state.proSettings?.electrician_license_number?`<p>רישיון חשמלאי: ${esc(state.proSettings.electrician_license_number)}</p>`:'';
+  win.document.write(`<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><title>הצעת מחיר - ${esc(j.customer_name)}</title><style>body{font-family:Arial,sans-serif;max-width:760px;margin:40px auto;padding:24px;color:#16202b}header{border-bottom:3px solid #22a773;padding-bottom:18px}h1{margin:0}section{margin:28px 0}.price{font-size:34px;font-weight:800;color:#16885c}.terms{background:#f3f6f8;padding:16px;border-radius:12px;white-space:pre-wrap}footer{margin-top:50px;border-top:1px solid #ccd5dc;padding-top:15px;color:#667}button{padding:10px 18px}@media print{button{display:none}}</style></head><body><header><h1>הצעת מחיר</h1><p>${esc(business)}</p>${license}</header><section><b>לכבוד: ${esc(j.customer_name)}</b><p>${esc(j.description)}</p><p>${esc(j.quote_scope||'')}</p><div class="price">${money(j.quoted_price)}</div>${Number(j.deposit_amount)>0?`<p>מקדמה: ${money(j.deposit_amount)}</p>`:''}</section><section class="terms">${esc(j.quote_terms||'')}</section><footer>הופק באמצעות מחירלי · ${new Date().toLocaleDateString('he-IL')}</footer><button onclick="print()">הדפס / שמור PDF</button></body></html>`);win.document.close()
+}
+async function loadJobMedia(jobId){
+  const {data,error}=await db.from('pro_job_media').select('*').eq('job_id',jobId).eq('professional_id',state.user.id).order('created_at');if(error){$('#jobMediaGrid').innerHTML='<p class="muted">לא ניתן לטעון תמונות.</p>';return}
+  state.proJobMedia=data||[];const rendered=[];for(const m of state.proJobMedia){const {data:signed}=await db.storage.from('job-media').createSignedUrl(m.storage_path,3600);rendered.push({...m,url:signed?.signedUrl||''})}
+  $('#jobMediaGrid').innerHTML=rendered.length?rendered.map(m=>`<figure><img src="${esc(m.url)}" alt="${m.phase==='before'?'לפני העבודה':'אחרי העבודה'}"><figcaption>${m.phase==='before'?'לפני':'אחרי'} <button data-delete-media="${m.id}">מחק</button></figcaption></figure>`).join(''):'<p class="muted">עדיין לא נוספו תמונות.</p>';
+  $('#jobMediaGrid').querySelectorAll('[data-delete-media]').forEach(b=>b.onclick=async()=>{const m=state.proJobMedia.find(x=>x.id===b.dataset.deleteMedia);if(!m||!confirm('למחוק את התמונה מתיק העבודה?'))return;await db.storage.from('job-media').remove([m.storage_path]);await db.from('pro_job_media').delete().eq('id',m.id).eq('professional_id',state.user.id);await loadJobMedia(jobId)})
+}
+async function uploadJobPhoto(file,phase){
+  const j=state.selectedProJob;if(!j||!file)return;if(!file.type.startsWith('image/')){toast('אפשר להעלות תמונות בלבד');return}if(file.size>8*1024*1024){toast('התמונה גדולה מדי. עד 8MB');return}
+  const ext=(file.name.split('.').pop()||'jpg').replace(/[^a-z0-9]/gi,'').toLowerCase(),path=`${state.user.id}/${j.id}/${crypto.randomUUID()}.${ext}`;toast('מעלה תמונה…');
+  const {error:uploadError}=await db.storage.from('job-media').upload(path,file,{cacheControl:'3600',upsert:false,contentType:file.type});if(uploadError){toast('ההעלאה נכשלה: '+uploadError.message);return}
+  const {error}=await db.from('pro_job_media').insert({job_id:j.id,professional_id:state.user.id,storage_path:path,phase});if(error){await db.storage.from('job-media').remove([path]);toast('התמונה לא נשמרה: '+error.message);return}toast('התמונה נשמרה בתיק העבודה');await loadJobMedia(j.id)
+}
+$('#beforePhotoInput').onchange=e=>{const file=e.target.files?.[0];uploadJobPhoto(file,'before');e.target.value=''};$('#afterPhotoInput').onchange=e=>{const file=e.target.files?.[0];uploadJobPhoto(file,'after');e.target.value=''};
+async function loadProSettingsForm(){
+  const s=await loadProSettings();$('#settingsTrade').value=s.trade;$('#settingsHourlyRate').value=s.default_hourly_rate;$('#settingsTravelCost').value=s.default_travel_cost;$('#settingsOverhead').value=s.overhead_percent;$('#settingsRisk').value=s.risk_percent;$('#settingsPaymentLink').value=s.payment_link||'';$('#settingsLicenseNumber').value=s.electrician_license_number||'';$('#settingsLicenseExpiry').value=s.electrician_license_expiry||'';$('#settingsQuoteTerms').value=s.quote_terms||'';$('#electricianSettings').classList.toggle('hidden',s.trade!=='electrician');show('#proSettingsView')
+}
+$('#proSettingsBtn').onclick=loadProSettingsForm;$('#settingsTrade').onchange=e=>$('#electricianSettings').classList.toggle('hidden',e.target.value!=='electrician');
+$('#proSettingsForm').onsubmit=async e=>{
+  e.preventDefault();const enteredPaymentLink=$('#settingsPaymentLink').value.trim(),paymentLink=safeHttpUrl(enteredPaymentLink);if(enteredPaymentLink&&!paymentLink){toast('קישור התשלום חייב להתחיל ב־https:// או http://');return}const row={professional_id:state.user.id,trade:$('#settingsTrade').value,default_hourly_rate:numberValue('#settingsHourlyRate'),default_travel_cost:numberValue('#settingsTravelCost'),overhead_percent:numberValue('#settingsOverhead'),risk_percent:numberValue('#settingsRisk'),payment_link:paymentLink||null,electrician_license_number:$('#settingsLicenseNumber').value.trim()||null,electrician_license_expiry:$('#settingsLicenseExpiry').value||null,quote_terms:$('#settingsQuoteTerms').value.trim()};
+  const {data,error}=await db.from('professional_settings').upsert(row).select('*').single();if(error){toast(error.message);return}state.proSettings=data;toast('ההגדרות נשמרו');await openProWorkspace()
+};
+async function loadPublicQuote(token){
+  const box=$('#publicQuoteContent');show('#publicQuoteView');box.innerHTML='<div class="card public-quote-card"><h2>טוען הצעת מחיר…</h2></div>';
+  const {data,error}=await db.rpc('get_public_job_quote',{p_token:token});const q=Array.isArray(data)?data[0]:data;if(error||!q){box.innerHTML='<div class="card public-quote-card"><h2>ההצעה אינה זמינה</h2><p>הקישור שגוי או שההצעה בוטלה.</p></div>';return}
+  const approved=['approved','scheduled','in_progress','completed','paid'].includes(q.status),lic=q.trade==='electrician'&&q.electrician_license_number?`<span class="badge">רישיון חשמלאי ${esc(q.electrician_license_number)}</span>`:'',paymentLink=safeHttpUrl(q.payment_link);
+  box.innerHTML=`<div class="public-quote-brand">מחירלי <small>הצעת מחיר דיגיטלית</small></div><div class="card public-quote-card"><div class="trade-badge ${q.trade}">${q.trade==='electrician'?'⚡':'🔨'} ${tradeHe[q.trade]}</div><h2>שלום ${esc(q.customer_name)}</h2><p class="quote-intro">${esc(q.business_name)} הכין עבורך הצעת מחיר.</p><div class="quote-description"><small>עבור</small><b>${esc(q.description)}</b><p>${esc(q.quote_scope||'')}</p></div><div class="public-price"><small>מחיר ההצעה</small><strong>${money(q.quoted_price)}</strong>${Number(q.deposit_amount)>0?`<span>מקדמה: ${money(q.deposit_amount)}</span>`:''}</div><div class="badges">${lic}${q.scheduled_at?`<span class="badge">🗓️ ${esc(formatDateTime(q.scheduled_at))}</span>`:''}</div>${q.quote_terms?`<div class="terms-box">${esc(q.quote_terms)}</div>`:''}${approved?'<div class="approved-box">✓ ההצעה אושרה</div>':'<button id="approvePublicQuoteBtn" class="primary big">אישור הצעת המחיר</button>'}${approved&&paymentLink&&Number(q.deposit_amount)>0?`<a class="primary big pay-link" target="_blank" rel="noopener" href="${esc(paymentLink)}">תשלום מקדמה</a>`:''}<p class="note">האישור מתייחס להיקף העבודה ולתנאים המופיעים בהצעה.</p></div>`;
+  const btn=$('#approvePublicQuoteBtn');if(btn)btn.onclick=async()=>{btn.disabled=true;btn.textContent='מאשר…';const {error}=await db.rpc('approve_public_job_quote',{p_token:token});if(error){toast('לא ניתן לאשר: '+error.message);btn.disabled=false;btn.textContent='אישור הצעת המחיר';return}toast('ההצעה אושרה בהצלחה');await loadPublicQuote(token)}
+}
 
 async function loadAdmin(){
   if(!state.isAdmin){toast('אין הרשאת מנהל');return}

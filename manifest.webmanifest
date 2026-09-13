@@ -2,7 +2,7 @@
   "id": "/mehirli-app/",
   "name": "מחירלי",
   "short_name": "מחירלי",
-  "description": "מפרסמים בקשה, מקבלים עד 3 הצעות ובוחרים.",
+  "description": "מחירלי — זירת הצעות ומרכז עבודה חכם להיינדמנים ולחשמלאים.",
   "start_url": "/mehirli-app/",
   "scope": "/mehirli-app/",
   "display": "standalone",

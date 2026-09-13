@@ -26,7 +26,7 @@
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="apple-touch-icon" sizes="180x180" href="icon-192.png" />
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
-<link rel="stylesheet" href="style.css?v=24" />
+<link rel="stylesheet" href="style.css?v=25" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -62,17 +62,101 @@
   <div id="customerHome">
     <div class="home-section-title"><b>בחר תחום</b><span>התחלה מהירה</span></div>
     <div class="category-grid">
-      <button class="category" data-category="רכב"><span>🚗</span><b>רכב</b><small>צמיגים, מצבר, טיפול ועוד</small></button>
       <button class="category" data-category="מיזוג"><span>❄️</span><b>מיזוג</b><small>תיקון, התקנה, ניקוי</small></button>
-      <button class="category" data-category="לבית"><span>🏠</span><b>לבית</b><small>אינסטלציה, חשמל, דודים</small></button>
-      <button class="category" data-category="הנדימן"><span>🔨</span><b>הנדימן</b><small>תלייה, הרכבה ותיקונים קטנים</small></button>
+      <button class="category" data-category="לבית"><span>🏠</span><b>לבית</b><small>אינסטלציה, דודים ושירותי בית</small></button>
+      <button class="category" data-category="חשמלאי"><span>⚡</span><b>חשמלאי</b><small>תקלות, התקנות ולוחות חשמל</small></button>
+      <button class="category" data-category="היינדמן"><span>🔨</span><b>היינדמן</b><small>תלייה, הרכבה ותיקונים קטנים</small></button>
     </div>
     <div class="home-actions"><button id="newRequestBtn" class="primary big">＋ פרסום בקשה חדשה</button><button id="myRequestsBtn" class="secondary big">📋 הבקשות שלי</button></div>
   </div>
   <div id="proHome" class="hidden">
+    <div class="pro-command card">
+      <div><span class="eyebrow">מרכז העבודה שלי</span><h3>מהפנייה ועד התשלום</h3><p>תמחור, הצעה, תיעוד ורווח אמיתי — במקום אחד.</p></div>
+      <button id="proWorkspaceBtn" class="primary big">פתח מרכז עבודה</button>
+    </div>
     <div class="credits card"><div><small>יתרת הצעות</small><strong id="creditCount">0</strong><span>הצעות זמינות</span></div><button id="buyCreditsBtn" class="primary">3 הצעות ב־15 ₪</button></div>
-    <button id="profileBtn" class="secondary big">פרופיל העסק שלי</button><button id="jobsBtn" class="primary big">עבודות זמינות</button><button id="wonJobsBtn" class="secondary big">🤝 לקוחות שבחרו בי</button><button id="adminBtn" class="admin-entry big hidden">⚙️ ניהול מחירלי</button>
+    <button id="profileBtn" class="secondary big">פרופיל העסק שלי</button><button id="jobsBtn" class="secondary big">עבודות חדשות ממחירלי</button><button id="wonJobsBtn" class="secondary big">🤝 לקוחות שבחרו בי</button><button id="adminBtn" class="admin-entry big hidden">⚙️ ניהול מחירלי</button>
   </div>
+</section>
+
+<section id="proWorkspaceView" class="view">
+  <div class="section-head"><button class="back">‹</button><div><span class="eyebrow">לבעלי מקצוע</span><h2>מרכז העבודה</h2></div></div>
+  <div class="workspace-stats">
+    <div class="stat-card"><small>עבודות פתוחות</small><strong id="proOpenCount">0</strong></div>
+    <div class="stat-card"><small>ממתינות לתשלום</small><strong id="proUnpaidCount">0</strong></div>
+    <div class="stat-card"><small>הכנסות החודש</small><strong id="proMonthRevenue">0 ₪</strong></div>
+  </div>
+  <div class="workspace-actions">
+    <button id="newProJobBtn" class="primary big">＋ פנייה חדשה ותמחור</button>
+    <button id="proSettingsBtn" class="secondary big">⚙️ הגדרות תמחור ותשלום</button>
+  </div>
+  <div class="list-toolbar"><b>העבודות שלי</b><select id="proJobStatusFilter"><option value="all">הכול</option><option value="open">פתוחות</option><option value="unpaid">ממתינות לתשלום</option><option value="paid">שולמו</option></select></div>
+  <div id="proJobsList" class="stack"></div>
+</section>
+
+<section id="proJobFormView" class="view">
+  <div class="section-head"><button class="back" data-back-to="workspace">‹</button><div><span class="eyebrow">פנייה חדשה</span><h2>תמחור עבודה</h2></div></div>
+  <form id="proJobForm" class="card form-card">
+    <div class="trade-picker" role="group" aria-label="בחירת מקצוע">
+      <button type="button" class="trade-choice active" data-trade="handyman">🔨 היינדמן</button>
+      <button type="button" class="trade-choice" data-trade="electrician">⚡ חשמלאי</button>
+    </div>
+    <input id="proJobTrade" type="hidden" value="handyman" />
+    <div class="two-cols"><label>שם הלקוח<input id="proCustomerName" required autocomplete="name" /></label><label>טלפון<input id="proCustomerPhone" required inputmode="tel" autocomplete="tel" /></label></div>
+    <label>עיר / אזור<input id="proCustomerCity" placeholder="לדוגמה: כפר סבא" /></label>
+    <label>סוג העבודה<select id="proJobType"></select></label>
+    <label>מה הלקוח ביקש?<textarea id="proJobDescription" required placeholder="אפשר לכתוב או להקליט את הודעת הלקוח"></textarea></label>
+    <button id="proVoiceBtn" type="button" class="voice">🎤 הקלט את פרטי הפנייה</button><p id="proVoiceStatus" class="note"></p>
+    <label>מועד מתוכנן<input id="proScheduledAt" type="datetime-local" /></label>
+    <div class="pricing-title"><div><span class="eyebrow">מחשבון אישי</span><h3>כמה העבודה באמת שווה לך?</h3></div><button id="analyzeJobBtn" type="button" class="secondary tiny">נתח את העבודה</button></div>
+    <div class="two-cols"><label>שעות עבודה<input id="proLaborHours" type="number" min="0.25" step="0.25" value="1" /></label><label>מחיר שעה רצוי<input id="proHourlyRate" type="number" min="0" step="10" /></label></div>
+    <div class="two-cols"><label>חומרים<input id="proMaterialsCost" type="number" min="0" step="10" value="0" /></label><label>נסיעה וחניה<input id="proTravelCost" type="number" min="0" step="10" /></label></div>
+    <label>עלות עוזר / קבלן משנה<input id="proAssistantCost" type="number" min="0" step="10" value="0" /></label>
+    <div id="smartAnalysis" class="smart-analysis hidden"></div>
+    <div class="price-result">
+      <div><small>מחיר מינימום</small><strong id="priceFloor">0 ₪</strong></div>
+      <div class="recommended"><small>מחיר מומלץ</small><strong id="recommendedPrice">0 ₪</strong></div>
+    </div>
+    <label>המחיר שאשלח ללקוח<input id="proQuotedPrice" type="number" min="0" step="10" required /></label>
+    <label>מקדמה מבוקשת<input id="proDepositAmount" type="number" min="0" step="10" value="0" /></label>
+    <label>מה כלול בהצעה?<textarea id="proQuoteScope" placeholder="עבודה, חומרים, פינוי, אחריות ומה לא כלול"></textarea></label>
+    <button class="primary big" type="submit">שמור והכן הצעה ללקוח</button>
+  </form>
+</section>
+
+<section id="proJobDetailView" class="view">
+  <div class="section-head"><button class="back" data-back-to="workspace">‹</button><div><span class="eyebrow">תיק עבודה</span><h2 id="jobDetailTitle">פרטי העבודה</h2></div></div>
+  <div id="jobDetailContent"></div>
+  <div class="card">
+    <h3>תמונות ותיעוד</h3><p class="muted">צלם לפני ואחרי. התמונות נשמרות בתיק העבודה הפרטי שלך.</p>
+    <div class="media-upload-row"><label class="upload-btn">📷 לפני העבודה<input id="beforePhotoInput" type="file" accept="image/*" capture="environment" /></label><label class="upload-btn">✅ אחרי העבודה<input id="afterPhotoInput" type="file" accept="image/*" capture="environment" /></label></div>
+    <div id="jobMediaGrid" class="media-grid"></div>
+  </div>
+  <form id="actualProfitForm" class="card form-card">
+    <h3>סיום ורווח בפועל</h3>
+    <div class="two-cols"><label>סה״כ זמן כולל נסיעה<input id="actualHours" type="number" min="0.25" step="0.25" /></label><label>עלות חומרים בפועל<input id="actualMaterials" type="number" min="0" step="10" /></label></div>
+    <label>סכום שהתקבל בפועל<input id="actualPaid" type="number" min="0" step="10" /></label>
+    <button class="primary big" type="submit">שמור וסמן כעבודה ששולמה</button>
+    <div id="actualProfitResult" class="profit-result hidden"></div>
+  </form>
+</section>
+
+<section id="proSettingsView" class="view">
+  <div class="section-head"><button class="back" data-back-to="workspace">‹</button><div><span class="eyebrow">התאמה אישית</span><h2>תמחור ותשלום</h2></div></div>
+  <form id="proSettingsForm" class="card form-card">
+    <label>מקצוע עיקרי<select id="settingsTrade"><option value="handyman">היינדמן</option><option value="electrician">חשמלאי</option></select></label>
+    <div class="two-cols"><label>מחיר שעה רצוי<input id="settingsHourlyRate" type="number" min="0" step="10" /></label><label>עלות נסיעה רגילה<input id="settingsTravelCost" type="number" min="0" step="10" /></label></div>
+    <div class="two-cols"><label>הוצאות עסק באחוזים<input id="settingsOverhead" type="number" min="0" max="60" step="1" /></label><label>מרווח לבלת״מ באחוזים<input id="settingsRisk" type="number" min="0" max="60" step="1" /></label></div>
+    <label>קישור התשלום האישי שלך<input id="settingsPaymentLink" type="url" placeholder="קישור מקארדקום, ביט, PayBox או חברת הסליקה שלך" /></label>
+    <div id="electricianSettings" class="electrician-only hidden"><div class="two-cols"><label>מספר רישיון חשמלאי<input id="settingsLicenseNumber" /></label><label>תוקף הרישיון<input id="settingsLicenseExpiry" type="date" /></label></div></div>
+    <label>תנאים שיופיעו בהצעה<textarea id="settingsQuoteTerms" placeholder="תוקף ההצעה, אחריות, מה אינו כלול"></textarea></label>
+    <p class="note">הכסף מתקבל ישירות בחשבון הסליקה שלך. מחירלי אינה מחזיקה בכספי הלקוח.</p>
+    <button class="primary big" type="submit">שמור הגדרות</button>
+  </form>
+</section>
+
+<section id="publicQuoteView" class="view">
+  <div id="publicQuoteContent"></div>
 </section>
 
 <section id="notificationsView" class="view">
@@ -83,7 +167,7 @@
 
 <section id="requestView" class="view"><div class="section-head"><button class="back">‹</button><h2>פרסום בקשה</h2></div>
 <form id="requestForm" class="card form-card">
-<label>תחום<select id="reqCategory" required><option value="">בחר תחום</option><option>רכב</option><option>מיזוג</option><option>לבית</option><option>הנדימן</option></select></label>
+<label>תחום<select id="reqCategory" required><option value="">בחר תחום</option><option>לבית</option><option>מיזוג</option><option>חשמלאי</option><option>היינדמן</option></select></label>
 <label>מה אתה צריך?<textarea id="reqText" required placeholder="לדוגמה: צריך לתלות טלוויזיה ושני מדפים"></textarea></label>
 <button type="button" id="voiceBtn" class="voice">🎤 דבר במקום להקליד</button><p id="voiceStatus" class="note"></p>
 <label>עיר / אזור<input id="reqCity" required placeholder="לדוגמה: נתניה" /></label>
@@ -93,14 +177,14 @@
 
 <section id="requestsListView" class="view"><div class="section-head"><button class="back">‹</button><h2>הבקשות שלי</h2></div><div id="requestsList" class="stack"></div></section>
 <section id="offersView" class="view"><div class="section-head"><button class="back">‹</button><h2>הצעות שקיבלת</h2></div><div id="requestSummary" class="card"></div><div id="offersList" class="stack"></div><button id="moreOffersBtn" class="secondary big hidden">פתח סבב נוסף</button></section>
-<section id="proJobsView" class="view"><div class="section-head"><button class="back">‹</button><h2>עבודות זמינות</h2></div><div class="filter-row"><select id="jobFilter"><option value="הכל">כל התחומים</option><option>רכב</option><option>מיזוג</option><option>לבית</option><option>הנדימן</option></select></div><div id="jobsList" class="stack"></div></section>
+<section id="proJobsView" class="view"><div class="section-head"><button class="back">‹</button><h2>עבודות זמינות</h2></div><div class="filter-row"><select id="jobFilter"><option value="הכל">כל התחומים</option><option>לבית</option><option>מיזוג</option><option>חשמלאי</option><option>היינדמן</option></select></div><div id="jobsList" class="stack"></div></section>
 <section id="wonJobsView" class="view"><div class="section-head"><button class="back">‹</button><h2>לקוחות שבחרו בי</h2></div><div id="wonJobsList" class="stack"></div></section>
 <section id="offerFormView" class="view"><div class="section-head"><button class="back">‹</button><h2>שליחת הצעה</h2></div><div id="jobSummary" class="card"></div>
 <form id="offerForm" class="card form-card"><label>סוג מחיר<select id="priceType"><option value="fixed">מחיר סופי</option><option value="range">טווח מחיר</option><option value="inspection">נדרשת בדיקה</option></select></label>
 <div id="singlePriceWrap"><label>מחיר / דמי בדיקה ₪<input id="offerPrice" inputmode="numeric" /></label></div><div id="rangePriceWrap" class="hidden two-cols"><label>מ־₪<input id="offerMin" inputmode="numeric" /></label><label>עד ₪<input id="offerMax" inputmode="numeric" /></label></div>
 <label>פירוט ההצעה<textarea id="offerText" placeholder="מה כולל המחיר, תנאים, אחריות וכו'"></textarea></label><label>תאריך הגעה<input id="offerDate" type="date" required /></label><label>שעת הגעה<input id="offerTime" type="time" required /></label><button class="primary big" type="submit">שלח הצעה (הצעה אחת)</button></form></section>
 <section id="profileView" class="view"><div class="section-head"><button class="back">‹</button><h2>פרופיל העסק</h2></div><form id="profileForm" class="card form-card">
-<label>שם העסק<input id="bizName" required /></label><label>תחום עיקרי<select id="bizCategory"><option>רכב</option><option>מיזוג</option><option>לבית</option><option>הנדימן</option></select></label><label>על העסק<textarea id="bizAbout"></textarea></label><label>אזורי שירות<input id="bizArea" placeholder="נתניה, חדרה והשרון" /></label><label>טלפון<input id="bizPhone" inputmode="tel" /></label><button class="primary big" type="submit">שמור פרופיל</button></form></section>
+<label>שם העסק<input id="bizName" required /></label><label>תחום עיקרי<select id="bizCategory"><option>היינדמן</option><option>חשמלאי</option><option>לבית</option><option>מיזוג</option></select></label><label>על העסק<textarea id="bizAbout"></textarea></label><label>אזורי שירות<input id="bizArea" placeholder="נתניה, חדרה והשרון" /></label><label>טלפון<input id="bizPhone" inputmode="tel" /></label><button class="primary big" type="submit">שמור פרופיל</button></form></section>
 
 <section id="adminView" class="view"><div class="section-head"><button class="back">‹</button><h2>ניהול מחירלי</h2></div>
   <div class="admin-grid">
@@ -131,5 +215,5 @@
   </div>
 </section>
 </main><div id="toast" class="toast"></div></div>
-<script src="app.js?v=24"></script>
+<script src="app.js?v=25"></script>
 </body></html>
