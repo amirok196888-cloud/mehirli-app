@@ -3,6 +3,7 @@ const SUPABASE_KEY='sb_publishable_WnOhGZSlik7zqpO-cRYGvA_lOUz68Wp';
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const state={user:null,profile:null,businessProfile:null,role:'pro',credits:0,requests:[],offers:[],jobs:[],selectedRequest:null,selectedJob:null,isAdmin:false,notifications:[],unreadNotifications:0,notificationTimer:null,lastNotificationSeenAt:null,proSettings:null,proJobs:[],selectedProJob:null,proJobMedia:[],adminJobs:[],adminBusinesses:[]};
+const quotePdfCache=new Map();
 const catDb={'רכב':'vehicle','מיזוג':'air_conditioning','לבית':'home','הנדימן':'handyman','היינדמן':'handyman','חשמלאי':'electrician'}, catHe={vehicle:'רכב',air_conditioning:'מיזוג',home:'לבית',handyman:'היינדמן',electrician:'חשמלאי'};
 const tradeHe={handyman:'היינדמן',electrician:'חשמלאי',home:'שירותי בית',air_conditioning:'מיזוג'};
 const jobStatusHe={lead:'פנייה חדשה',quoted:'הצעה נשלחה',approved:'ההצעה אושרה',scheduled:'נקבע מועד',in_progress:'בביצוע',completed:'העבודה הסתיימה',paid:'שולם',cancelled:'בוטל'};
@@ -289,6 +290,89 @@ function openWhatsapp(phone,message){const number=waNumber(phone);if(!number){to
 function questionMessage(job){return `שלום ${job.customer_name}, כדי להכין את העבודה והמחיר בצורה מדויקת אשמח למענה קצר:\n\n${(job.customer_questions||[]).map((q,i)=>`${i+1}. ${q}`).join('\n')}\n\nתודה, ${state.businessProfile?.business_name||state.profile?.full_name||'מחירלי'}`}
 function quoteMessage(job){return `שלום ${job.customer_name}, הכנתי עבורך הצעת מחיר עבור: ${job.description}\n\nמחיר: ${money(job.quoted_price)}${Number(job.deposit_amount)>0?`\nמקדמה: ${money(job.deposit_amount)}`:''}\n\nלצפייה ואישור ההצעה:\n${quoteUrl(job)}`}
 function paymentMessage(job){const amount=Math.max(0,Number(job.quoted_price||0)-Number(job.actual_paid||0)),link=safeHttpUrl(state.proSettings?.payment_link);return `שלום ${job.customer_name}, לתשלום ${money(amount)} עבור העבודה: ${job.description}.${link?`\n\nקישור מאובטח לתשלום:\n${link}`:''}\n\nתודה.`}
+function quotePdfFileName(job){
+  const customer=String(job.customer_name||'לקוח').replace(/[\\/:*?"<>|]+/g,'-').trim()||'לקוח';
+  return `הצעת-מחיר-${customer}.pdf`
+}
+function quotePdfElement(job){
+  const business=state.businessProfile?.business_name||state.profile?.full_name||'בעל מקצוע';
+  const businessPhone=state.businessProfile?.business_phone||'';
+  const paymentLink=safeHttpUrl(state.proSettings?.payment_link);
+  const license=job.trade==='electrician'&&state.proSettings?.electrician_license_number?`<div style="margin-top:5px;color:#536274;font-size:14px">רישיון חשמלאי: ${esc(state.proSettings.electrician_license_number)}</div>`:'';
+  const root=document.createElement('section');
+  root.setAttribute('dir','rtl');
+  root.style.cssText='position:fixed;left:-10000px;top:0;width:760px;box-sizing:border-box;padding:46px 50px;background:#fff;color:#17212b;font-family:Arial,"Noto Sans Hebrew",sans-serif;line-height:1.55;z-index:-1';
+  root.innerHTML=`
+    <header style="display:flex;justify-content:space-between;gap:28px;align-items:flex-start;border-bottom:4px solid #1da873;padding-bottom:22px">
+      <div><div style="font-size:36px;font-weight:900;color:#10243a">הצעת מחיר</div><div style="font-size:22px;font-weight:800;margin-top:4px">${esc(business)}</div>${license}${businessPhone?`<div style="margin-top:5px;color:#536274;font-size:14px">טלפון: ${esc(businessPhone)}</div>`:''}</div>
+      <div style="text-align:left;color:#607184;font-size:14px"><div>${new Date().toLocaleDateString('he-IL')}</div><div>מס׳ ${esc(String(job.id||'').slice(0,8).toUpperCase())}</div></div>
+    </header>
+    <main>
+      <div style="margin:30px 0 20px"><div style="font-size:14px;color:#607184">לכבוד</div><div style="font-size:25px;font-weight:900">${esc(job.customer_name)}</div>${job.city?`<div style="color:#607184">${esc(job.city)}</div>`:''}</div>
+      <section style="margin:22px 0;padding:22px;border:1px solid #dce5ea;border-radius:16px;background:#f7fafb;break-inside:avoid">
+        <div style="font-size:14px;color:#607184">תיאור העבודה</div>
+        <div style="font-size:21px;font-weight:800;margin:5px 0 10px">${esc(job.description)}</div>
+        ${job.quote_scope?`<div style="white-space:pre-wrap;color:#344454">${esc(job.quote_scope)}</div>`:''}
+      </section>
+      <section style="margin:22px 0;padding:22px;text-align:center;border:2px solid #38b889;border-radius:16px;background:#eefaf5;break-inside:avoid">
+        <div style="font-size:14px;color:#527064">מחיר ההצעה</div>
+        <div style="font-size:40px;line-height:1.2;font-weight:900;color:#16865b">${money(job.quoted_price)}</div>
+        ${Number(job.deposit_amount)>0?`<div style="margin-top:5px;font-weight:800">מקדמה: ${money(job.deposit_amount)}</div>`:''}
+      </section>
+      ${job.scheduled_at?`<div style="margin:18px 0;padding:14px 18px;border-right:4px solid #3f8fc7;background:#f2f8fc;break-inside:avoid"><b>מועד מתוכנן:</b> ${esc(formatDateTime(job.scheduled_at))}</div>`:''}
+      ${job.quote_terms?`<section style="margin:22px 0;break-inside:avoid"><div style="font-size:16px;font-weight:900;margin-bottom:8px">תנאי ההצעה</div><div style="padding:16px;border:1px solid #e1e7eb;border-radius:12px;white-space:pre-wrap;color:#465667">${esc(job.quote_terms)}</div></section>`:''}
+      <section style="margin-top:24px;padding-top:18px;border-top:1px solid #dce5ea;font-size:13px;color:#536274;break-inside:avoid">
+        <div><b>צפייה ואישור ההצעה:</b></div><div style="direction:ltr;text-align:left;word-break:break-all;color:#1570a6">${esc(quoteUrl(job))}</div>
+        ${paymentLink?`<div style="margin-top:12px"><b>קישור לתשלום (אופציונלי):</b></div><div style="direction:ltr;text-align:left;word-break:break-all;color:#1570a6">${esc(paymentLink)}</div>`:''}
+      </section>
+    </main>
+    <footer style="margin-top:30px;padding-top:16px;border-top:1px solid #dce5ea;text-align:center;color:#7b8996;font-size:12px">הופק באמצעות מחירלי</footer>`;
+  document.body.appendChild(root);
+  return root
+}
+async function createQuotePdfFile(job){
+  if(typeof window.html2pdf!=='function')throw new Error('PDF library unavailable');
+  const element=quotePdfElement(job);
+  try{
+    const blob=await window.html2pdf().set({margin:[8,8,8,8],filename:quotePdfFileName(job),image:{type:'jpeg',quality:.98},html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','legacy']}}).from(element).outputPdf('blob');
+    return new File([blob],quotePdfFileName(job),{type:'application/pdf',lastModified:Date.now()})
+  }finally{element.remove()}
+}
+function prepareJobQuotePdf(job){
+  const key=String(job.id||'');
+  const existing=quotePdfCache.get(key);
+  if(existing?.status==='ready')return Promise.resolve(existing.file);
+  if(existing?.status==='loading')return existing.promise;
+  const promise=createQuotePdfFile(job).then(file=>{
+    quotePdfCache.set(key,{status:'ready',file});
+    const btn=$('#jobDetailContent')?.querySelector('[data-job-action="quote-pdf"]');
+    if(btn&&state.selectedProJob?.id===job.id){btn.disabled=false;btn.textContent='📄 שלח PDF ב־WhatsApp'}
+    return file
+  }).catch(error=>{
+    quotePdfCache.delete(key);
+    const btn=$('#jobDetailContent')?.querySelector('[data-job-action="quote-pdf"]');
+    if(btn&&state.selectedProJob?.id===job.id){btn.disabled=false;btn.dataset.pdfFallback='1';btn.textContent='הדפס / שמור PDF'}
+    throw error
+  });
+  quotePdfCache.set(key,{status:'loading',promise});
+  return promise
+}
+function downloadQuotePdf(file){
+  const url=URL.createObjectURL(file),link=document.createElement('a');link.href=url;link.download=file.name;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),30000)
+}
+function shareJobQuotePdf(job,button){
+  if(button?.dataset.pdfFallback==='1'){printJobQuote(job);return}
+  const cached=quotePdfCache.get(String(job.id||''));
+  if(cached?.status!=='ready'){toast('ה־PDF עדיין בהכנה. נסה שוב בעוד רגע.');prepareJobQuotePdf(job).catch(()=>toast('לא ניתן להכין PDF כרגע'));return}
+  const file=cached.file;
+  if(navigator.share&&navigator.canShare?.({files:[file]})){
+    navigator.share({title:`הצעת מחיר עבור ${job.customer_name}`,text:`שלום ${job.customer_name}, מצורפת הצעת המחיר מ־${state.businessProfile?.business_name||state.profile?.full_name||'מחירלי'}.`,files:[file]}).then(()=>toast('ה־PDF הועבר לשיתוף')).catch(error=>{if(error?.name!=='AbortError'){downloadQuotePdf(file);toast('ה־PDF נשמר במכשיר')}});
+    return
+  }
+  downloadQuotePdf(file);
+  openWhatsapp(job.customer_phone,`שלום ${job.customer_name}, הכנתי עבורך הצעת מחיר בקובץ PDF. הקובץ נשמר במכשיר שלי ואצרף אותו כאן.`);
+  toast('ה־PDF נשמר. צרף אותו לשיחת ה־WhatsApp שנפתחה.')
+}
 async function copyText(value,success='הקישור הועתק'){
   try{await navigator.clipboard.writeText(value);toast(success)}catch{const ta=document.createElement('textarea');ta.value=value;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast(success)}
 }
@@ -299,17 +383,17 @@ async function renderProJobDetail(){
   $('#jobDetailContent').innerHTML=`<div class="job-hero card"><div class="job-card-top"><span class="trade-badge ${j.trade}">${tradeIcon(j.trade)} ${tradeHe[j.trade]||'בעל מקצוע'}</span><span class="status-pill status-${j.status}">${jobStatusHe[j.status]||j.status}</span></div><h3>${esc(j.description)}</h3><p>👤 ${esc(j.customer_name)} · 📍 ${esc(j.city||'לא צוין')} · 🗓️ ${esc(formatDateTime(j.scheduled_at))}</p><div class="contact-actions"><a class="secondary" href="tel:${esc(j.customer_phone)}">📞 התקשר</a><button class="secondary" data-job-action="questions">💬 שלח שאלות</button></div></div>
   <div class="detail-price-grid"><div class="card"><small>מחיר מינימום</small><strong>${money(j.price_floor)}</strong></div><div class="card featured"><small>הצעה ללקוח</small><strong>${money(j.quoted_price)}</strong></div><div class="card"><small>יתרה לתשלום</small><strong>${money(remaining)}</strong></div></div>
   ${below?'<div class="price-warning">⚠️ המחיר ללקוח נמוך ממחיר המינימום שחושב לעבודה.</div>':''}
-  <div class="card"><h3>הצעת המחיר</h3><p>${esc(j.quote_scope||'לא נוסף פירוט להצעה.')}</p>${j.quote_terms?`<div class="terms-box">${esc(j.quote_terms)}</div>`:''}<div class="action-grid"><button class="primary whatsapp-action" data-job-action="quote">💬 שלח הצעה ב־WhatsApp</button><button class="secondary" data-job-action="copy">העתק קישור ללקוח</button><button class="secondary" data-job-action="print">הדפס / שמור PDF</button>${safeHttpUrl(state.proSettings?.payment_link)?'<button class="secondary" data-job-action="payment">שלח בקשת תשלום</button>':''}</div></div>
+  <div class="card"><h3>הצעת המחיר</h3><p>${esc(j.quote_scope||'לא נוסף פירוט להצעה.')}</p>${j.quote_terms?`<div class="terms-box">${esc(j.quote_terms)}</div>`:''}<div class="action-grid"><button class="primary whatsapp-action" data-job-action="quote-pdf" disabled>⏳ מכין PDF…</button><button class="secondary" data-job-action="copy">העתק קישור ללקוח</button><button class="secondary" data-job-action="print">הדפס / שמור PDF</button>${safeHttpUrl(state.proSettings?.payment_link)?'<button class="secondary" data-job-action="payment">שלח בקשת תשלום</button>':''}</div></div>
   <div class="card"><label class="inline-select">מצב העבודה<select id="jobStatusSelect">${Object.entries(jobStatusHe).map(([v,l])=>`<option value="${v}" ${j.status===v?'selected':''}>${l}</option>`).join('')}</select></label></div>
   <div class="analysis-display card"><div><h3>שאלות ללקוח</h3>${renderList(j.customer_questions)}</div><div><h3>ציוד והכנה</h3>${renderList(j.tools_needed)}</div>${j.warnings?.length?`<div class="safety-box">${j.warnings.map(w=>`<p>⚠️ ${esc(w)}</p>`).join('')}</div>`:''}</div>`;
   $('#actualHours').value=j.actual_hours||j.labor_hours||'';$('#actualMaterials').value=j.actual_materials_cost??j.materials_cost??'';$('#actualPaid').value=j.actual_paid||'';renderActualProfit(j);
   $('#jobDetailContent').querySelector('[data-job-action="questions"]').onclick=()=>openWhatsapp(j.customer_phone,questionMessage(j));
-  $('#jobDetailContent').querySelector('[data-job-action="quote"]').onclick=()=>openWhatsapp(j.customer_phone,quoteMessage(j));
+  const pdfShareButton=$('#jobDetailContent').querySelector('[data-job-action="quote-pdf"]');pdfShareButton.onclick=()=>shareJobQuotePdf(j,pdfShareButton);
   $('#jobDetailContent').querySelector('[data-job-action="copy"]').onclick=()=>copyText(quoteUrl(j));
   $('#jobDetailContent').querySelector('[data-job-action="print"]').onclick=()=>printJobQuote(j);
   const paymentButton=$('#jobDetailContent').querySelector('[data-job-action="payment"]');if(paymentButton)paymentButton.onclick=()=>openWhatsapp(j.customer_phone,paymentMessage(j));
   $('#jobStatusSelect').onchange=async e=>{const status=e.target.value,payment_status=status==='paid'?'paid':j.payment_status;const {error}=await db.from('pro_jobs').update({status,payment_status}).eq('id',j.id).eq('professional_id',state.user.id);if(error){toast(error.message);return}j.status=status;j.payment_status=payment_status;toast('מצב העבודה עודכן');await loadProJobs();await renderProJobDetail()};
-  await loadJobMedia(j.id)
+  await loadJobMedia(j.id);prepareJobQuotePdf(j).catch(()=>{})
 }
 async function openProJobDetail(id){state.selectedProJob=state.proJobs.find(j=>j.id===id);if(!state.selectedProJob){const {data}=await db.from('pro_jobs').select('*').eq('id',id).eq('professional_id',state.user.id).single();state.selectedProJob=data}await renderProJobDetail();show('#proJobDetailView')}
 function renderActualProfit(job){
