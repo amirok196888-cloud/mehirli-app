@@ -2,7 +2,7 @@
   "id": "/mehirli-app/",
   "name": "מחירלי",
   "short_name": "מחירלי",
-  "description": "מחירלי — זירת הצעות ומרכז עבודה חכם להיינדמנים ולחשמלאים.",
+  "description": "מחירלי — מרכז עבודה חכם להיינדמנים ולחשמלאים.",
   "start_url": "/mehirli-app/",
   "scope": "/mehirli-app/",
   "display": "standalone",

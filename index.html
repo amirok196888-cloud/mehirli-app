@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <meta name="theme-color" content="#101827" />
 <title>מחירלי</title>
-<meta name="description" content="מחירלי — מפרסמים מה צריך, מקבלים עד 3 הצעות מבעלי מקצוע ובוחרים." />
+<meta name="description" content="מחירלי — מרכז עבודה חכם לבעלי מקצוע בתחומי הבית והמיזוג: תמחור, הצעות, תיעוד ורווח." />
 <link rel="canonical" href="https://amirok196888-cloud.github.io/mehirli-app/" />
 <meta property="og:type" content="website" />
 <meta property="og:locale" content="he_IL" />
 <meta property="og:site_name" content="מחירלי" />
-<meta property="og:title" content="מחירלי — מבקשים. מקבלים הצעות. בוחרים." />
-<meta property="og:description" content="פרסמו מה אתם צריכים וקבלו עד 3 הצעות מבעלי מקצוע — פשוט, מהיר ובמקום אחד." />
+<meta property="og:title" content="מחירלי — מרכז העבודה של בעל העסק" />
+<meta property="og:description" content="מנהלים פניות, מתמחרים נכון, שולחים הצעה ועוקבים אחרי הרווח — במקום אחד." />
 <meta property="og:url" content="https://amirok196888-cloud.github.io/mehirli-app/" />
 <meta property="og:image" content="https://amirok196888-cloud.github.io/mehirli-app/share-preview-v20.jpg?v=20" />
 <meta property="og:image:secure_url" content="https://amirok196888-cloud.github.io/mehirli-app/share-preview-v20.jpg?v=20" />
@@ -20,67 +20,55 @@
 <meta property="og:image:height" content="630" />
 <meta property="og:image:alt" content="מחירלי — מבקשים, מקבלים הצעות, בוחרים" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="מחירלי — מבקשים. מקבלים הצעות. בוחרים." />
-<meta name="twitter:description" content="פרסמו מה אתם צריכים וקבלו עד 3 הצעות מבעלי מקצוע." />
+<meta name="twitter:title" content="מחירלי — מרכז העבודה של בעל העסק" />
+<meta name="twitter:description" content="תמחור, הצעות מחיר, תיעוד ורווח לבעלי מקצוע בתחומי הבית והמיזוג." />
 <meta name="twitter:image" content="https://amirok196888-cloud.github.io/mehirli-app/share-preview-v20.jpg?v=20" />
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="apple-touch-icon" sizes="180x180" href="icon-192.png" />
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
-<link rel="stylesheet" href="style.css?v=25" />
+<link rel="stylesheet" href="style.css?v=28" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <div class="app-shell">
-<header class="topbar"><div class="brand"><img class="logo logo-img" src="icon-192.png" alt="מחירלי" /><div><h1>מחירלי</h1><p>מבקשים. מקבלים הצעות. בוחרים.</p></div></div><button id="installAppBtn" class="install-app-btn hidden" type="button">⬇ התקן אפליקציה</button></header>
+<header class="topbar"><div class="brand"><img class="logo logo-img" src="icon-192.png" alt="מחירלי" /><div><h1>מחירלי</h1><p>מנהלים עבודה. מתמחרים נכון. מרוויחים.</p></div></div><button id="installAppBtn" class="install-app-btn hidden" type="button">⬇ התקן אפליקציה</button></header>
 <main>
 <section id="authView" class="view active">
-  <div class="hero card"><h2>כניסה למחירלי</h2><p>המקום שבו בקשה אחת יכולה להביא לך כמה הצעות — פשוט, מהיר ובמקום אחד.</p></div>
+  <div class="hero card"><h2>העסק שלך, מסודר יותר</h2><p>מרכז עבודה לבעלי מקצוע בתחומי הבית והמיזוג — מהפנייה הראשונה ועד התשלום והרווח.</p></div>
   <form id="authForm" class="card form-card">
     <label>אימייל<input id="authEmail" type="email" required autocomplete="email" /></label>
     <label>סיסמה<input id="authPassword" type="password" required minlength="6" autocomplete="current-password" /></label>
-    <label>אני נרשם בתור<select id="authRole"><option value="customer">לקוח</option><option value="professional">בעל מקצוע</option></select></label>
-    <label>שם<input id="authName" placeholder="שם פרטי / שם בעל העסק" /></label>
+    <input id="authRole" type="hidden" value="professional" />
+    <label>שם בעל העסק<input id="authName" placeholder="השם שיופיע בהצעות המחיר" /></label>
     <button class="primary big" type="submit">כניסה</button>
     <button id="signupBtn" class="secondary big" type="button">הרשמה חדשה</button>
     <p id="authNote" class="note"></p>
   </form>
   <div class="auth-benefits">
     <div class="auth-benefit"><span>🛡️</span><b>מאובטח</b><small>המידע נשמר בענן</small></div>
-    <div class="auth-benefit"><span>⚡</span><b>מהיר</b><small>כמה הצעות במקום אחד</small></div>
-    <div class="auth-benefit"><span>✓</span><b>פשוט לבחור</b><small>משווים ומחליטים</small></div>
+    <div class="auth-benefit"><span>⚡</span><b>מתמחרים נכון</b><small>זמן, חומרים והוצאות</small></div>
+    <div class="auth-benefit"><span>✓</span><b>סוגרים עבודה</b><small>הצעה, אישור ותשלום</small></div>
   </div>
 </section>
 
 <section id="homeView" class="view">
   <div class="home-hero">
-    <div class="home-kicker">✨ פשוט לבקש. קל לבחור.</div>
-    <h2>מה צריך לעשות היום?</h2>
-    <p>ספר לנו מה אתה צריך וקבל עד 3 הצעות מבעלי מקצוע — בלי טלפונים ובלי לרדוף אחרי אף אחד.</p>
-    <div class="role-switch"><button class="role active" data-role="customer">👤 אני לקוח</button><button class="role" data-role="pro">🧰 אני בעל מקצוע</button></div>
+    <div class="home-kicker">🧰 מרכז העבודה של בעל העסק</div>
+    <h2>מה מנהלים היום?</h2>
+    <p>קלוט פנייה, תחשב מחיר משתלם, שלח הצעה ללקוח ועקוב אחרי התשלום והרווח.</p>
     <div class="home-utility-row"><button id="notificationsBtn" class="notification-btn" type="button">🔔 התראות <span id="notificationBadge" class="notification-badge hidden">0</span></button><button id="enablePhoneNotificationsBtn" class="notification-permission hidden" type="button">אפשר התראות בטלפון</button></div><button id="logoutBtn" class="logout-link">התנתק</button>
   </div>
-  <div id="customerHome">
-    <div class="home-section-title"><b>בחר תחום</b><span>התחלה מהירה</span></div>
-    <div class="category-grid">
-      <button class="category" data-category="מיזוג"><span>❄️</span><b>מיזוג</b><small>תיקון, התקנה, ניקוי</small></button>
-      <button class="category" data-category="לבית"><span>🏠</span><b>לבית</b><small>אינסטלציה, דודים ושירותי בית</small></button>
-      <button class="category" data-category="חשמלאי"><span>⚡</span><b>חשמלאי</b><small>תקלות, התקנות ולוחות חשמל</small></button>
-      <button class="category" data-category="היינדמן"><span>🔨</span><b>היינדמן</b><small>תלייה, הרכבה ותיקונים קטנים</small></button>
-    </div>
-    <div class="home-actions"><button id="newRequestBtn" class="primary big">＋ פרסום בקשה חדשה</button><button id="myRequestsBtn" class="secondary big">📋 הבקשות שלי</button></div>
-  </div>
-  <div id="proHome" class="hidden">
+  <div id="proHome">
     <div class="pro-command card">
       <div><span class="eyebrow">מרכז העבודה שלי</span><h3>מהפנייה ועד התשלום</h3><p>תמחור, הצעה, תיעוד ורווח אמיתי — במקום אחד.</p></div>
       <button id="proWorkspaceBtn" class="primary big">פתח מרכז עבודה</button>
     </div>
-    <div class="credits card"><div><small>יתרת הצעות</small><strong id="creditCount">0</strong><span>הצעות זמינות</span></div><button id="buyCreditsBtn" class="primary">3 הצעות ב־15 ₪</button></div>
-    <button id="profileBtn" class="secondary big">פרופיל העסק שלי</button><button id="jobsBtn" class="secondary big">עבודות חדשות ממחירלי</button><button id="wonJobsBtn" class="secondary big">🤝 לקוחות שבחרו בי</button><button id="adminBtn" class="admin-entry big hidden">⚙️ ניהול מחירלי</button>
+    <button id="profileBtn" class="secondary big">פרופיל העסק שלי</button><button id="adminBtn" class="admin-entry big hidden">⚙️ כניסת מנהל — כל הקטגוריות</button>
   </div>
 </section>
 
 <section id="proWorkspaceView" class="view">
-  <div class="section-head"><button class="back">‹</button><div><span class="eyebrow">לבעלי מקצוע</span><h2>מרכז העבודה</h2></div></div>
+  <div class="section-head"><button class="back">‹</button><div><span class="eyebrow">לבעלי עסקים</span><h2>מרכז העבודה</h2></div></div>
   <div class="workspace-stats">
     <div class="stat-card"><small>עבודות פתוחות</small><strong id="proOpenCount">0</strong></div>
     <div class="stat-card"><small>ממתינות לתשלום</small><strong id="proUnpaidCount">0</strong></div>
@@ -100,9 +88,12 @@
     <div class="trade-picker" role="group" aria-label="בחירת מקצוע">
       <button type="button" class="trade-choice active" data-trade="handyman">🔨 היינדמן</button>
       <button type="button" class="trade-choice" data-trade="electrician">⚡ חשמלאי</button>
+      <button type="button" class="trade-choice" data-trade="home">🏠 שירותי בית</button>
+      <button type="button" class="trade-choice" data-trade="air_conditioning">❄️ מיזוג</button>
     </div>
     <input id="proJobTrade" type="hidden" value="handyman" />
     <div class="two-cols"><label>שם הלקוח<input id="proCustomerName" required autocomplete="name" /></label><label>טלפון<input id="proCustomerPhone" required inputmode="tel" autocomplete="tel" /></label></div>
+    <p class="note">הפרטים נשמרים בתיק העבודה הפרטי ומשמשים לטיפול בעבודה בלבד. אין להשתמש בהם לשיווק ללא הסכמת הלקוח.</p>
     <label>עיר / אזור<input id="proCustomerCity" placeholder="לדוגמה: כפר סבא" /></label>
     <label>סוג העבודה<select id="proJobType"></select></label>
     <label>מה הלקוח ביקש?<textarea id="proJobDescription" required placeholder="אפשר לכתוב או להקליט את הודעת הלקוח"></textarea></label>
@@ -144,7 +135,7 @@
 <section id="proSettingsView" class="view">
   <div class="section-head"><button class="back" data-back-to="workspace">‹</button><div><span class="eyebrow">התאמה אישית</span><h2>תמחור ותשלום</h2></div></div>
   <form id="proSettingsForm" class="card form-card">
-    <label>מקצוע עיקרי<select id="settingsTrade"><option value="handyman">היינדמן</option><option value="electrician">חשמלאי</option></select></label>
+    <label>מקצוע עיקרי<select id="settingsTrade"><option value="handyman">היינדמן</option><option value="electrician">חשמלאי</option><option value="home">שירותי בית</option><option value="air_conditioning">מיזוג</option></select></label>
     <div class="two-cols"><label>מחיר שעה רצוי<input id="settingsHourlyRate" type="number" min="0" step="10" /></label><label>עלות נסיעה רגילה<input id="settingsTravelCost" type="number" min="0" step="10" /></label></div>
     <div class="two-cols"><label>הוצאות עסק באחוזים<input id="settingsOverhead" type="number" min="0" max="60" step="1" /></label><label>מרווח לבלת״מ באחוזים<input id="settingsRisk" type="number" min="0" max="60" step="1" /></label></div>
     <label>קישור התשלום האישי שלך<input id="settingsPaymentLink" type="url" placeholder="קישור מקארדקום, ביט, PayBox או חברת הסליקה שלך" /></label>
@@ -186,21 +177,19 @@
 <section id="profileView" class="view"><div class="section-head"><button class="back">‹</button><h2>פרופיל העסק</h2></div><form id="profileForm" class="card form-card">
 <label>שם העסק<input id="bizName" required /></label><label>תחום עיקרי<select id="bizCategory"><option>היינדמן</option><option>חשמלאי</option><option>לבית</option><option>מיזוג</option></select></label><label>על העסק<textarea id="bizAbout"></textarea></label><label>אזורי שירות<input id="bizArea" placeholder="נתניה, חדרה והשרון" /></label><label>טלפון<input id="bizPhone" inputmode="tel" /></label><button class="primary big" type="submit">שמור פרופיל</button></form></section>
 
-<section id="adminView" class="view"><div class="section-head"><button class="back">‹</button><h2>ניהול מחירלי</h2></div>
+<section id="adminView" class="view"><div class="section-head"><button class="back">‹</button><div><span class="eyebrow">גישה מלאה</span><h2>ניהול מחירלי</h2></div></div>
   <div class="admin-grid">
-    <div class="admin-stat card"><small>משתמשים</small><strong id="adminUsersCount">0</strong></div>
-    <div class="admin-stat card"><small>לקוחות</small><strong id="adminCustomersCount">0</strong></div>
-    <div class="admin-stat card"><small>בעלי מקצוע</small><strong id="adminProsCount">0</strong></div>
-    <div class="admin-stat card"><small>תשלומים ממתינים</small><strong id="adminPendingCount">0</strong></div>
+    <div class="admin-stat card"><small>בעלי עסקים</small><strong id="adminBusinessesCount">0</strong></div>
+    <div class="admin-stat card"><small>כל העבודות</small><strong id="adminJobsCount">0</strong></div>
+    <div class="admin-stat card"><small>עבודות פתוחות</small><strong id="adminOpenJobsCount">0</strong></div>
+    <div class="admin-stat card"><small>הכנסות שתועדו</small><strong id="adminRevenueTotal">0 ₪</strong></div>
   </div>
   <div class="admin-tabs">
-    <button class="admin-tab active" data-admin-tab="payments">תשלומים</button>
-    <button class="admin-tab" data-admin-tab="pros">בעלי מקצוע</button>
-    <button class="admin-tab" data-admin-tab="customers">לקוחות</button>
+    <button class="admin-tab active" data-admin-tab="jobs">כל העבודות</button>
+    <button class="admin-tab" data-admin-tab="businesses">בעלי עסקים</button>
   </div>
-  <div id="adminPaymentsPanel" class="admin-panel"><div id="adminPaymentsList" class="stack"></div></div>
-  <div id="adminProsPanel" class="admin-panel hidden"><div id="adminProsList" class="stack"></div></div>
-  <div id="adminCustomersPanel" class="admin-panel hidden"><div id="adminCustomersList" class="stack"></div></div>
+  <div id="adminJobsPanel" class="admin-panel"><div class="list-toolbar"><b>עבודות בכל הקטגוריות</b><select id="adminTradeFilter"><option value="all">הכול</option><option value="handyman">היינדמן</option><option value="electrician">חשמלאי</option><option value="home">שירותי בית</option><option value="air_conditioning">מיזוג</option></select></div><div id="adminJobsList" class="stack"></div></div>
+  <div id="adminBusinessesPanel" class="admin-panel hidden"><div id="adminBusinessesList" class="stack"></div></div>
 </section>
 
 <section id="paymentView" class="view"><div class="section-head"><button class="back">‹</button><h2>רכישת הצעות</h2></div>
@@ -215,5 +204,5 @@
   </div>
 </section>
 </main><div id="toast" class="toast"></div></div>
-<script src="app.js?v=26"></script>
+<script src="app.js?v=28"></script>
 </body></html>
