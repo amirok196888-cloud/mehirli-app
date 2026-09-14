@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<meta name="theme-color" content="#101827" />
+<meta name="theme-color" content="#edf4ee" />
 <title>מחירלי</title>
 <meta name="description" content="מחירלי — מרכז עבודה חכם לבעלי מקצוע בתחומי הבית והמיזוג: תמחור, הצעות, תיעוד ורווח." />
 <link rel="canonical" href="https://amirok196888-cloud.github.io/mehirli-app/" />
@@ -52,18 +52,23 @@
 
 <section id="homeView" class="view">
   <div class="home-hero">
-    <div class="home-kicker">🧰 מרכז העבודה של בעל העסק</div>
-    <h2>מה מנהלים היום?</h2>
-    <p>קלוט פנייה, תחשב מחיר משתלם, שלח הצעה ללקוח ועקוב אחרי התשלום והרווח.</p>
+    <div class="home-kicker">🏠 העסק שלך במקום אחד</div>
+    <h2>בוקר טוב, מתחילים מכאן</h2>
+    <p>כל עבודה עוברת במסלול פשוט: קולטים פנייה, מתמחרים ושולחים ללקוח.</p>
     <div class="home-utility-row"><button id="notificationsBtn" class="notification-btn" type="button">🔔 התראות <span id="notificationBadge" class="notification-badge hidden">0</span></button><button id="enablePhoneNotificationsBtn" class="notification-permission hidden" type="button">אפשר התראות בטלפון</button></div><button id="logoutBtn" class="logout-link">התנתק</button>
   </div>
   <div id="proHome">
-    <div class="pro-command card">
-      <div><span class="eyebrow">מרכז העבודה שלי</span><h3>מהפנייה ועד התשלום</h3><p>תמחור, הצעה, תיעוד ורווח אמיתי — במקום אחד.</p></div>
-      <button id="proWorkspaceBtn" class="primary big">פתח מרכז עבודה</button>
+    <div class="flow-overview card">
+      <span class="eyebrow">איך זה עובד</span>
+      <div class="flow-steps">
+        <div><b>1</b><span>פרטי הלקוח והעבודה</span></div>
+        <div><b>2</b><span>תמחור והכנת הצעה</span></div>
+        <div><b>3</b><span>שליחת PDF ב־WhatsApp</span></div>
+      </div>
     </div>
+    <div class="home-primary-actions"><button id="homeNewJobBtn" class="primary big" type="button">＋ עבודה חדשה</button><button id="proWorkspaceBtn" class="secondary big" type="button">📋 כל העבודות שלי</button></div>
     <button id="whatsappSetupNotice" class="whatsapp-setup big hidden" type="button">💬 להפעלת WhatsApp ללקוחות — הוסף מספר עסקי</button>
-    <button id="profileBtn" class="secondary big">פרופיל העסק שלי</button><button id="adminBtn" class="admin-entry big hidden">⚙️ כניסת מנהל — כל הקטגוריות</button>
+    <button id="profileBtn" class="profile-entry big" type="button">🏪 פרטי העסק, WhatsApp ותשלום</button><button id="adminBtn" class="admin-entry big hidden" type="button">⚙️ כניסת מנהל — כל הקטגוריות</button>
   </div>
 </section>
 
@@ -85,33 +90,42 @@
 <section id="proJobFormView" class="view">
   <div class="section-head"><button class="back" data-back-to="workspace">‹</button><div><span class="eyebrow">פנייה חדשה</span><h2>תמחור עבודה</h2></div></div>
   <form id="proJobForm" class="card form-card">
-    <div class="trade-picker" role="group" aria-label="בחירת מקצוע">
-      <button type="button" class="trade-choice active" data-trade="handyman">🔨 היינדמן</button>
-      <button type="button" class="trade-choice" data-trade="electrician">⚡ חשמלאי</button>
-      <button type="button" class="trade-choice" data-trade="home">🏠 שירותי בית</button>
-      <button type="button" class="trade-choice" data-trade="air_conditioning">❄️ מיזוג</button>
+    <div class="form-step">
+      <div class="form-step-title"><b>1</b><div><h3>מי הלקוח?</h3><p>הפרטים נשמרים רק בתיק העבודה.</p></div></div>
+      <div class="two-cols"><label>שם הלקוח<input id="proCustomerName" required autocomplete="name" /></label><label>טלפון / WhatsApp<input id="proCustomerPhone" required inputmode="tel" autocomplete="tel" /></label></div>
+      <label>עיר / אזור<input id="proCustomerCity" placeholder="לדוגמה: כפר סבא" /></label>
     </div>
-    <input id="proJobTrade" type="hidden" value="handyman" />
-    <div class="two-cols"><label>שם הלקוח<input id="proCustomerName" required autocomplete="name" /></label><label>טלפון<input id="proCustomerPhone" required inputmode="tel" autocomplete="tel" /></label></div>
-    <p class="note">הפרטים נשמרים בתיק העבודה הפרטי ומשמשים לטיפול בעבודה בלבד. אין להשתמש בהם לשיווק ללא הסכמת הלקוח.</p>
-    <label>עיר / אזור<input id="proCustomerCity" placeholder="לדוגמה: כפר סבא" /></label>
-    <label>סוג העבודה<select id="proJobType"></select></label>
-    <label>מה הלקוח ביקש?<textarea id="proJobDescription" required placeholder="אפשר לכתוב או להקליט את הודעת הלקוח"></textarea></label>
-    <button id="proVoiceBtn" type="button" class="voice">🎤 הקלט את פרטי הפנייה</button><p id="proVoiceStatus" class="note"></p>
-    <label>מועד מתוכנן<input id="proScheduledAt" type="datetime-local" /></label>
-    <div class="pricing-title"><div><span class="eyebrow">מחשבון אישי</span><h3>כמה העבודה באמת שווה לך?</h3></div><button id="analyzeJobBtn" type="button" class="secondary tiny">נתח את העבודה</button></div>
-    <div class="two-cols"><label>שעות עבודה<input id="proLaborHours" type="number" min="0.25" step="0.25" value="1" /></label><label>מחיר שעה רצוי<input id="proHourlyRate" type="number" min="0" step="10" /></label></div>
-    <div class="two-cols"><label>חומרים<input id="proMaterialsCost" type="number" min="0" step="10" value="0" /></label><label>נסיעה וחניה<input id="proTravelCost" type="number" min="0" step="10" /></label></div>
-    <label>עלות עוזר / קבלן משנה<input id="proAssistantCost" type="number" min="0" step="10" value="0" /></label>
-    <div id="smartAnalysis" class="smart-analysis hidden"></div>
-    <div class="price-result">
-      <div><small>מחיר מינימום</small><strong id="priceFloor">0 ₪</strong></div>
-      <div class="recommended"><small>מחיר מומלץ</small><strong id="recommendedPrice">0 ₪</strong></div>
+    <div class="form-step">
+      <div class="form-step-title"><b>2</b><div><h3>מה העבודה?</h3><p>בחר תחום ותאר בקצרה מה הלקוח ביקש.</p></div></div>
+      <div class="trade-picker" role="group" aria-label="בחירת מקצוע">
+        <button type="button" class="trade-choice active" data-trade="handyman">🔨 היינדמן</button>
+        <button type="button" class="trade-choice" data-trade="electrician">⚡ חשמלאי</button>
+        <button type="button" class="trade-choice" data-trade="home">🏠 שירותי בית</button>
+        <button type="button" class="trade-choice" data-trade="air_conditioning">❄️ מיזוג</button>
+      </div>
+      <input id="proJobTrade" type="hidden" value="handyman" />
+      <label>סוג העבודה<select id="proJobType"></select></label>
+      <label>מה הלקוח ביקש?<textarea id="proJobDescription" required placeholder="אפשר לכתוב או להקליט את הודעת הלקוח"></textarea></label>
+      <button id="proVoiceBtn" type="button" class="voice">🎤 הקלט את פרטי הפנייה</button><p id="proVoiceStatus" class="note"></p>
+      <label>מועד מתוכנן<input id="proScheduledAt" type="datetime-local" /></label>
     </div>
-    <label>המחיר שאשלח ללקוח<input id="proQuotedPrice" type="number" min="0" step="10" required /></label>
-    <label>מקדמה מבוקשת<input id="proDepositAmount" type="number" min="0" step="10" value="0" /></label>
-    <label>מה כלול בהצעה?<textarea id="proQuoteScope" placeholder="עבודה, חומרים, פינוי, אחריות ומה לא כלול"></textarea></label>
-    <button class="primary big" type="submit">שמור והמשך לשליחת PDF ב־WhatsApp</button>
+    <div class="form-step form-step-pricing">
+      <div class="form-step-title"><b>3</b><div><h3>כמה לגבות?</h3><p>מחירלי מחשבת אם העבודה משתלמת לך.</p></div></div>
+      <div class="pricing-title"><div><span class="eyebrow">מחשבון אישי</span><h3>עלויות העבודה</h3></div><button id="analyzeJobBtn" type="button" class="secondary tiny">נתח את העבודה</button></div>
+      <div class="two-cols"><label>שעות עבודה<input id="proLaborHours" type="number" min="0.25" step="0.25" value="1" /></label><label>מחיר שעה רצוי<input id="proHourlyRate" type="number" min="0" step="10" /></label></div>
+      <div class="two-cols"><label>חומרים<input id="proMaterialsCost" type="number" min="0" step="10" value="0" /></label><label>נסיעה וחניה<input id="proTravelCost" type="number" min="0" step="10" /></label></div>
+      <label>עלות עוזר / קבלן משנה<input id="proAssistantCost" type="number" min="0" step="10" value="0" /></label>
+      <div id="smartAnalysis" class="smart-analysis hidden"></div>
+      <div class="price-result">
+        <div><small>מחיר מינימום</small><strong id="priceFloor">0 ₪</strong></div>
+        <div class="recommended"><small>מחיר מומלץ</small><strong id="recommendedPrice">0 ₪</strong></div>
+      </div>
+      <label>המחיר שאשלח ללקוח<input id="proQuotedPrice" type="number" min="0" step="10" required /></label>
+      <label>מקדמה מבוקשת — אופציונלי<input id="proDepositAmount" type="number" min="0" step="10" value="0" /></label>
+      <label>מה כלול בהצעה?<textarea id="proQuoteScope" placeholder="עבודה, חומרים, פינוי, אחריות ומה לא כלול"></textarea></label>
+    </div>
+    <p class="privacy-note">🔒 פרטי הלקוח משמשים לטיפול בעבודה בלבד ולא לשיווק ללא הסכמתו.</p>
+    <button class="primary big flow-submit" type="submit">שמור והמשך לשליחת PDF ב־WhatsApp</button>
   </form>
 </section>
 
@@ -178,6 +192,7 @@
 <label>שם העסק<input id="bizName" required /></label><label>תחום עיקרי<select id="bizCategory"><option>היינדמן</option><option>חשמלאי</option><option>לבית</option><option>מיזוג</option></select></label><label>על העסק<textarea id="bizAbout"></textarea></label><label>אזורי שירות<input id="bizArea" placeholder="נתניה, חדרה והשרון" /></label><label>מספר WhatsApp של העסק<input id="bizPhone" inputmode="tel" required placeholder="לדוגמה: 0501234567" /></label><p class="note">המספר יוצג ללקוח בהצעת המחיר כדי שיוכל לחזור אליך ב־WhatsApp.</p><button class="primary big" type="submit">שמור פרופיל</button></form></section>
 
 <section id="adminView" class="view"><div class="section-head"><button class="back">‹</button><div><span class="eyebrow">גישה מלאה</span><h2>ניהול מחירלי</h2></div></div>
+  <div id="adminLoading" class="admin-loading hidden">טוען את נתוני הניהול…</div>
   <div class="admin-grid">
     <div class="admin-stat card"><small>בעלי עסקים</small><strong id="adminBusinessesCount">0</strong></div>
     <div class="admin-stat card"><small>כל העבודות</small><strong id="adminJobsCount">0</strong></div>
@@ -189,7 +204,7 @@
     <button class="admin-tab" data-admin-tab="businesses">בעלי עסקים</button>
   </div>
   <div id="adminJobsPanel" class="admin-panel"><div class="list-toolbar"><b>עבודות בכל הקטגוריות</b><select id="adminTradeFilter"><option value="all">הכול</option><option value="handyman">היינדמן</option><option value="electrician">חשמלאי</option><option value="home">שירותי בית</option><option value="air_conditioning">מיזוג</option></select></div><div id="adminJobsList" class="stack"></div></div>
-  <div id="adminBusinessesPanel" class="admin-panel hidden"><div id="adminBusinessesList" class="stack"></div></div>
+  <div id="adminBusinessesPanel" class="admin-panel hidden"><p class="admin-warning">מחיקת בעל עסק מוחקת לצמיתות את החשבון ואת כל העבודות שלו.</p><div id="adminBusinessesList" class="stack"></div></div>
 </section>
 
 <section id="paymentView" class="view"><div class="section-head"><button class="back">‹</button><h2>רכישת הצעות</h2></div>

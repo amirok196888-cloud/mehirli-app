@@ -104,7 +104,7 @@ function renderNotifications(){
     const kind=el.dataset.kind;
     if(kind==='new_job'){state.role='pro';await openProWorkspace()}
     else if(kind==='new_quote'){state.role='customer';await renderRequests();show('#requestsListView')}
-    else if(kind==='payment_pending'&&state.isAdmin){await loadAdmin();show('#adminView')}
+    else if(kind==='payment_pending'&&state.isAdmin){await openAdmin()}
     else if(kind==='quote_selected'){await renderWonJobs();show('#wonJobsView')}
     else if(kind==='direct_quote_approved'){state.role='pro';await openProWorkspace()}
     else {renderNotifications()}
@@ -274,7 +274,7 @@ async function openProWorkspace(){
   const start=new Date();start.setDate(1);start.setHours(0,0,0,0);const revenue=state.proJobs.filter(j=>j.payment_status==='paid'&&new Date(j.updated_at)>=start).reduce((sum,j)=>sum+Number(j.actual_paid||0),0);
   $('#proOpenCount').textContent=open;$('#proUnpaidCount').textContent=unpaid;$('#proMonthRevenue').textContent=money(revenue);renderProJobCards();show('#proWorkspaceView')
 }
-$('#proWorkspaceBtn').onclick=openProWorkspace;$('#newProJobBtn').onclick=openNewProJob;$('#proJobStatusFilter').onchange=renderProJobCards;
+$('#proWorkspaceBtn').onclick=openProWorkspace;$('#homeNewJobBtn').onclick=openNewProJob;$('#newProJobBtn').onclick=openNewProJob;$('#proJobStatusFilter').onchange=renderProJobCards;
 $$('.trade-choice').forEach(b=>b.onclick=()=>{setTrade(b.dataset.trade);analyzeProfessionalJob(false)});
 ['#proLaborHours','#proHourlyRate','#proMaterialsCost','#proTravelCost','#proAssistantCost'].forEach(id=>$(id).addEventListener('input',()=>calculateProPrice(true)));
 $('#proQuotedPrice').addEventListener('input',()=>$('#proQuotedPrice').dataset.edited='1');
@@ -310,13 +310,11 @@ function quotePdfElement(job){
     <main>
       <div style="margin:30px 0 20px"><div style="font-size:14px;color:#607184">לכבוד</div><div style="font-size:25px;font-weight:900">${esc(job.customer_name)}</div>${job.city?`<div style="color:#607184">${esc(job.city)}</div>`:''}</div>
       <section style="margin:22px 0;padding:22px;border:1px solid #dce5ea;border-radius:16px;background:#f7fafb;break-inside:avoid">
-        <div style="font-size:14px;color:#607184">תיאור העבודה</div>
-        <div style="font-size:21px;font-weight:800;margin:5px 0 10px">${esc(job.description)}</div>
+        <div style="font-size:14px;color:#607184">תיאור העבודה</div><div style="font-size:21px;font-weight:800;margin:5px 0 10px">${esc(job.description)}</div>
         ${job.quote_scope?`<div style="white-space:pre-wrap;color:#344454">${esc(job.quote_scope)}</div>`:''}
       </section>
       <section style="margin:22px 0;padding:22px;text-align:center;border:2px solid #38b889;border-radius:16px;background:#eefaf5;break-inside:avoid">
-        <div style="font-size:14px;color:#527064">מחיר ההצעה</div>
-        <div style="font-size:40px;line-height:1.2;font-weight:900;color:#16865b">${money(job.quoted_price)}</div>
+        <div style="font-size:14px;color:#527064">מחיר ההצעה</div><div style="font-size:40px;line-height:1.2;font-weight:900;color:#16865b">${money(job.quoted_price)}</div>
         ${Number(job.deposit_amount)>0?`<div style="margin-top:5px;font-weight:800">מקדמה: ${money(job.deposit_amount)}</div>`:''}
       </section>
       ${job.scheduled_at?`<div style="margin:18px 0;padding:14px 18px;border-right:4px solid #3f8fc7;background:#f2f8fc;break-inside:avoid"><b>מועד מתוכנן:</b> ${esc(formatDateTime(job.scheduled_at))}</div>`:''}
@@ -327,51 +325,27 @@ function quotePdfElement(job){
       </section>
     </main>
     <footer style="margin-top:30px;padding-top:16px;border-top:1px solid #dce5ea;text-align:center;color:#7b8996;font-size:12px">הופק באמצעות מחירלי</footer>`;
-  document.body.appendChild(root);
-  return root
+  document.body.appendChild(root);return root
 }
 async function createQuotePdfFile(job){
   if(typeof window.html2pdf!=='function')throw new Error('PDF library unavailable');
   const element=quotePdfElement(job);
-  try{
-    const blob=await window.html2pdf().set({margin:[8,8,8,8],filename:quotePdfFileName(job),image:{type:'jpeg',quality:.98},html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','legacy']}}).from(element).outputPdf('blob');
-    return new File([blob],quotePdfFileName(job),{type:'application/pdf',lastModified:Date.now()})
-  }finally{element.remove()}
+  try{return new File([await window.html2pdf().set({margin:[8,8,8,8],filename:quotePdfFileName(job),image:{type:'jpeg',quality:.98},html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','legacy']}}).from(element).outputPdf('blob')],quotePdfFileName(job),{type:'application/pdf',lastModified:Date.now()})}
+  finally{element.remove()}
 }
 function prepareJobQuotePdf(job){
-  const key=String(job.id||'');
-  const existing=quotePdfCache.get(key);
-  if(existing?.status==='ready')return Promise.resolve(existing.file);
-  if(existing?.status==='loading')return existing.promise;
-  const promise=createQuotePdfFile(job).then(file=>{
-    quotePdfCache.set(key,{status:'ready',file});
-    const btn=$('#jobDetailContent')?.querySelector('[data-job-action="quote-pdf"]');
-    if(btn&&state.selectedProJob?.id===job.id){btn.disabled=false;btn.textContent='📄 שלח PDF ב־WhatsApp'}
-    return file
-  }).catch(error=>{
-    quotePdfCache.delete(key);
-    const btn=$('#jobDetailContent')?.querySelector('[data-job-action="quote-pdf"]');
-    if(btn&&state.selectedProJob?.id===job.id){btn.disabled=false;btn.dataset.pdfFallback='1';btn.textContent='הדפס / שמור PDF'}
-    throw error
-  });
-  quotePdfCache.set(key,{status:'loading',promise});
-  return promise
+  const key=String(job.id||''),existing=quotePdfCache.get(key);
+  if(existing?.status==='ready')return Promise.resolve(existing.file);if(existing?.status==='loading')return existing.promise;
+  const promise=createQuotePdfFile(job).then(file=>{quotePdfCache.set(key,{status:'ready',file});const btn=$('#jobDetailContent')?.querySelector('[data-job-action="quote-pdf"]');if(btn&&state.selectedProJob?.id===job.id){btn.disabled=false;btn.textContent='📄 שלח PDF ב־WhatsApp'}return file}).catch(error=>{quotePdfCache.delete(key);const btn=$('#jobDetailContent')?.querySelector('[data-job-action="quote-pdf"]');if(btn&&state.selectedProJob?.id===job.id){btn.disabled=false;btn.dataset.pdfFallback='1';btn.textContent='הדפס / שמור PDF'}throw error});
+  quotePdfCache.set(key,{status:'loading',promise});return promise
 }
-function downloadQuotePdf(file){
-  const url=URL.createObjectURL(file),link=document.createElement('a');link.href=url;link.download=file.name;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),30000)
-}
+function downloadQuotePdf(file){const url=URL.createObjectURL(file),link=document.createElement('a');link.href=url;link.download=file.name;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),30000)}
 function shareJobQuotePdf(job,button){
   if(button?.dataset.pdfFallback==='1'){printJobQuote(job);return}
-  const cached=quotePdfCache.get(String(job.id||''));
-  if(cached?.status!=='ready'){toast('ה־PDF עדיין בהכנה. נסה שוב בעוד רגע.');prepareJobQuotePdf(job).catch(()=>toast('לא ניתן להכין PDF כרגע'));return}
+  const cached=quotePdfCache.get(String(job.id||''));if(cached?.status!=='ready'){toast('ה־PDF עדיין בהכנה. נסה שוב בעוד רגע.');prepareJobQuotePdf(job).catch(()=>toast('לא ניתן להכין PDF כרגע'));return}
   const file=cached.file;
-  if(navigator.share&&navigator.canShare?.({files:[file]})){
-    navigator.share({title:`הצעת מחיר עבור ${job.customer_name}`,text:`שלום ${job.customer_name}, מצורפת הצעת המחיר מ־${state.businessProfile?.business_name||state.profile?.full_name||'מחירלי'}.`,files:[file]}).then(()=>toast('ה־PDF הועבר לשיתוף')).catch(error=>{if(error?.name!=='AbortError'){downloadQuotePdf(file);toast('ה־PDF נשמר במכשיר')}});
-    return
-  }
-  downloadQuotePdf(file);
-  openWhatsapp(job.customer_phone,`שלום ${job.customer_name}, הכנתי עבורך הצעת מחיר בקובץ PDF. הקובץ נשמר במכשיר שלי ואצרף אותו כאן.`);
-  toast('ה־PDF נשמר. צרף אותו לשיחת ה־WhatsApp שנפתחה.')
+  if(navigator.share&&navigator.canShare?.({files:[file]})){navigator.share({title:`הצעת מחיר עבור ${job.customer_name}`,text:`שלום ${job.customer_name}, מצורפת הצעת המחיר מ־${state.businessProfile?.business_name||state.profile?.full_name||'מחירלי'}.`,files:[file]}).then(()=>toast('ה־PDF הועבר לשיתוף')).catch(error=>{if(error?.name!=='AbortError'){downloadQuotePdf(file);toast('ה־PDF נשמר במכשיר')}});return}
+  downloadQuotePdf(file);openWhatsapp(job.customer_phone,`שלום ${job.customer_name}, הכנתי עבורך הצעת מחיר בקובץ PDF. הקובץ נשמר במכשיר שלי ואצרף אותו כאן.`);toast('ה־PDF נשמר. צרף אותו לשיחת ה־WhatsApp שנפתחה.')
 }
 async function copyText(value,success='הקישור הועתק'){
   try{await navigator.clipboard.writeText(value);toast(success)}catch{const ta=document.createElement('textarea');ta.value=value;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast(success)}
@@ -442,24 +416,48 @@ async function loadPublicQuote(token){
 }
 
 async function loadAdmin(){
-  if(!state.isAdmin){toast('אין הרשאת מנהל');return}
+  if(!state.isAdmin){toast('אין הרשאת מנהל');return false}
   const [{data:summary,error:se},{data:jobs,error:je},{data:businesses,error:be}]=await Promise.all([
     db.rpc('admin_professional_summary'),db.rpc('admin_list_pro_jobs'),db.rpc('admin_list_businesses_v28')
   ]);
-  if(se||je||be){toast((se||je||be).message||'לא ניתן לטעון את אזור המנהל');return}
+  if(se||je||be){toast((se||je||be).message||'לא ניתן לטעון את אזור המנהל');return false}
   const sum=summary||{};state.adminJobs=jobs||[];state.adminBusinesses=businesses||[];
   $('#adminBusinessesCount').textContent=sum.businesses||0;$('#adminJobsCount').textContent=sum.jobs||0;$('#adminOpenJobsCount').textContent=sum.open_jobs||0;$('#adminRevenueTotal').textContent=money(sum.revenue||0);
-  renderAdminJobs();renderAdminBusinesses()
+  renderAdminJobs();renderAdminBusinesses();return true
 }
 function renderAdminJobs(){
   const box=$('#adminJobsList'),filter=$('#adminTradeFilter').value,rows=state.adminJobs.filter(j=>filter==='all'||j.trade===filter);
-  box.innerHTML=rows.length?rows.map(j=>`<div class="item admin-job"><div class="job-card-top"><span class="trade-badge ${j.trade}">${tradeIcon(j.trade)} ${tradeHe[j.trade]||'בעל מקצוע'}</span><span class="status-pill status-${j.status}">${jobStatusHe[j.status]||j.status}</span></div><h3>${esc(j.customer_name||'לקוח')}</h3><p>${esc(j.description||'')}</p><div class="admin-user-meta"><span class="badge">🏪 ${esc(j.business_name||'עסק ללא שם')}</span><span class="badge">📍 ${esc(j.city||'לא צוין')}</span><span class="badge">${money(j.quoted_price)}</span></div></div>`).join(''):'<div class="card"><h3>אין עבודות בקטגוריה הזו</h3></div>'
+  box.innerHTML=rows.length?rows.map(j=>`<div class="item admin-job"><div class="job-card-top"><span class="trade-badge ${j.trade}">${tradeIcon(j.trade)} ${tradeHe[j.trade]||'בעל מקצוע'}</span><span class="status-pill status-${j.status}">${jobStatusHe[j.status]||j.status}</span></div><h3>${esc(j.customer_name||'לקוח')}</h3><p>${esc(j.description||'')}</p><div class="admin-user-meta"><span class="badge">🏪 ${esc(j.business_name||'עסק ללא שם')}</span><span class="badge">📍 ${esc(j.city||'לא צוין')}</span><span class="badge">${money(j.quoted_price)}</span></div><div class="admin-record-actions"><button type="button" class="delete-action" data-admin-delete-job="${j.job_id}">🗑️ מחק עבודה</button></div></div>`).join(''):'<div class="card"><h3>אין עבודות בקטגוריה הזו</h3></div>';
+  box.querySelectorAll('[data-admin-delete-job]').forEach(button=>button.onclick=()=>deleteAdminJob(button.dataset.adminDeleteJob,button))
 }
 function renderAdminBusinesses(){
   const box=$('#adminBusinessesList');
-  box.innerHTML=state.adminBusinesses.length?state.adminBusinesses.map(b=>`<div class="item"><div class="job-card-top"><h3>${esc(b.business_name||b.email||'בעל עסק')}</h3><span class="trade-badge ${b.trade}">${tradeIcon(b.trade)} ${tradeHe[b.trade]||'טרם הוגדר'}</span></div><p>${esc(b.email||'')}</p><div class="admin-user-meta"><span class="badge">${Number(b.job_count||0)} עבודות</span><span class="badge">הכנסות ${money(b.revenue||0)}</span>${b.service_areas?.length?`<span class="badge">📍 ${esc(b.service_areas.join(', '))}</span>`:''}</div></div>`).join(''):'<div class="card"><h3>עדיין אין בעלי עסקים</h3></div>'
+  box.innerHTML=state.adminBusinesses.length?state.adminBusinesses.map(b=>`<div class="item admin-business"><div class="job-card-top"><h3>${esc(b.business_name||b.email||'בעל עסק')}</h3><span class="trade-badge ${b.trade}">${tradeIcon(b.trade)} ${tradeHe[b.trade]||'טרם הוגדר'}</span></div><p>${esc(b.email||'')}</p><div class="admin-user-meta"><span class="badge">${Number(b.job_count||0)} עבודות</span><span class="badge">הכנסות ${money(b.revenue||0)}</span>${b.service_areas?.length?`<span class="badge">📍 ${esc(b.service_areas.join(', '))}</span>`:''}</div><div class="admin-record-actions"><button type="button" class="delete-action" data-admin-delete-business="${b.professional_id}" data-business-name="${esc(b.business_name||b.email||'בעל העסק')}">🗑️ מחק בעל עסק</button></div></div>`).join(''):'<div class="card"><h3>עדיין אין בעלי עסקים</h3></div>';
+  box.querySelectorAll('[data-admin-delete-business]').forEach(button=>button.onclick=()=>deleteAdminBusiness(button.dataset.adminDeleteBusiness,button.dataset.businessName,button))
 }
-const adminBtn=$('#adminBtn'); if(adminBtn)adminBtn.onclick=async()=>{await loadAdmin();show('#adminView')};
+async function deleteAdminJob(jobId,button){
+  if(!confirm('למחוק את העבודה לצמיתות? הפעולה אינה ניתנת לביטול.'))return;
+  button.disabled=true;button.textContent='מוחק…';
+  const {data,error}=await db.rpc('admin_delete_pro_job_v32',{p_job_id:jobId});
+  if(error||!data){button.disabled=false;button.textContent='🗑️ מחק עבודה';toast(error?.message||'העבודה לא נמצאה');return}
+  await loadAdmin();toast('העבודה נמחקה')
+}
+async function deleteAdminBusiness(professionalId,businessName,button){
+  if(!confirm(`למחוק לצמיתות את ${businessName}?\n\nהחשבון וכל העבודות שלו יימחקו ולא ניתן יהיה לשחזר אותם.`))return;
+  button.disabled=true;button.textContent='מוחק…';
+  const {data,error}=await db.rpc('admin_delete_business_v32',{p_professional_id:professionalId});
+  if(error||!data){button.disabled=false;button.textContent='🗑️ מחק בעל עסק';const message=error?.message==='cannot_delete_self'?'אי אפשר למחוק את חשבון המנהל':error?.message==='cannot_delete_admin'?'אי אפשר למחוק מנהל אחר':error?.message;toast(message||'בעל העסק לא נמצא');return}
+  await loadAdmin();toast('בעל העסק וכל העבודות שלו נמחקו')
+}
+async function openAdmin(){
+  if(!state.isAdmin){toast('אין הרשאת מנהל');return}
+  const loading=$('#adminLoading'),button=$('#adminBtn');
+  show('#adminView');loading.classList.remove('hidden');button.disabled=true;
+  const loaded=await loadAdmin();
+  loading.classList.add('hidden');button.disabled=false;
+  if(!loaded)show('#homeView')
+}
+const adminBtn=$('#adminBtn');if(adminBtn)adminBtn.addEventListener('click',openAdmin);
 $('#adminTradeFilter').onchange=renderAdminJobs;
 $$('.admin-tab').forEach(b=>b.onclick=()=>{$$('.admin-tab').forEach(x=>x.classList.toggle('active',x===b));['jobs','businesses'].forEach(k=>$(`#admin${k[0].toUpperCase()+k.slice(1)}Panel`).classList.toggle('hidden',b.dataset.adminTab!==k))});
 
