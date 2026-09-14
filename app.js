@@ -2,11 +2,12 @@ const SUPABASE_URL='https://jgnbcrlvsudfqfofmvlx.supabase.co';
 const SUPABASE_KEY='sb_publishable_WnOhGZSlik7zqpO-cRYGvA_lOUz68Wp';
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const state={user:null,profile:null,businessProfile:null,role:'pro',credits:0,requests:[],offers:[],jobs:[],selectedRequest:null,selectedJob:null,isAdmin:false,notifications:[],unreadNotifications:0,notificationTimer:null,lastNotificationSeenAt:null,proSettings:null,proJobs:[],selectedProJob:null,proJobMedia:[],adminJobs:[],adminBusinesses:[]};
+const state={user:null,profile:null,businessProfile:null,role:'pro',credits:0,requests:[],offers:[],jobs:[],selectedRequest:null,selectedJob:null,isAdmin:false,notifications:[],unreadNotifications:0,notificationTimer:null,lastNotificationSeenAt:null,proSettings:null,proJobs:[],selectedProJob:null,proJobMedia:[],adminJobs:[],adminBusinesses:[],subscription:null,billingSettings:null};
 const quotePdfCache=new Map();
 const catDb={'רכב':'vehicle','מיזוג':'air_conditioning','לבית':'home','הנדימן':'handyman','היינדמן':'handyman','חשמלאי':'electrician'}, catHe={vehicle:'רכב',air_conditioning:'מיזוג',home:'לבית',handyman:'היינדמן',electrician:'חשמלאי'};
 const tradeHe={handyman:'היינדמן',electrician:'חשמלאי',home:'שירותי בית',air_conditioning:'מיזוג'};
 const jobStatusHe={lead:'פנייה חדשה',quoted:'הצעה נשלחה',approved:'ההצעה אושרה',scheduled:'נקבע מועד',in_progress:'בביצוע',completed:'העבודה הסתיימה',paid:'שולם',cancelled:'בוטל'};
+const subscriptionStatusHe={admin:'מנהל — ללא חיוב',trial:'תקופת ניסיון',active:'מנוי פעיל',past_due:'נדרש להסדיר תשלום',suspended:'השירות מושהה',cancelled:'המנוי בוטל',not_started:'טרם הופעל'};
 const TRADE_JOBS={
   handyman:[['general','תיקון כללי'],['tv','תליית טלוויזיה'],['shelves','מדפים ותלייה'],['furniture','הרכבת רהיטים'],['door','דלת / ארון'],['sealing','איטום וסיליקון'],['faucet','ברז / סיפון'],['blinds','תריס / וילון'],['other','אחר']],
   electrician:[['general','בדיקה / תקלה כללית'],['outlet','שקע או מפסק'],['lighting','תאורה'],['short','קצר / הפסקת חשמל'],['panel','לוח חשמל'],['boiler','דוד חשמל'],['three_phase','תלת־פאזי'],['ev','עמדת טעינה'],['other','אחר']],
@@ -64,9 +65,33 @@ function safeHttpUrl(value=''){
   if(!value)return '';
   try{const url=new URL(value);return ['https:','http:'].includes(url.protocol)?url.href:''}catch{return ''}
 }
+function formatDate(value){if(!value)return '';try{return new Date(value).toLocaleDateString('he-IL')}catch{return ''}}
+function daysLeft(value){if(!value)return 0;return Math.max(0,Math.ceil((new Date(value).getTime()-Date.now())/86400000))}
+function hasServiceAccess(){return state.isAdmin||state.subscription?.has_access===true}
+async function loadSubscription(){
+  if(!state.user)return null;
+  const {data,error}=await db.rpc('get_my_subscription_v33');
+  if(error){state.subscription={status:'suspended',has_access:false,failure_reason:'לא ניתן לבדוק את מצב המנוי'};return state.subscription}
+  state.subscription=data||null;renderSubscriptionBanner();return state.subscription
+}
+function renderSubscriptionBanner(){
+  const button=$('#subscriptionBanner'),entry=$('#subscriptionBtn'),s=state.subscription;if(!button||!s)return;
+  if(state.isAdmin){button.classList.add('hidden');if(entry)entry.classList.add('hidden');return}
+  if(entry)entry.classList.remove('hidden');button.classList.remove('hidden');
+  if(s.status==='trial')button.innerHTML=`<b>🎁 תקופת ניסיון</b><span>נשארו ${daysLeft(s.trial_ends_at)} ימים · לצפייה במנוי</span>`;
+  else if(s.status==='active')button.innerHTML=`<b>✓ המנוי פעיל</b><span>בתוקף עד ${formatDate(s.current_period_ends_at)}</span>`;
+  else if(s.status==='past_due')button.innerHTML=`<b>⚠️ התשלום דורש טיפול</b><span>אפשר להמשיך עד ${formatDate(s.grace_ends_at)}</span>`;
+  else button.innerHTML='<b>🔒 השירות מושהה</b><span>המידע נשמר · יש להסדיר תשלום</span>';
+  button.dataset.status=s.status||''
+}
+async function routeAfterLogin(){
+  if(!state.isAdmin&&!hasServiceAccess()){await openSubscription();return}
+  show('#homeView')
+}
+function requireServiceAccess(){if(hasServiceAccess())return true;openSubscription();toast('יש להסדיר את המנוי כדי להמשיך');return false}
 
 function notificationIcon(kind){
-  return ({new_job:'🧰',new_quote:'💬',payment_pending:'💳',quote_selected:'🤝',direct_quote_approved:'✅'})[kind]||'🔔'
+  return ({new_job:'🧰',new_quote:'💬',payment_pending:'💳',subscription_payment_pending:'💳',subscription_status:'🔐',quote_selected:'🤝',direct_quote_approved:'✅'})[kind]||'🔔'
 }
 function timeAgo(iso){
   const d=new Date(iso), diff=Math.max(0,Date.now()-d.getTime()), m=Math.floor(diff/60000);
@@ -104,7 +129,8 @@ function renderNotifications(){
     const kind=el.dataset.kind;
     if(kind==='new_job'){state.role='pro';await openProWorkspace()}
     else if(kind==='new_quote'){state.role='customer';await renderRequests();show('#requestsListView')}
-    else if(kind==='payment_pending'&&state.isAdmin){await openAdmin()}
+    else if((kind==='payment_pending'||kind==='subscription_payment_pending')&&state.isAdmin){await openAdmin()}
+    else if(kind==='subscription_status'){await openSubscription()}
     else if(kind==='quote_selected'){await renderWonJobs();show('#wonJobsView')}
     else if(kind==='direct_quote_approved'){state.role='pro';await openProWorkspace()}
     else {renderNotifications()}
@@ -132,18 +158,19 @@ async function loadMe(){
   }
   state.profile=p;state.role=state.isAdmin?'admin':'pro';
   const {data:bp}=await db.from('business_profiles').select('*').eq('user_id',state.user.id).maybeSingle();state.businessProfile=bp||null;
+  await loadSubscription();
   const ab=$('#adminBtn');if(ab)ab.classList.toggle('hidden',!state.isAdmin);
   const wn=$('#whatsappSetupNotice');if(wn)wn.classList.toggle('hidden',!!String(bp?.business_phone||'').trim());
   const np=$('#enablePhoneNotificationsBtn');if(np&&'Notification' in window)np.classList.toggle('hidden',Notification.permission!=='default');
   startNotificationPolling()
 }
-async function boot(){const quoteToken=currentPublicQuoteToken();if(quoteToken){await loadPublicQuote(quoteToken);return}const {data:{session}}=await db.auth.getSession();state.user=session?.user||null;if(state.user){await loadMe();show('#homeView')}else show('#authView')}
-$('#authForm').onsubmit=async e=>{e.preventDefault();$('#authNote').textContent='מתחבר…';const {data,error}=await db.auth.signInWithPassword({email:$('#authEmail').value.trim(),password:$('#authPassword').value});if(error){$('#authNote').textContent=error.message;return}state.user=data.user;await loadMe();$('#authNote').textContent='';show('#homeView')};
-$('#signupBtn').onclick=async()=>{const email=$('#authEmail').value.trim(),password=$('#authPassword').value,name=$('#authName').value.trim(),role='professional';if(!email||password.length<6){toast('הזן אימייל וסיסמה של לפחות 6 תווים');return}const {data,error}=await db.auth.signUp({email,password,options:{data:{role,full_name:name}}});if(error){toast(error.message);return}if(data.session){state.user=data.user;await loadMe();show('#homeView');toast('ההרשמה הושלמה')}else{$('#authNote').textContent='נשלח אליך אימייל לאישור ההרשמה. לאחר האישור חזור והתחבר.'}};
+async function boot(){const quoteToken=currentPublicQuoteToken();if(quoteToken){await loadPublicQuote(quoteToken);return}const {data:{session}}=await db.auth.getSession();state.user=session?.user||null;if(state.user){await loadMe();await routeAfterLogin()}else show('#authView')}
+$('#authForm').onsubmit=async e=>{e.preventDefault();$('#authNote').textContent='מתחבר…';const {data,error}=await db.auth.signInWithPassword({email:$('#authEmail').value.trim(),password:$('#authPassword').value});if(error){$('#authNote').textContent=error.message;return}state.user=data.user;await loadMe();$('#authNote').textContent='';await routeAfterLogin()};
+$('#signupBtn').onclick=async()=>{const email=$('#authEmail').value.trim(),password=$('#authPassword').value,name=$('#authName').value.trim(),role='professional';if(!email||password.length<6){toast('הזן אימייל וסיסמה של לפחות 6 תווים');return}const {data,error}=await db.auth.signUp({email,password,options:{data:{role,full_name:name}}});if(error){toast(error.message);return}if(data.session){state.user=data.user;await loadMe();await routeAfterLogin();toast('ההרשמה הושלמה — תקופת הניסיון הופעלה')}else{$('#authNote').textContent='נשלח אליך אימייל לאישור ההרשמה. לאחר האישור חזור והתחבר.'}};
 $('#logoutBtn').onclick=async()=>{stopNotificationPolling();await db.auth.signOut();state.user=null;show('#authView')};
 $$('.category').forEach(b=>b.onclick=()=>{$('#reqCategory').value=b.dataset.category;show('#requestView')});
-$('#profileBtn').onclick=async()=>{await fillProfile();show('#profileView')};$$('.back').forEach(b=>b.onclick=async()=>{if(b.dataset.backTo==='workspace'){await openProWorkspace()}else show('#homeView')});
-$('#whatsappSetupNotice').onclick=async()=>{await fillProfile();show('#profileView')};
+$('#profileBtn').onclick=async()=>{if(!requireServiceAccess())return;await fillProfile();show('#profileView')};$$('.back').forEach(b=>b.onclick=async()=>{if(!state.isAdmin&&!hasServiceAccess()){await openSubscription()}else if(b.dataset.backTo==='workspace'){await openProWorkspace()}else show('#homeView')});
+$('#whatsappSetupNotice').onclick=async()=>{if(!requireServiceAccess())return;await fillProfile();show('#profileView')};
 $('#notificationsBtn').onclick=openNotifications;
 $('#markAllNotificationsBtn').onclick=async()=>{
   const {error}=await db.from('notifications').update({is_read:true}).eq('user_id',state.user.id).eq('is_read',false);
@@ -209,10 +236,10 @@ async function renderWonJobs(){
 }
 function openOfferForm(id){state.selectedJob=state.jobs.find(j=>j.id===id);const he=catHe[state.selectedJob.category];$('#jobSummary').innerHTML=`<h3>${icon(he)} ${esc(state.selectedJob.description)}</h3><p>📍 ${esc(state.selectedJob.city)}</p>`;show('#offerFormView')}
 $('#priceType').onchange=()=>{$('#rangePriceWrap').classList.toggle('hidden',$('#priceType').value!=='range');$('#singlePriceWrap').classList.toggle('hidden',$('#priceType').value==='range')};
-$('#offerForm').onsubmit=async e=>{e.preventDefault();if(state.credits<1){toast('אין לך הצעות זמינות. רכוש 3 הצעות ב־15 ₪ דרך PayBox.');show('#paymentView');return}const type=$('#priceType').value,price=Number($('#offerPrice').value)||null,min=Number($('#offerMin').value)||null,max=Number($('#offerMax').value)||null;const args={p_request_id:state.selectedJob.id,p_quote_type:type,p_price_min:type==='fixed'?price:min,p_price_max:type==='range'?max:null,p_visit_fee:type==='inspection'?price:null,p_quote_text:$('#offerText').value.trim(),p_availability:[$('#offerDate').value,$('#offerTime').value].filter(Boolean).join(' ')};const {error}=await db.rpc('submit_quote',args);if(error){toast('לא נשלח: '+error.message);return}await loadMe();e.target.reset();toast('ההצעה נשלחה. נוכתה הצעה אחת מהחבילה.');await refreshNotifications(false);await renderJobs();show('#proJobsView')};
+$('#offerForm').onsubmit=async e=>{e.preventDefault();toast('מסלול ההצעות הישן אינו פעיל. מחירלי מיועדת כעת לניהול העסק שלך.');await openProWorkspace()};
 async function fillProfile(){const {data}=await db.from('business_profiles').select('*').eq('user_id',state.user.id).maybeSingle();state.businessProfile=data||null;$('#bizName').value=data?.business_name||'';$('#bizCategory').value=data?.specialties?.[0]||'היינדמן';$('#bizAbout').value=data?.description||'';$('#bizArea').value=(data?.service_areas||[]).join(', ');$('#bizPhone').value=data?.business_phone||''}
 $('#profileForm').onsubmit=async e=>{
-  e.preventDefault();const category=$('#bizCategory').value,trade=catDb[category]||'handyman';
+  e.preventDefault();if(!requireServiceAccess())return;const category=$('#bizCategory').value,trade=catDb[category]||'handyman';
   const row={user_id:state.user.id,business_name:$('#bizName').value.trim(),description:$('#bizAbout').value.trim(),specialties:[category],service_areas:$('#bizArea').value.split(',').map(x=>x.trim()).filter(Boolean),business_phone:$('#bizPhone').value.trim()};
   const {error}=await db.from('business_profiles').upsert(row);if(error){toast(error.message);return}
   const {error:settingsError}=await db.from('professional_settings').upsert({professional_id:state.user.id,trade},{onConflict:'professional_id'});if(settingsError){toast(settingsError.message);return}
@@ -254,6 +281,7 @@ function analyzeProfessionalJob(render=true){
   return result
 }
 async function openNewProJob(){
+  if(!requireServiceAccess())return;
   const s=await loadProSettings();$('#proJobForm').reset();$('#proQuotedPrice').dataset.edited='';setTrade(s.trade||'handyman');
   $('#proHourlyRate').value=s.default_hourly_rate||180;$('#proTravelCost').value=s.default_travel_cost||0;$('#proLaborHours').value=1;$('#proMaterialsCost').value=0;$('#proAssistantCost').value=0;$('#proDepositAmount').value=0;$('#smartAnalysis').classList.add('hidden');calculateProPrice(true);show('#proJobFormView')
 }
@@ -269,7 +297,7 @@ function renderProJobCards(){
   box.querySelectorAll('[data-pro-job]').forEach(b=>b.onclick=()=>openProJobDetail(b.dataset.proJob))
 }
 async function openProWorkspace(){
-  if(!state.user)return;await Promise.all([loadProSettings(),loadProJobs()]);
+  if(!state.user||!requireServiceAccess())return;await Promise.all([loadProSettings(),loadProJobs()]);
   const open=state.proJobs.filter(j=>!['paid','cancelled'].includes(j.status)).length,unpaid=state.proJobs.filter(j=>j.payment_status!=='paid'&&!['lead','cancelled'].includes(j.status)).length;
   const start=new Date();start.setDate(1);start.setHours(0,0,0,0);const revenue=state.proJobs.filter(j=>j.payment_status==='paid'&&new Date(j.updated_at)>=start).reduce((sum,j)=>sum+Number(j.actual_paid||0),0);
   $('#proOpenCount').textContent=open;$('#proUnpaidCount').textContent=unpaid;$('#proMonthRevenue').textContent=money(revenue);renderProJobCards();show('#proWorkspaceView')
@@ -281,7 +309,7 @@ $('#proQuotedPrice').addEventListener('input',()=>$('#proQuotedPrice').dataset.e
 $('#analyzeJobBtn').onclick=()=>{if(!$('#proJobDescription').value.trim()){toast('כתוב קודם מה הלקוח ביקש');return}analyzeProfessionalJob(true);calculateProPrice(true)};
 if(SpeechRecognition){const proRec=new SpeechRecognition();proRec.lang='he-IL';$('#proVoiceBtn').onclick=()=>{try{proRec.start();$('#proVoiceStatus').textContent='מקשיב…'}catch{}};proRec.onresult=e=>{$('#proJobDescription').value=e.results[0][0].transcript||'';$('#proVoiceStatus').textContent='הטקסט נקלט. עכשיו אפשר לנתח את העבודה.'}}else{$('#proVoiceBtn').disabled=true;$('#proVoiceStatus').textContent='הכתבה קולית אינה נתמכת בדפדפן הזה.'}
 $('#proJobForm').onsubmit=async e=>{
-  e.preventDefault();const analysis=analyzeProfessionalJob(false),pricing=calculateProPrice(false),scheduled=$('#proScheduledAt').value;
+  e.preventDefault();if(!requireServiceAccess())return;const analysis=analyzeProfessionalJob(false),pricing=calculateProPrice(false),scheduled=$('#proScheduledAt').value;
   const row={professional_id:state.user.id,trade:$('#proJobTrade').value,customer_name:$('#proCustomerName').value.trim(),customer_phone:$('#proCustomerPhone').value.trim(),city:$('#proCustomerCity').value.trim(),job_type:$('#proJobType').value,description:$('#proJobDescription').value.trim(),scheduled_at:scheduled?new Date(scheduled).toISOString():null,labor_hours:numberValue('#proLaborHours'),hourly_rate:numberValue('#proHourlyRate'),materials_cost:numberValue('#proMaterialsCost'),travel_cost:numberValue('#proTravelCost'),assistant_cost:numberValue('#proAssistantCost'),overhead_percent:Number(state.proSettings?.overhead_percent)||0,risk_percent:Number(state.proSettings?.risk_percent)||0,price_floor:pricing.floor,recommended_price:pricing.recommended,quoted_price:numberValue('#proQuotedPrice'),deposit_amount:numberValue('#proDepositAmount'),quote_scope:$('#proQuoteScope').value.trim(),quote_terms:state.proSettings?.quote_terms||'',customer_questions:analysis.questions,tools_needed:analysis.tools,warnings:analysis.warnings,status:'quoted',payment_status:'unpaid'};
   const {data,error}=await db.from('pro_jobs').insert(row).select('*').single();if(error){toast('לא נשמר: '+error.message);return}state.selectedProJob=data;toast('העבודה נשמרה וההצעה מוכנה');await loadProJobs();await renderProJobDetail();show('#proJobDetailView')
 };
@@ -366,17 +394,17 @@ async function renderProJobDetail(){
   $('#jobDetailContent').querySelector('[data-job-action="copy"]').onclick=()=>copyText(quoteUrl(j));
   $('#jobDetailContent').querySelector('[data-job-action="print"]').onclick=()=>printJobQuote(j);
   const paymentButton=$('#jobDetailContent').querySelector('[data-job-action="payment"]');if(paymentButton)paymentButton.onclick=()=>openWhatsapp(j.customer_phone,paymentMessage(j));
-  $('#jobStatusSelect').onchange=async e=>{const status=e.target.value,payment_status=status==='paid'?'paid':j.payment_status;const {error}=await db.from('pro_jobs').update({status,payment_status}).eq('id',j.id).eq('professional_id',state.user.id);if(error){toast(error.message);return}j.status=status;j.payment_status=payment_status;toast('מצב העבודה עודכן');await loadProJobs();await renderProJobDetail()};
+  $('#jobStatusSelect').onchange=async e=>{if(!requireServiceAccess())return;const status=e.target.value,payment_status=status==='paid'?'paid':j.payment_status;const {error}=await db.from('pro_jobs').update({status,payment_status}).eq('id',j.id).eq('professional_id',state.user.id);if(error){toast(error.message);return}j.status=status;j.payment_status=payment_status;toast('מצב העבודה עודכן');await loadProJobs();await renderProJobDetail()};
   await loadJobMedia(j.id);prepareJobQuotePdf(j).catch(()=>{})
 }
-async function openProJobDetail(id){state.selectedProJob=state.proJobs.find(j=>j.id===id);if(!state.selectedProJob){const {data}=await db.from('pro_jobs').select('*').eq('id',id).eq('professional_id',state.user.id).single();state.selectedProJob=data}await renderProJobDetail();show('#proJobDetailView')}
+async function openProJobDetail(id){if(!requireServiceAccess())return;state.selectedProJob=state.proJobs.find(j=>j.id===id);if(!state.selectedProJob){const {data}=await db.from('pro_jobs').select('*').eq('id',id).eq('professional_id',state.user.id).single();state.selectedProJob=data}await renderProJobDetail();show('#proJobDetailView')}
 function renderActualProfit(job){
   const box=$('#actualProfitResult'),paid=Number(job.actual_paid||0),hours=Number(job.actual_hours||0);if(!paid||!hours){box.classList.add('hidden');box.innerHTML='';return}
   const profit=Number(job.actual_profit ?? (paid-Number(job.actual_materials_cost||0)-Number(job.travel_cost||0)-Number(job.assistant_cost||0)-paid*(Number(job.overhead_percent||0)/100))),perHour=Number(job.actual_hourly_profit ?? profit/hours);
   box.classList.remove('hidden');box.innerHTML=`<small>הרווח המחושב לאחר חומרים, נסיעה והוצאות העסק</small><strong>${money(profit)}</strong><span>${money(perHour)} לשעה</span>`
 }
 $('#actualProfitForm').onsubmit=async e=>{
-  e.preventDefault();const j=state.selectedProJob,hours=numberValue('#actualHours'),materials=numberValue('#actualMaterials'),paid=numberValue('#actualPaid');if(!hours||!paid){toast('יש להזין זמן וסכום שהתקבלו');return}
+  e.preventDefault();if(!requireServiceAccess())return;const j=state.selectedProJob,hours=numberValue('#actualHours'),materials=numberValue('#actualMaterials'),paid=numberValue('#actualPaid');if(!hours||!paid){toast('יש להזין זמן וסכום שהתקבלו');return}
   const profit=paid-materials-Number(j.travel_cost||0)-Number(j.assistant_cost||0)-paid*(Number(j.overhead_percent||0)/100),perHour=profit/hours;
   const changes={actual_hours:hours,actual_materials_cost:materials,actual_paid:paid,actual_profit:profit,actual_hourly_profit:perHour,status:'paid',payment_status:'paid'};
   const {data,error}=await db.from('pro_jobs').update(changes).eq('id',j.id).eq('professional_id',state.user.id).select('*').single();if(error){toast(error.message);return}state.selectedProJob=data;toast('העבודה נסגרה והרווח חושב');await loadProJobs();await renderProJobDetail()
@@ -390,21 +418,22 @@ async function loadJobMedia(jobId){
   const {data,error}=await db.from('pro_job_media').select('*').eq('job_id',jobId).eq('professional_id',state.user.id).order('created_at');if(error){$('#jobMediaGrid').innerHTML='<p class="muted">לא ניתן לטעון תמונות.</p>';return}
   state.proJobMedia=data||[];const rendered=[];for(const m of state.proJobMedia){const {data:signed}=await db.storage.from('job-media').createSignedUrl(m.storage_path,3600);rendered.push({...m,url:signed?.signedUrl||''})}
   $('#jobMediaGrid').innerHTML=rendered.length?rendered.map(m=>`<figure><img src="${esc(m.url)}" alt="${m.phase==='before'?'לפני העבודה':'אחרי העבודה'}"><figcaption>${m.phase==='before'?'לפני':'אחרי'} <button data-delete-media="${m.id}">מחק</button></figcaption></figure>`).join(''):'<p class="muted">עדיין לא נוספו תמונות.</p>';
-  $('#jobMediaGrid').querySelectorAll('[data-delete-media]').forEach(b=>b.onclick=async()=>{const m=state.proJobMedia.find(x=>x.id===b.dataset.deleteMedia);if(!m||!confirm('למחוק את התמונה מתיק העבודה?'))return;await db.storage.from('job-media').remove([m.storage_path]);await db.from('pro_job_media').delete().eq('id',m.id).eq('professional_id',state.user.id);await loadJobMedia(jobId)})
+  $('#jobMediaGrid').querySelectorAll('[data-delete-media]').forEach(b=>b.onclick=async()=>{if(!requireServiceAccess())return;const m=state.proJobMedia.find(x=>x.id===b.dataset.deleteMedia);if(!m||!confirm('למחוק את התמונה מתיק העבודה?'))return;await db.storage.from('job-media').remove([m.storage_path]);await db.from('pro_job_media').delete().eq('id',m.id).eq('professional_id',state.user.id);await loadJobMedia(jobId)})
 }
 async function uploadJobPhoto(file,phase){
-  const j=state.selectedProJob;if(!j||!file)return;if(!file.type.startsWith('image/')){toast('אפשר להעלות תמונות בלבד');return}if(file.size>8*1024*1024){toast('התמונה גדולה מדי. עד 8MB');return}
+  if(!requireServiceAccess())return;const j=state.selectedProJob;if(!j||!file)return;if(!file.type.startsWith('image/')){toast('אפשר להעלות תמונות בלבד');return}if(file.size>8*1024*1024){toast('התמונה גדולה מדי. עד 8MB');return}
   const ext=(file.name.split('.').pop()||'jpg').replace(/[^a-z0-9]/gi,'').toLowerCase(),path=`${state.user.id}/${j.id}/${crypto.randomUUID()}.${ext}`;toast('מעלה תמונה…');
   const {error:uploadError}=await db.storage.from('job-media').upload(path,file,{cacheControl:'3600',upsert:false,contentType:file.type});if(uploadError){toast('ההעלאה נכשלה: '+uploadError.message);return}
   const {error}=await db.from('pro_job_media').insert({job_id:j.id,professional_id:state.user.id,storage_path:path,phase});if(error){await db.storage.from('job-media').remove([path]);toast('התמונה לא נשמרה: '+error.message);return}toast('התמונה נשמרה בתיק העבודה');await loadJobMedia(j.id)
 }
 $('#beforePhotoInput').onchange=e=>{const file=e.target.files?.[0];uploadJobPhoto(file,'before');e.target.value=''};$('#afterPhotoInput').onchange=e=>{const file=e.target.files?.[0];uploadJobPhoto(file,'after');e.target.value=''};
 async function loadProSettingsForm(){
+  if(!requireServiceAccess())return;
   const s=await loadProSettings();$('#settingsTrade').value=s.trade;$('#settingsHourlyRate').value=s.default_hourly_rate;$('#settingsTravelCost').value=s.default_travel_cost;$('#settingsOverhead').value=s.overhead_percent;$('#settingsRisk').value=s.risk_percent;$('#settingsPaymentLink').value=s.payment_link||'';$('#settingsLicenseNumber').value=s.electrician_license_number||'';$('#settingsLicenseExpiry').value=s.electrician_license_expiry||'';$('#settingsQuoteTerms').value=s.quote_terms||'';$('#electricianSettings').classList.toggle('hidden',s.trade!=='electrician');show('#proSettingsView')
 }
 $('#proSettingsBtn').onclick=loadProSettingsForm;$('#settingsTrade').onchange=e=>$('#electricianSettings').classList.toggle('hidden',e.target.value!=='electrician');
 $('#proSettingsForm').onsubmit=async e=>{
-  e.preventDefault();const enteredPaymentLink=$('#settingsPaymentLink').value.trim(),paymentLink=safeHttpUrl(enteredPaymentLink);if(enteredPaymentLink&&!paymentLink){toast('קישור התשלום חייב להתחיל ב־https:// או http://');return}const row={professional_id:state.user.id,trade:$('#settingsTrade').value,default_hourly_rate:numberValue('#settingsHourlyRate'),default_travel_cost:numberValue('#settingsTravelCost'),overhead_percent:numberValue('#settingsOverhead'),risk_percent:numberValue('#settingsRisk'),payment_link:paymentLink||null,electrician_license_number:$('#settingsLicenseNumber').value.trim()||null,electrician_license_expiry:$('#settingsLicenseExpiry').value||null,quote_terms:$('#settingsQuoteTerms').value.trim()};
+  e.preventDefault();if(!requireServiceAccess())return;const enteredPaymentLink=$('#settingsPaymentLink').value.trim(),paymentLink=safeHttpUrl(enteredPaymentLink);if(enteredPaymentLink&&!paymentLink){toast('קישור התשלום חייב להתחיל ב־https:// או http://');return}const row={professional_id:state.user.id,trade:$('#settingsTrade').value,default_hourly_rate:numberValue('#settingsHourlyRate'),default_travel_cost:numberValue('#settingsTravelCost'),overhead_percent:numberValue('#settingsOverhead'),risk_percent:numberValue('#settingsRisk'),payment_link:paymentLink||null,electrician_license_number:$('#settingsLicenseNumber').value.trim()||null,electrician_license_expiry:$('#settingsLicenseExpiry').value||null,quote_terms:$('#settingsQuoteTerms').value.trim()};
   const {data,error}=await db.from('professional_settings').upsert(row).select('*').single();if(error){toast(error.message);return}state.proSettings=data;toast('ההגדרות נשמרו');await openProWorkspace()
 };
 async function loadPublicQuote(token){
@@ -417,12 +446,16 @@ async function loadPublicQuote(token){
 
 async function loadAdmin(){
   if(!state.isAdmin){toast('אין הרשאת מנהל');return false}
-  const [{data:summary,error:se},{data:jobs,error:je},{data:businesses,error:be}]=await Promise.all([
-    db.rpc('admin_professional_summary'),db.rpc('admin_list_pro_jobs'),db.rpc('admin_list_businesses_v28')
+  const [{data:summary,error:se},{data:jobs,error:je},{data:businesses,error:be},{data:billing,error:bse}]=await Promise.all([
+    db.rpc('admin_professional_summary_v33'),db.rpc('admin_list_pro_jobs'),db.rpc('admin_list_businesses_v33'),db.rpc('admin_get_billing_settings_v33')
   ]);
-  if(se||je||be){toast((se||je||be).message||'לא ניתן לטעון את אזור המנהל');return false}
-  const sum=summary||{};state.adminJobs=jobs||[];state.adminBusinesses=businesses||[];
-  $('#adminBusinessesCount').textContent=sum.businesses||0;$('#adminJobsCount').textContent=sum.jobs||0;$('#adminOpenJobsCount').textContent=sum.open_jobs||0;$('#adminRevenueTotal').textContent=money(sum.revenue||0);
+  if(se||je||be||bse){toast((se||je||be||bse).message||'לא ניתן לטעון את אזור המנהל');return false}
+  const sum=summary||{};state.adminJobs=jobs||[];state.adminBusinesses=businesses||[];state.billingSettings=billing||{};
+  $('#adminBusinessesCount').textContent=sum.businesses||0;$('#adminJobsCount').textContent=sum.jobs||0;
+  $('#adminActiveSubscriptionsCount').textContent=sum.active_subscriptions||0;$('#adminSuspendedCount').textContent=sum.suspended_subscriptions||0;
+  $('#adminPendingPaymentsCount').textContent=sum.pending_payments||0;$('#adminSubscriptionRevenue').textContent=money(sum.subscription_revenue||0);
+  $('#adminMonthlyPrice').value=state.billingSettings.monthly_price??59;$('#adminTrialDays').value=state.billingSettings.trial_days??14;$('#adminGraceDays').value=2;
+  $('#adminSubscriptionPaymentUrl').value=state.billingSettings.payment_url||'';$('#adminSupportWhatsapp').value=state.billingSettings.support_whatsapp||'';
   renderAdminJobs();renderAdminBusinesses();return true
 }
 function renderAdminJobs(){
@@ -432,9 +465,29 @@ function renderAdminJobs(){
 }
 function renderAdminBusinesses(){
   const box=$('#adminBusinessesList');
-  box.innerHTML=state.adminBusinesses.length?state.adminBusinesses.map(b=>`<div class="item admin-business"><div class="job-card-top"><h3>${esc(b.business_name||b.email||'בעל עסק')}</h3><span class="trade-badge ${b.trade}">${tradeIcon(b.trade)} ${tradeHe[b.trade]||'טרם הוגדר'}</span></div><p>${esc(b.email||'')}</p><div class="admin-user-meta"><span class="badge">${Number(b.job_count||0)} עבודות</span><span class="badge">הכנסות ${money(b.revenue||0)}</span>${b.service_areas?.length?`<span class="badge">📍 ${esc(b.service_areas.join(', '))}</span>`:''}</div><div class="admin-record-actions"><button type="button" class="delete-action" data-admin-delete-business="${b.professional_id}" data-business-name="${esc(b.business_name||b.email||'בעל העסק')}">🗑️ מחק בעל עסק</button></div></div>`).join(''):'<div class="card"><h3>עדיין אין בעלי עסקים</h3></div>';
+  box.innerHTML=state.adminBusinesses.length?state.adminBusinesses.map(b=>{
+    const status=b.subscription_status||'not_started',end=status==='trial'?b.trial_ends_at:status==='past_due'?b.grace_ends_at:b.current_period_ends_at;
+    const paymentPending=Number(b.pending_payment_count||0)>0;
+    const controls=b.is_admin?'':`<div class="subscription-admin-actions"><button type="button" class="approve-btn" data-sub-action="record_payment" data-professional="${b.professional_id}">✓ אשר תשלום ל־30 יום</button>${status==='suspended'||status==='cancelled'?`<button type="button" class="secondary" data-sub-action="activate" data-professional="${b.professional_id}">הפעל שירות</button>`:`<button type="button" class="suspend-action" data-sub-action="suspend" data-professional="${b.professional_id}">השהה שירות</button>`}<button type="button" class="secondary" data-sub-action="extend_trial" data-professional="${b.professional_id}">＋ 7 ימי ניסיון</button>${paymentPending?`<button type="button" class="reject-action" data-sub-action="reject_payment" data-professional="${b.professional_id}">דחה דיווח תשלום</button>`:''}</div>`;
+    return `<div class="item admin-business"><div class="job-card-top"><h3>${esc(b.business_name||b.email||'בעל עסק')}</h3><span class="subscription-status status-${status}">${subscriptionStatusHe[status]||status}</span></div><p>${esc(b.email||'')}</p><div class="admin-user-meta"><span class="trade-badge ${b.trade}">${tradeIcon(b.trade)} ${tradeHe[b.trade]||'טרם הוגדר'}</span><span class="badge">${Number(b.job_count||0)} עבודות</span><span class="badge">הכנסות מעבודות ${money(b.revenue||0)}</span>${end?`<span class="badge">עד ${formatDate(end)}</span>`:''}${paymentPending?'<span class="badge payment-pending-badge">💳 תשלום ממתין לאישור</span>':''}</div>${controls}<div class="admin-record-actions"><button type="button" class="delete-action" data-admin-delete-business="${b.professional_id}" data-business-name="${esc(b.business_name||b.email||'בעל העסק')}">🗑️ מחק בעל עסק לצמיתות</button></div></div>`
+  }).join(''):'<div class="card"><h3>עדיין אין בעלי עסקים</h3></div>';
+  box.querySelectorAll('[data-sub-action]').forEach(button=>button.onclick=()=>adminSubscriptionAction(button.dataset.professional,button.dataset.subAction,button));
   box.querySelectorAll('[data-admin-delete-business]').forEach(button=>button.onclick=()=>deleteAdminBusiness(button.dataset.adminDeleteBusiness,button.dataset.businessName,button))
 }
+async function adminSubscriptionAction(professionalId,action,button){
+  const business=state.adminBusinesses.find(b=>b.professional_id===professionalId),name=business?.business_name||business?.email||'בעל העסק';
+  if(action==='suspend'&&!confirm(`להשהות את השירות של ${name}?\n\nהמידע יישמר, אבל לא יהיה ניתן ליצור או לעדכן עבודות עד להפעלה מחדש.`))return;
+  if(action==='record_payment'&&!confirm(`לאשר שקיבלת תשלום מ־${name} ולהפעיל את המנוי ל־30 יום?`))return;
+  button.disabled=true;const oldText=button.textContent;button.textContent='מעדכן…';
+  const {error}=await db.rpc('admin_subscription_action_v33',{p_professional_id:professionalId,p_action:action});
+  if(error){button.disabled=false;button.textContent=oldText;toast('לא ניתן לעדכן: '+error.message);return}
+  await loadAdmin();toast(action==='suspend'?'השירות הושהה והמידע נשמר':action==='reject_payment'?'דיווח התשלום נדחה':'המנוי עודכן בהצלחה')
+}
+$('#adminBillingSettingsForm').onsubmit=async e=>{
+  e.preventDefault();const entered=$('#adminSubscriptionPaymentUrl').value.trim(),url=safeHttpUrl(entered);if(entered&&!url){toast('קישור התשלום חייב להתחיל ב־https://');return}
+  const {data,error}=await db.rpc('admin_save_billing_settings_v33',{p_monthly_price:numberValue('#adminMonthlyPrice'),p_trial_days:numberValue('#adminTrialDays'),p_grace_days:numberValue('#adminGraceDays'),p_payment_url:url||null,p_support_whatsapp:$('#adminSupportWhatsapp').value.trim()||null});
+  if(error){toast('לא נשמר: '+error.message);return}state.billingSettings=data;toast('הגדרות המנוי נשמרו')
+};
 async function deleteAdminJob(jobId,button){
   if(!confirm('למחוק את העבודה לצמיתות? הפעולה אינה ניתנת לביטול.'))return;
   button.disabled=true;button.textContent='מוחק…';
@@ -461,26 +514,33 @@ const adminBtn=$('#adminBtn');if(adminBtn)adminBtn.addEventListener('click',open
 $('#adminTradeFilter').onchange=renderAdminJobs;
 $$('.admin-tab').forEach(b=>b.onclick=()=>{$$('.admin-tab').forEach(x=>x.classList.toggle('active',x===b));['jobs','businesses'].forEach(k=>$(`#admin${k[0].toUpperCase()+k.slice(1)}Panel`).classList.toggle('hidden',b.dataset.adminTab!==k))});
 
-const PAYBOX_URL='https://links.payboxapp.com/OSHVo5yi15b';
-async function renderPaymentStatus(){
-  const box=$('#paymentStatus'); if(!box||!state.user)return;
-  const {data,error}=await db.from('payment_requests').select('id,status,created_at').eq('user_id',state.user.id).order('created_at',{ascending:false}).limit(1).maybeSingle();
-  if(error||!data){box.classList.add('hidden');box.innerHTML='';return}
-  box.classList.remove('hidden');
-  const d=new Date(data.created_at).toLocaleString('he-IL');
-  if(data.status==='approved') box.innerHTML=`<b>התשלום אושר ✅</b><span>3 הצעות נוספו לחשבון · ${d}</span>`;
-  else if(data.status==='rejected') box.innerHTML=`<b>התשלום לא אושר</b><span>אפשר לבצע תשלום חדש ב־PayBox · ${d}</span>`;
-  else box.innerHTML=`<b>התשלום סומן כמבוצע</b><span>ממתין לאישור לאחר בדיקה ב־PayBox · ${d}</span>`;
+async function openSubscription(){
+  if(!state.user)return;await loadSubscription();const s=state.subscription||{},status=s.status||'suspended';
+  $('#subscriptionStatusBadge').className=`subscription-status status-${status}`;$('#subscriptionStatusBadge').textContent=subscriptionStatusHe[status]||status;
+  let title='מנוי מחירלי',message='';
+  if(status==='admin'){title='חשבון מנהל';message='לחשבון המנהל יש גישה מלאה והוא אינו מחויב במנוי.'}
+  else if(status==='trial'){title=`${daysLeft(s.trial_ends_at)} ימים נותרו בתקופת הניסיון`;message=`אפשר להשתמש בכל הכלים של מחירלי ללא הגבלה עד ${formatDate(s.trial_ends_at)}.`}
+  else if(status==='active'){title='המנוי שלך פעיל';message=`הגישה המלאה בתוקף עד ${formatDate(s.current_period_ends_at)}.`}
+  else if(status==='past_due'){title='התשלום דורש טיפול';message=`לא עצרנו את העבודה מיד. אפשר להמשיך בתקופת חסד עד ${formatDate(s.grace_ends_at)}.`}
+  else {title='השירות מושהה — המידע שמור';message='לא ניתן ליצור או לעדכן עבודות עד להסדרת התשלום. הלקוחות, התמונות והעבודות לא נמחקו.'}
+  $('#subscriptionTitle').textContent=title;$('#subscriptionMessage').textContent=message;
+  $('#subscriptionDates').innerHTML=`<div><small>מחיר חודשי</small><strong>${money(s.monthly_price??59)}</strong></div>${s.trial_ends_at?`<div><small>סיום ניסיון</small><strong>${formatDate(s.trial_ends_at)}</strong></div>`:''}${s.current_period_ends_at?`<div><small>המנוי בתוקף עד</small><strong>${formatDate(s.current_period_ends_at)}</strong></div>`:''}${s.grace_ends_at&&status==='past_due'?`<div><small>סיום ימי החסד</small><strong>${formatDate(s.grace_ends_at)}</strong></div>`:''}`;
+  const pay=$('#subscriptionPayBtn'),paid=$('#subscriptionPaidBtn'),support=$('#subscriptionSupportBtn'),paymentUrl=safeHttpUrl(s.payment_url),supportNumber=waNumber(s.support_whatsapp||'');
+  pay.classList.toggle('hidden',!paymentUrl||status==='admin');if(paymentUrl)pay.href=paymentUrl;
+  paid.classList.toggle('hidden',!paymentUrl||status==='admin'||s.pending_payment===true);
+  support.classList.toggle('hidden',!supportNumber||status==='admin');if(supportNumber)support.href=`https://wa.me/${supportNumber}?text=${encodeURIComponent('שלום, אני צריך עזרה בהסדרת מנוי מחירלי')}`;
+  const report=$('#subscriptionPaymentStatus');report.classList.toggle('hidden',!s.pending_payment);report.innerHTML=s.pending_payment?`<b>התשלום ממתין לאישור</b><span>הדיווח התקבל ב־${formatDateTime(s.pending_payment_at)}. לאחר האישור השירות יופעל ל־30 יום.</span>`:'';
+  show('#subscriptionView')
 }
-$('#payboxPayBtn').href=PAYBOX_URL;
-$('#paidBtn').onclick=async()=>{
-  if(!state.user){toast('יש להתחבר קודם');return}
-  const {data:pending}=await db.from('payment_requests').select('id').eq('user_id',state.user.id).eq('status','pending').limit(1).maybeSingle();
-  if(pending){toast('כבר ממתין אצלנו תשלום לאישור.');await renderPaymentStatus();return}
-  const {error}=await db.from('payment_requests').insert({user_id:state.user.id,amount:15,credits:3,status:'pending'});
-  if(error){toast('לא ניתן לסמן תשלום: '+error.message);return}
-  await renderPaymentStatus();
-  toast('קיבלנו. מנהל מחירלי קיבל התראה על התשלום.');
+$('#subscriptionBtn').onclick=openSubscription;$('#subscriptionBanner').onclick=openSubscription;
+$('#subscriptionBackBtn').onclick=()=>hasServiceAccess()?show('#homeView'):openSubscription();
+$('#subscriptionLogoutBtn').onclick=async()=>{stopNotificationPolling();await db.auth.signOut();state.user=null;show('#authView')};
+$('#subscriptionPaidBtn').onclick=async()=>{
+  const button=$('#subscriptionPaidBtn');button.disabled=true;button.textContent='שולח לאישור…';
+  const {error}=await db.rpc('report_subscription_payment_v33',{p_reference_note:null});
+  button.disabled=false;button.textContent='✓ שילמתי — שלח לאישור';
+  if(error){toast('לא ניתן לדווח על התשלום: '+error.message);return}
+  await openSubscription();toast('הדיווח נשלח למנהל לאישור')
 };
 
 // PWA install flow (V13)

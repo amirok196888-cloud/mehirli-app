@@ -228,3 +228,22 @@ body{background:
 .install-app-btn{border-color:#bfd4c4;background:#e6f1e8;color:#326448}
 @media(max-width:560px){.home-primary-actions{grid-template-columns:1fr}.flow-steps{gap:6px}.flow-steps div{padding:11px 5px}.flow-steps span{font-size:11px}.form-step{padding:16px 12px 2px}}
 @media(max-width:350px){.flow-steps{grid-template-columns:1fr}.flow-steps div{grid-template-columns:auto 1fr;justify-items:start;text-align:right;align-items:center}.flow-steps b{grid-row:1}.flow-steps span{grid-column:2}}
+
+/* V33 — subscriptions, grace period and service control */
+.subscription-entry{width:100%;min-height:54px;margin:8px 0 0;border:1px solid #c9d9cd;border-radius:18px;background:#f0f7f1;color:#345c45;font-weight:850;cursor:pointer}
+.subscription-banner{width:100%;display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 12px;padding:13px 15px;border:1px solid #c6dacb;border-radius:18px;background:#edf6ef;color:#315f45;text-align:right;cursor:pointer}
+.subscription-banner b,.subscription-banner span{display:block}.subscription-banner span{font-size:12px;color:#65776c}
+.subscription-banner[data-status="past_due"]{background:#fff5e5;border-color:#ead1a8;color:#825a22}.subscription-banner[data-status="suspended"],.subscription-banner[data-status="cancelled"]{background:#fff0ee;border-color:#e5bfba;color:#9a3f39}
+.subscription-card{padding:25px 20px;text-align:center;background:linear-gradient(145deg,#fffdf8,#eef5ef)}
+.subscription-card h3{font-size:27px;margin:13px 0 7px;color:#2b4939}.subscription-card>p{line-height:1.55;color:#627369;margin:7px auto 18px;max-width:540px}
+.subscription-status{display:inline-flex;align-items:center;justify-content:center;padding:7px 12px;border:1px solid #c5dacb;border-radius:999px;background:#e7f3e9;color:#32724d;font-size:12px;font-weight:900;white-space:nowrap}
+.subscription-status.status-trial{background:#fff4df;border-color:#ead1a7;color:#835e27}.subscription-status.status-past_due{background:#fff0d8;border-color:#e8c38d;color:#8a5720}.subscription-status.status-suspended,.subscription-status.status-cancelled{background:#ffefed;border-color:#e7bdb8;color:#a33d38}.subscription-status.status-admin{background:#edf1f4;border-color:#d3dade;color:#53636c}
+.subscription-dates{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin:18px 0}.subscription-dates>div{padding:14px 10px;border:1px solid #d8e3da;border-radius:17px;background:#fff}.subscription-dates small,.subscription-dates strong{display:block}.subscription-dates small{color:#718078;font-size:11px}.subscription-dates strong{margin-top:5px;color:#315f46;font-size:18px}
+.subscription-card .payment-status{background:#fff7e8;border-color:#e9d0a9}.subscription-card .payment-status b{color:#785623}.subscription-card .payment-status span{color:#746b5f}
+.billing-settings-card{margin-bottom:16px}.billing-settings-card .form-step-title{margin-bottom:18px}
+.subscription-admin-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:15px;padding-top:13px;border-top:1px solid #e0e7e1}.subscription-admin-actions button{min-height:43px;border-radius:13px;padding:9px 10px;font-weight:800;cursor:pointer}
+.approve-btn{background:#3e8a62!important;color:#fff!important;border:0}.suspend-action{background:#fff1ef;color:#9c403a;border:1px solid #e2bbb7}.reject-action{background:#fff8ed;color:#806032;border:1px solid #e3cfad}.payment-pending-badge{background:#fff1d8!important;border-color:#e5c48f!important;color:#83571f!important}
+.admin-record-actions{justify-content:flex-end}.admin-record-actions .delete-action{font-size:12px}
+button:disabled{opacity:.58;cursor:wait;filter:saturate(.65)}
+@media(min-width:650px){.admin-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:430px){.subscription-banner{align-items:flex-start;flex-direction:column;gap:4px}.subscription-dates,.subscription-admin-actions{grid-template-columns:1fr}.subscription-status{white-space:normal;text-align:center}}

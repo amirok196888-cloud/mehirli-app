@@ -26,7 +26,7 @@
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="apple-touch-icon" sizes="180x180" href="icon-192.png" />
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
-<link rel="stylesheet" href="style.css?v=32" />
+<link rel="stylesheet" href="style.css?v=33" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -58,6 +58,7 @@
     <div class="home-utility-row"><button id="notificationsBtn" class="notification-btn" type="button">🔔 התראות <span id="notificationBadge" class="notification-badge hidden">0</span></button><button id="enablePhoneNotificationsBtn" class="notification-permission hidden" type="button">אפשר התראות בטלפון</button></div><button id="logoutBtn" class="logout-link">התנתק</button>
   </div>
   <div id="proHome">
+    <button id="subscriptionBanner" class="subscription-banner hidden" type="button"></button>
     <div class="flow-overview card">
       <span class="eyebrow">איך זה עובד</span>
       <div class="flow-steps">
@@ -68,7 +69,7 @@
     </div>
     <div class="home-primary-actions"><button id="homeNewJobBtn" class="primary big" type="button">＋ עבודה חדשה</button><button id="proWorkspaceBtn" class="secondary big" type="button">📋 כל העבודות שלי</button></div>
     <button id="whatsappSetupNotice" class="whatsapp-setup big hidden" type="button">💬 להפעלת WhatsApp ללקוחות — הוסף מספר עסקי</button>
-    <button id="profileBtn" class="profile-entry big" type="button">🏪 פרטי העסק, WhatsApp ותשלום</button><button id="adminBtn" class="admin-entry big hidden" type="button">⚙️ כניסת מנהל — כל הקטגוריות</button>
+    <button id="profileBtn" class="profile-entry big" type="button">🏪 פרטי העסק, WhatsApp ותשלום</button><button id="subscriptionBtn" class="subscription-entry big" type="button">💳 המנוי שלי</button><button id="adminBtn" class="admin-entry big hidden" type="button">⚙️ כניסת מנהל — כל הקטגוריות</button>
   </div>
 </section>
 
@@ -196,29 +197,45 @@
   <div class="admin-grid">
     <div class="admin-stat card"><small>בעלי עסקים</small><strong id="adminBusinessesCount">0</strong></div>
     <div class="admin-stat card"><small>כל העבודות</small><strong id="adminJobsCount">0</strong></div>
-    <div class="admin-stat card"><small>עבודות פתוחות</small><strong id="adminOpenJobsCount">0</strong></div>
-    <div class="admin-stat card"><small>הכנסות שתועדו</small><strong id="adminRevenueTotal">0 ₪</strong></div>
+    <div class="admin-stat card"><small>מנויים פעילים</small><strong id="adminActiveSubscriptionsCount">0</strong></div>
+    <div class="admin-stat card"><small>חשבונות מושהים</small><strong id="adminSuspendedCount">0</strong></div>
+    <div class="admin-stat card"><small>תשלומים לאישור</small><strong id="adminPendingPaymentsCount">0</strong></div>
+    <div class="admin-stat card"><small>הכנסות ממנויים</small><strong id="adminSubscriptionRevenue">0 ₪</strong></div>
   </div>
   <div class="admin-tabs">
     <button class="admin-tab active" data-admin-tab="jobs">כל העבודות</button>
-    <button class="admin-tab" data-admin-tab="businesses">בעלי עסקים</button>
+    <button class="admin-tab" data-admin-tab="businesses">מנויים ובעלי עסקים</button>
   </div>
   <div id="adminJobsPanel" class="admin-panel"><div class="list-toolbar"><b>עבודות בכל הקטגוריות</b><select id="adminTradeFilter"><option value="all">הכול</option><option value="handyman">היינדמן</option><option value="electrician">חשמלאי</option><option value="home">שירותי בית</option><option value="air_conditioning">מיזוג</option></select></div><div id="adminJobsList" class="stack"></div></div>
-  <div id="adminBusinessesPanel" class="admin-panel hidden"><p class="admin-warning">מחיקת בעל עסק מוחקת לצמיתות את החשבון ואת כל העבודות שלו.</p><div id="adminBusinessesList" class="stack"></div></div>
+  <div id="adminBusinessesPanel" class="admin-panel hidden">
+    <form id="adminBillingSettingsForm" class="card form-card billing-settings-card">
+      <div class="form-step-title"><b>₪</b><div><h3>הגדרות המנוי</h3><p>התשלום של בעל העסק אליך — נפרד מתשלום הלקוח אליו.</p></div></div>
+      <div class="two-cols"><label>מחיר חודשי<input id="adminMonthlyPrice" type="number" min="0" step="1" /></label><label>ימי ניסיון<input id="adminTrialDays" type="number" min="0" max="365" /></label></div>
+      <label>זמן חסד לאחר סיום המנוי — קבוע: 48 שעות<input id="adminGraceDays" type="number" value="2" readonly /></label>
+      <label>קישור תשלום ייעודי של מחירלי בקארדקום<input id="adminSubscriptionPaymentUrl" type="url" placeholder="https://..." /></label>
+      <label>WhatsApp לתמיכה בתשלומים<input id="adminSupportWhatsapp" inputmode="tel" placeholder="לדוגמה: 0501234567" /></label>
+      <button class="primary big" type="submit">שמור הגדרות מנוי</button>
+    </form>
+    <p class="admin-warning">השהיה עוצרת שימוש ויצירת הצעות, אבל אינה מוחקת את בעל העסק, לקוחותיו או עבודותיו. מחיקה היא פעולה נפרדת ולצמיתות.</p>
+    <div id="adminBusinessesList" class="stack"></div>
+  </div>
 </section>
 
-<section id="paymentView" class="view"><div class="section-head"><button class="back">‹</button><h2>רכישת הצעות</h2></div>
-  <div class="payment-card card">
-    <div class="payment-badge">PayBox</div>
-    <h3>3 הצעות ב־15 ₪</h3>
-    <p>התשלום מתבצע בקבוצת PayBox של מחירלי. לאחר התשלום חזור לכאן ולחץ על „שילמתי”.</p>
-    <a id="payboxPayBtn" class="primary big pay-link" href="https://links.payboxapp.com/OSHVo5yi15b" target="_blank" rel="noopener">פתח PayBox לתשלום 15 ₪</a>
-    <button id="paidBtn" class="secondary big" type="button">✓ שילמתי ב־PayBox</button>
-    <div id="paymentStatus" class="payment-status hidden"></div>
-    <p class="note">ההצעות יתווספו לאחר אימות התשלום. לחיצה על „שילמתי” אינה מוסיפה הצעות אוטומטית.</p>
+<section id="subscriptionView" class="view"><div class="section-head"><button id="subscriptionBackBtn" class="back" type="button">‹</button><h2>המנוי שלי</h2></div>
+  <div class="subscription-card card">
+    <div id="subscriptionStatusBadge" class="subscription-status">טוען…</div>
+    <h3 id="subscriptionTitle">מנוי מחירלי</h3>
+    <p id="subscriptionMessage"></p>
+    <div id="subscriptionDates" class="subscription-dates"></div>
+    <a id="subscriptionPayBtn" class="primary big pay-link hidden" href="#" target="_blank" rel="noopener">תשלום מאובטח בקארדקום</a>
+    <button id="subscriptionPaidBtn" class="secondary big hidden" type="button">✓ שילמתי — שלח לאישור</button>
+    <a id="subscriptionSupportBtn" class="secondary big pay-link hidden" href="#" target="_blank" rel="noopener">WhatsApp לתמיכה</a>
+    <div id="subscriptionPaymentStatus" class="payment-status hidden"></div>
+    <p class="note">התשלום כאן הוא על השימוש במחירלי. תשלומי הלקוחות ממשיכים להיכנס ישירות לבעל העסק.</p>
+    <button id="subscriptionLogoutBtn" class="logout-link" type="button">התנתק</button>
   </div>
 </section>
 </main><div id="toast" class="toast"></div></div>
 <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"></script>
-<script src="app.js?v=32"></script>
+<script src="app.js?v=33"></script>
 </body></html>
