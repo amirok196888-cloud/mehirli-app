@@ -32,6 +32,12 @@ V9 — PayBox פשוט
 
 V13 PWA install:
 - Dedicated Install App button when browser supports install prompt.
+
+V40 — marketing funnel and greeting:
+- Admin funnel for unique visitors, trial registrations, phone installs and paying customers.
+- Anonymous first-party measurement without names, emails, phone numbers or stored IP addresses.
+- Traffic-source and conversion-rate summary.
+- Time-aware home greeting for morning, afternoon, evening and night.
 - Manifest uses stable id/start_url/scope for GitHub Pages.
 - Separate maskable icons for Android launcher.
 - Install as app (not shortcut) removes browser badge.
@@ -72,3 +78,14 @@ V30 — WhatsApp ותשלום אופציונלי
 - בהצעה הציבורית מופיע כפתור WhatsApp לבעל העסק אם הוגדר מספר עסקי.
 - כפתור תשלום מופיע לאחר אישור ההצעה רק אם בעל העסק הגדיר קישור תשלום.
 - קישור התשלום מתאים למקדמה או לתשלום מלא ונכנס ישירות לחשבון הסליקה של העסק.
+
+V39 — כלי עבודה מקצועיים
+=========================
+- מחירון אישי ותבניות מובנות לפי תחום.
+- תמחור קבוע, שעתי, חצי יום או יום מלא, כולל שעות נוספות.
+- סעיפי הצעה, הנחה באחוזים או בסכום ואזהרת רווחיות.
+- כרטיס לקוח עם היסטוריית עבודות, יומן ותזכורות.
+- שעתון עבודה שנשמר בתיק ומעגל את הזמן לפי הגדרת העסק.
+- לוגו, מספור הצעות ופרטי עסק על גבי PDF והצעה דיגיטלית.
+- מידע עסקי פרטי מוגן במדיניות בעלים בלבד; הקישור הציבורי מחזיר רק את הדרוש להצעה.
+- נדרש להריץ פעם אחת את v39-professional-tools.sql ב-Supabase.
