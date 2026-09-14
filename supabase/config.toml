@@ -1,0 +1,5 @@
+[functions.mehirli-cardcom-checkout]
+verify_jwt = true
+
+[functions.mehirli-cardcom-webhook]
+verify_jwt = false

@@ -29,7 +29,7 @@
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="apple-touch-icon" sizes="180x180" href="icon-192.png" />
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
-<link rel="stylesheet" href="style.css?v=37" />
+<link rel="stylesheet" href="style.css?v=38" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -239,6 +239,7 @@
       <div class="two-cols"><label>מחיר חודשי<input id="adminMonthlyPrice" type="number" min="0" step="1" /></label><label>ימי ניסיון<input id="adminTrialDays" type="number" min="0" max="365" /></label></div>
       <label>זמן חסד לאחר סיום המנוי — קבוע: 48 שעות<input id="adminGraceDays" type="number" value="2" readonly /></label>
       <label>קישור תשלום ייעודי של מחירלי בקארדקום<input id="adminSubscriptionPaymentUrl" type="url" placeholder="https://..." /></label>
+      <div id="adminBillingModeStatus" class="payment-connect-status not-connected">חיבור API לקארדקום ממתין לאישור</div>
       <label>WhatsApp לתמיכה בתשלומים<input id="adminSupportWhatsapp" inputmode="tel" placeholder="לדוגמה: 0501234567" /></label>
       <button class="primary big" type="submit">שמור הגדרות מנוי</button>
     </form>
@@ -253,7 +254,7 @@
     <h3 id="subscriptionTitle">מנוי מחירלי</h3>
     <p id="subscriptionMessage"></p>
     <div id="subscriptionDates" class="subscription-dates"></div>
-    <a id="subscriptionPayBtn" class="primary big pay-link hidden" href="#" target="_blank" rel="noopener">תשלום מנוי מחירלי — 49 ₪</a>
+    <button id="subscriptionPayBtn" class="primary big hidden" type="button">תשלום מנוי מחירלי — 49 ₪</button>
     <button id="subscriptionPaidBtn" class="secondary big hidden" type="button">✓ שילמתי — שלח לאישור</button>
     <a id="subscriptionSupportBtn" class="secondary big pay-link hidden" href="#" target="_blank" rel="noopener">WhatsApp לתמיכה</a>
     <div id="subscriptionPaymentStatus" class="payment-status hidden"></div>
@@ -263,5 +264,5 @@
 </section>
 </main><div id="toast" class="toast"></div></div>
 <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"></script>
-<script src="app.js?v=37"></script>
+<script src="app.js?v=38"></script>
 </body></html>
