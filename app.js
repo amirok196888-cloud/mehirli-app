@@ -75,10 +75,22 @@ function safePaymentUrl(value=''){
 function paymentProviderLabel(provider=''){return PAYMENT_PROVIDERS[provider]||'חברת הסליקה'}
 function formatDate(value){if(!value)return '';try{return new Date(value).toLocaleDateString('he-IL')}catch{return ''}}
 function daysLeft(value){if(!value)return 0;return Math.max(0,Math.ceil((new Date(value).getTime()-Date.now())/86400000))}
+async function rpcWithFallback(primary,fallback,args={}){
+  const first=await db.rpc(primary,args);if(!first.error)return first;
+  if(!fallback||first.error.code!=='PGRST202')return first;
+  return db.rpc(fallback,args)
+}
+function paymentReturn(){
+  const params=new URLSearchParams(location.search),status=params.get('payment'),order=params.get('order');
+  return ['success','failed','cancelled'].includes(status||'')&&/^[0-9a-f-]{36}$/i.test(order||'')?{status,order}:null
+}
+function clearPaymentReturn(){
+  const url=new URL(location.href);url.searchParams.delete('payment');url.searchParams.delete('order');history.replaceState({},'',url.href)
+}
 function hasServiceAccess(){return state.isAdmin||state.subscription?.has_access===true}
 async function loadSubscription(){
   if(!state.user)return null;
-  const {data,error}=await db.rpc('get_my_subscription_v33');
+  const {data,error}=await rpcWithFallback('get_my_subscription_v38','get_my_subscription_v33');
   if(error){state.subscription={status:'suspended',has_access:false,failure_reason:'לא ניתן לבדוק את מצב המנוי'};return state.subscription}
   state.subscription=data||null;renderSubscriptionBanner();return state.subscription
 }
@@ -172,8 +184,8 @@ async function loadMe(){
   const np=$('#enablePhoneNotificationsBtn');if(np&&'Notification' in window)np.classList.toggle('hidden',Notification.permission!=='default');
   startNotificationPolling()
 }
-async function boot(){const quoteToken=currentPublicQuoteToken();if(quoteToken){await loadPublicQuote(quoteToken);return}const {data:{session}}=await db.auth.getSession();state.user=session?.user||null;if(state.user){await loadMe();await routeAfterLogin()}else show('#authView')}
-$('#authForm').onsubmit=async e=>{e.preventDefault();$('#authNote').textContent='מתחבר…';const {data,error}=await db.auth.signInWithPassword({email:$('#authEmail').value.trim(),password:$('#authPassword').value});if(error){$('#authNote').textContent=error.message;return}state.user=data.user;await loadMe();$('#authNote').textContent='';await routeAfterLogin()};
+async function boot(){const quoteToken=currentPublicQuoteToken();if(quoteToken){await loadPublicQuote(quoteToken);return}const {data:{session}}=await db.auth.getSession();state.user=session?.user||null;if(state.user){await loadMe();if(paymentReturn())await handlePaymentReturn();else await routeAfterLogin()}else show('#authView')}
+$('#authForm').onsubmit=async e=>{e.preventDefault();$('#authNote').textContent='מתחבר…';const {data,error}=await db.auth.signInWithPassword({email:$('#authEmail').value.trim(),password:$('#authPassword').value});if(error){$('#authNote').textContent=error.message;return}state.user=data.user;await loadMe();$('#authNote').textContent='';if(paymentReturn())await handlePaymentReturn();else await routeAfterLogin()};
 $('#signupBtn').onclick=async()=>{const email=$('#authEmail').value.trim(),password=$('#authPassword').value,name=$('#authName').value.trim(),role='professional';if(!email||password.length<6){toast('הזן אימייל וסיסמה של לפחות 6 תווים');return}const {data,error}=await db.auth.signUp({email,password,options:{data:{role,full_name:name}}});if(error){toast(error.message);return}if(data.session){state.user=data.user;await loadMe();await routeAfterLogin();toast('ההרשמה הושלמה — תקופת הניסיון הופעלה')}else{$('#authNote').textContent='נשלח אליך אימייל לאישור ההרשמה. לאחר האישור חזור והתחבר.'}};
 $('#logoutBtn').onclick=async()=>{stopNotificationPolling();await db.auth.signOut();state.user=null;show('#authView')};
 $$('.category').forEach(b=>b.onclick=()=>{$('#reqCategory').value=b.dataset.category;show('#requestView')});
@@ -498,7 +510,7 @@ async function loadPublicQuote(token){
 async function loadAdmin(){
   if(!state.isAdmin){toast('אין הרשאת מנהל');return false}
   const [{data:summary,error:se},{data:jobs,error:je},{data:businesses,error:be},{data:billing,error:bse}]=await Promise.all([
-    db.rpc('admin_professional_summary_v33'),db.rpc('admin_list_pro_jobs'),db.rpc('admin_list_businesses_v33'),db.rpc('admin_get_billing_settings_v33')
+    db.rpc('admin_professional_summary_v33'),db.rpc('admin_list_pro_jobs'),db.rpc('admin_list_businesses_v33'),rpcWithFallback('admin_get_billing_settings_v38','admin_get_billing_settings_v33')
   ]);
   if(se||je||be||bse){toast((se||je||be||bse).message||'לא ניתן לטעון את אזור המנהל');return false}
   const sum=summary||{};state.adminJobs=jobs||[];state.adminBusinesses=businesses||[];state.billingSettings=billing||{};
@@ -507,6 +519,8 @@ async function loadAdmin(){
   $('#adminPendingPaymentsCount').textContent=sum.pending_payments||0;$('#adminSubscriptionRevenue').textContent=money(sum.subscription_revenue||0);
   $('#adminMonthlyPrice').value=state.billingSettings.monthly_price??49;$('#adminTrialDays').value=state.billingSettings.trial_days??14;$('#adminGraceDays').value=2;
   $('#adminSubscriptionPaymentUrl').value=state.billingSettings.payment_url||'';$('#adminSupportWhatsapp').value=state.billingSettings.support_whatsapp||'';
+  const modeStatus=$('#adminBillingModeStatus'),automatic=state.billingSettings.payment_mode==='cardcom';
+  if(modeStatus){modeStatus.classList.toggle('connected',automatic);modeStatus.classList.toggle('not-connected',!automatic);modeStatus.textContent=automatic?'✓ סליקת API אוטומטית של מחירלי פעילה':'חיבור API לקארדקום מוכן בקוד וממתין לאישור ולהפעלה'}
   renderAdminJobs();renderAdminBusinesses();return true
 }
 function renderAdminJobs(){
@@ -576,16 +590,35 @@ async function openSubscription(){
   else {title='השירות מושהה — המידע שמור';message='לא ניתן ליצור או לעדכן עבודות עד להסדרת התשלום. הלקוחות, התמונות והעבודות לא נמחקו.'}
   $('#subscriptionTitle').textContent=title;$('#subscriptionMessage').textContent=message;
   $('#subscriptionDates').innerHTML=`<div><small>מחיר השקה חודשי · כולל מע״מ</small><strong>${money(s.monthly_price??49)}</strong></div>${s.trial_ends_at?`<div><small>סיום ניסיון</small><strong>${formatDate(s.trial_ends_at)}</strong></div>`:''}${s.current_period_ends_at?`<div><small>המנוי בתוקף עד</small><strong>${formatDate(s.current_period_ends_at)}</strong></div>`:''}${s.grace_ends_at&&status==='past_due'?`<div><small>סיום ימי החסד</small><strong>${formatDate(s.grace_ends_at)}</strong></div>`:''}`;
-  const pay=$('#subscriptionPayBtn'),paid=$('#subscriptionPaidBtn'),support=$('#subscriptionSupportBtn'),paymentUrl=safeHttpUrl(s.payment_url),supportNumber=waNumber(s.support_whatsapp||'');
-  pay.classList.toggle('hidden',!paymentUrl||status==='admin');if(paymentUrl)pay.href=paymentUrl;
-  paid.classList.toggle('hidden',!paymentUrl||status==='admin'||s.pending_payment===true);
+  const pay=$('#subscriptionPayBtn'),paid=$('#subscriptionPaidBtn'),support=$('#subscriptionSupportBtn'),paymentUrl=safeHttpUrl(s.payment_url),supportNumber=waNumber(s.support_whatsapp||''),automatic=s.payment_mode==='cardcom',canPay=automatic||Boolean(paymentUrl);
+  pay.classList.toggle('hidden',!canPay||status==='admin');pay.textContent=`תשלום מנוי מחירלי — ${money(s.monthly_price??49)}`;
+  paid.classList.toggle('hidden',automatic||!paymentUrl||status==='admin'||s.pending_payment===true);
   support.classList.toggle('hidden',!supportNumber||status==='admin');if(supportNumber)support.href=`https://wa.me/${supportNumber}?text=${encodeURIComponent('שלום, אני צריך עזרה בהסדרת מנוי מחירלי')}`;
-  const report=$('#subscriptionPaymentStatus');report.classList.toggle('hidden',!s.pending_payment);report.innerHTML=s.pending_payment?`<b>התשלום ממתין לאישור</b><span>הדיווח התקבל ב־${formatDateTime(s.pending_payment_at)}. לאחר האישור השירות יופעל ל־30 יום.</span>`:'';
+  const report=$('#subscriptionPaymentStatus'),order=s.latest_payment_order;
+  let reportHtml=s.pending_payment?`<b>התשלום ממתין לאישור</b><span>הדיווח התקבל ב־${formatDateTime(s.pending_payment_at)}. לאחר האישור השירות יופעל ל־30 יום.</span>`:'';
+  if(automatic&&order?.status==='checkout_ready')reportHtml='<b>דף התשלום מוכן</b><span>לאחר תשלום מוצלח המנוי יופעל אוטומטית והחשבונית תישלח מקארדקום.</span>';
+  if(automatic&&order?.status==='paid')reportHtml=`<b>✓ התשלום האחרון נקלט</b><span>${order.document_number?`חשבונית מספר ${esc(order.document_number)} הופקה ונשלחה על ידי קארדקום.`:'המנוי הופעל. החשבונית נשלחת על ידי קארדקום.'}</span>`;
+  if(automatic&&order?.status==='failed')reportHtml='<b>התשלום לא הושלם</b><span>לא בוצע חיוב. אפשר לנסות שוב או לפנות לתמיכה.</span>';
+  report.classList.toggle('hidden',!reportHtml);report.innerHTML=reportHtml;
   show('#subscriptionView')
 }
 $('#subscriptionBtn').onclick=openSubscription;$('#subscriptionBanner').onclick=openSubscription;
 $('#subscriptionBackBtn').onclick=()=>hasServiceAccess()?show('#homeView'):openSubscription();
 $('#subscriptionLogoutBtn').onclick=async()=>{stopNotificationPolling();await db.auth.signOut();state.user=null;show('#authView')};
+$('#subscriptionPayBtn').onclick=async()=>{
+  const s=state.subscription||{},button=$('#subscriptionPayBtn');
+  if(s.payment_mode!=='cardcom'){
+    const url=safeHttpUrl(s.payment_url);if(url)window.open(url,'_blank','noopener,noreferrer');else toast('קישור התשלום עדיין לא הוגדר');return
+  }
+  button.disabled=true;const old=button.textContent;button.textContent='פותח תשלום מאובטח…';
+  const {data,error}=await db.functions.invoke('mehirli-cardcom-checkout',{body:{product:'MEHIRLI-MONTHLY'}});
+  if(error||!safePaymentUrl(data?.checkout_url)){
+    button.disabled=false;button.textContent=old;
+    const code=data?.error||error?.context?.error||'';
+    toast(code==='cardcom_waiting_for_approval'?'החיבור לקארדקום עדיין ממתין לאישור':'לא ניתן לפתוח כרגע את דף התשלום');return
+  }
+  location.assign(data.checkout_url)
+};
 $('#subscriptionPaidBtn').onclick=async()=>{
   const button=$('#subscriptionPaidBtn');button.disabled=true;button.textContent='שולח לאישור…';
   const {error}=await db.rpc('report_subscription_payment_v33',{p_reference_note:null});
@@ -593,6 +626,22 @@ $('#subscriptionPaidBtn').onclick=async()=>{
   if(error){toast('לא ניתן לדווח על התשלום: '+error.message);return}
   await openSubscription();toast('הדיווח נשלח למנהל לאישור')
 };
+
+async function handlePaymentReturn(){
+  const result=paymentReturn();if(!result){await routeAfterLogin();return}
+  await openSubscription();
+  if(result.status==='failed'){toast('התשלום לא אושר ולא בוצע חיוב');clearPaymentReturn();return}
+  if(result.status==='cancelled'){toast('התשלום בוטל ולא בוצע חיוב');clearPaymentReturn();return}
+  toast('התשלום הסתיים. מוודא את האישור מול קארדקום…');
+  for(let attempt=0;attempt<6;attempt++){
+    await new Promise(resolve=>setTimeout(resolve,1500));
+    await loadSubscription();
+    if(state.subscription?.latest_payment_order?.status==='paid'||state.subscription?.status==='active')break
+  }
+  await openSubscription();
+  toast(state.subscription?.latest_payment_order?.status==='paid'?'התשלום נקלט והמנוי הופעל ✅':'האישור עדיין מתעדכן. אין צורך לשלם שוב.');
+  clearPaymentReturn()
+}
 
 // PWA install flow (V13)
 let deferredInstallPrompt=null;
