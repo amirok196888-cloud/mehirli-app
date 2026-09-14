@@ -29,7 +29,7 @@
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="apple-touch-icon" sizes="180x180" href="icon-192.png" />
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
-<link rel="stylesheet" href="style.css?v=36" />
+<link rel="stylesheet" href="style.css?v=37" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -156,10 +156,33 @@
     <label>מקצוע עיקרי<select id="settingsTrade"><option value="handyman">היינדמן</option><option value="electrician">חשמלאי</option><option value="home">שירותי בית</option><option value="air_conditioning">מיזוג</option></select></label>
     <div class="two-cols"><label>מחיר שעה רצוי<input id="settingsHourlyRate" type="number" min="0" step="10" /></label><label>עלות נסיעה רגילה<input id="settingsTravelCost" type="number" min="0" step="10" /></label></div>
     <div class="two-cols"><label>הוצאות עסק באחוזים<input id="settingsOverhead" type="number" min="0" max="60" step="1" /></label><label>מרווח לבלת״מ באחוזים<input id="settingsRisk" type="number" min="0" max="60" step="1" /></label></div>
-    <label>קישור התשלום האישי שלך (אופציונלי)<input id="settingsPaymentLink" type="url" placeholder="קישור מקארדקום, ביט, PayBox או חברת הסליקה שלך" /></label>
+    <fieldset class="payment-connect-card">
+      <legend>קבלת תשלומים מהלקוחות</legend>
+      <p class="payment-connect-intro">בחר את חברת הסליקה והדבק את קישור התשלום האישי שקיבלת ממנה.</p>
+      <label>חברת הסליקה שלך
+        <select id="settingsPaymentProvider">
+          <option value="">בחר חברת סליקה</option>
+          <option value="cardcom">קארדקום</option>
+          <option value="grow">Grow</option>
+          <option value="meshulam">משולם</option>
+          <option value="bit">bit לעסקים</option>
+          <option value="paybox">PayBox</option>
+          <option value="other">חברת סליקה אחרת</option>
+        </select>
+      </label>
+      <label>קישור התשלום האישי שלך
+        <input id="settingsPaymentLink" type="url" inputmode="url" autocomplete="off" placeholder="https://..." />
+      </label>
+      <div class="payment-link-actions">
+        <button id="settingsPaymentTestBtn" class="secondary" type="button">🔗 פתח ובדוק את הקישור</button>
+        <button id="settingsPaymentClearBtn" class="ghost" type="button">הסר חיבור</button>
+      </div>
+      <div id="settingsPaymentStatus" class="payment-connect-status not-connected">לא חובר עדיין קישור לתשלום</div>
+      <p class="payment-security-note">🔒 מחירלי שומרת רק את הקישור. אין להזין שם משתמש, סיסמה, מספר אשראי או מפתח סודי.</p>
+    </fieldset>
     <div id="electricianSettings" class="electrician-only hidden"><div class="two-cols"><label>מספר רישיון חשמלאי<input id="settingsLicenseNumber" /></label><label>תוקף הרישיון<input id="settingsLicenseExpiry" type="date" /></label></div></div>
     <label>תנאים שיופיעו בהצעה<textarea id="settingsQuoteTerms" placeholder="תוקף ההצעה, אחריות, מה אינו כלול"></textarea></label>
-    <p class="note">הכסף מתקבל ישירות בחשבון הסליקה שלך. מחירלי אינה מחזיקה בכספי הלקוח.</p>
+    <p class="note">הלקוח משלם באתר של חברת הסליקה שבחרת, והכסף מתקבל ישירות בחשבון שלך. מחירלי אינה מחזיקה בכספי הלקוח.</p>
     <button class="primary big" type="submit">שמור הגדרות</button>
   </form>
 </section>
@@ -240,5 +263,5 @@
 </section>
 </main><div id="toast" class="toast"></div></div>
 <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"></script>
-<script src="app.js?v=36"></script>
+<script src="app.js?v=37"></script>
 </body></html>

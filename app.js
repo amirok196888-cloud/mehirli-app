@@ -10,6 +10,7 @@ const catDb={'רכב':'vehicle','מיזוג':'air_conditioning','לבית':'home
 const tradeHe={handyman:'היינדמן',electrician:'חשמלאי',home:'שירותי בית',air_conditioning:'מיזוג'};
 const jobStatusHe={lead:'פנייה חדשה',quoted:'הצעה נשלחה',approved:'ההצעה אושרה',scheduled:'נקבע מועד',in_progress:'בביצוע',completed:'העבודה הסתיימה',paid:'שולם',cancelled:'בוטל'};
 const subscriptionStatusHe={admin:'מנהל — ללא חיוב',trial:'תקופת ניסיון',active:'מנוי פעיל',past_due:'נדרש להסדיר תשלום',suspended:'השירות מושהה',cancelled:'המנוי בוטל',not_started:'טרם הופעל'};
+const PAYMENT_PROVIDERS={cardcom:'קארדקום',grow:'Grow',meshulam:'משולם',bit:'bit לעסקים',paybox:'PayBox',other:'חברת סליקה אחרת'};
 const TRADE_JOBS={
   handyman:[['general','תיקון כללי'],['tv','תליית טלוויזיה'],['shelves','מדפים ותלייה'],['furniture','הרכבת רהיטים'],['door','דלת / ארון'],['sealing','איטום וסיליקון'],['faucet','ברז / סיפון'],['blinds','תריס / וילון'],['other','אחר']],
   electrician:[['general','בדיקה / תקלה כללית'],['outlet','שקע או מפסק'],['lighting','תאורה'],['short','קצר / הפסקת חשמל'],['panel','לוח חשמל'],['boiler','דוד חשמל'],['three_phase','תלת־פאזי'],['ev','עמדת טעינה'],['other','אחר']],
@@ -67,6 +68,11 @@ function safeHttpUrl(value=''){
   if(!value)return '';
   try{const url=new URL(value);return ['https:','http:'].includes(url.protocol)?url.href:''}catch{return ''}
 }
+function safePaymentUrl(value=''){
+  if(!value)return '';
+  try{const url=new URL(value);return url.protocol==='https:'?url.href:''}catch{return ''}
+}
+function paymentProviderLabel(provider=''){return PAYMENT_PROVIDERS[provider]||'חברת הסליקה'}
 function formatDate(value){if(!value)return '';try{return new Date(value).toLocaleDateString('he-IL')}catch{return ''}}
 function daysLeft(value){if(!value)return 0;return Math.max(0,Math.ceil((new Date(value).getTime()-Date.now())/86400000))}
 function hasServiceAccess(){return state.isAdmin||state.subscription?.has_access===true}
@@ -250,7 +256,7 @@ $('#profileForm').onsubmit=async e=>{
 };
 
 // V25 — מרכז עבודה חכם להיינדמן ולחשמלאי
-function defaultProSettings(){return {trade:'handyman',default_hourly_rate:180,default_travel_cost:50,overhead_percent:15,risk_percent:15,payment_link:'',quote_terms:'המחיר כפוף לכך שתיאור העבודה והתמונות שנמסרו מלאים ומדויקים. עבודה נוספת תבוצע רק לאחר אישור הלקוח.',electrician_license_number:'',electrician_license_expiry:null}}
+function defaultProSettings(){return {trade:'handyman',default_hourly_rate:180,default_travel_cost:50,overhead_percent:15,risk_percent:15,payment_provider:'',payment_link:'',quote_terms:'המחיר כפוף לכך שתיאור העבודה והתמונות שנמסרו מלאים ומדויקים. עבודה נוספת תבוצע רק לאחר אישור הלקוח.',electrician_license_number:'',electrician_license_expiry:null}}
 async function loadProSettings(){
   const fallback=defaultProSettings();
   const {data,error}=await db.from('professional_settings').select('*').eq('professional_id',state.user.id).maybeSingle();
@@ -321,7 +327,7 @@ function openWhatsapp(phone,message){const url=whatsappUrl(phone,message);if(!ur
 function questionMessage(job){return `שלום ${job.customer_name}, כדי להכין את העבודה והמחיר בצורה מדויקת אשמח למענה קצר:\n\n${(job.customer_questions||[]).map((q,i)=>`${i+1}. ${q}`).join('\n')}\n\nתודה, ${state.businessProfile?.business_name||state.profile?.full_name||'מחירלי'}`}
 function quoteMessage(job){return `שלום ${job.customer_name}, הכנתי עבורך הצעת מחיר עבור: ${job.description}\n\nמחיר: ${money(job.quoted_price)}${Number(job.deposit_amount)>0?`\nמקדמה: ${money(job.deposit_amount)}`:''}\n\nלצפייה ואישור ההצעה:\n${quoteUrl(job)}`}
 function storedQuoteMessage(job,pdfUrl){return `שלום ${job.customer_name}, הכנתי עבורך הצעת מחיר עבור: ${job.description}\n\nמחיר: ${money(job.quoted_price)}${Number(job.deposit_amount)>0?`\nמקדמה: ${money(job.deposit_amount)}`:''}\n\nפתיחת הצעת המחיר כ־PDF:\n${pdfUrl}\n\nלאישור ההצעה:\n${quoteUrl(job)}`}
-function paymentMessage(job){const amount=Math.max(0,Number(job.quoted_price||0)-Number(job.actual_paid||0)),link=safeHttpUrl(state.proSettings?.payment_link);return `שלום ${job.customer_name}, לתשלום ${money(amount)} עבור העבודה: ${job.description}.${link?`\n\nקישור מאובטח לתשלום:\n${link}`:''}\n\nתודה.`}
+function paymentMessage(job){const amount=Math.max(0,Number(job.quoted_price||0)-Number(job.actual_paid||0)),link=safePaymentUrl(state.proSettings?.payment_link),provider=paymentProviderLabel(state.proSettings?.payment_provider);return `שלום ${job.customer_name}, לתשלום ${money(amount)} עבור העבודה: ${job.description}.${link?`\n\nקישור לתשלום ישיר ומאובטח באמצעות ${provider}:\n${link}`:''}\n\nהתשלום מועבר ישירות לבית העסק. תודה.`}
 function quotePdfFileName(job){
   const customer=String(job.customer_name||'לקוח').replace(/[\\/:*?"<>|]+/g,'-').trim()||'לקוח';
   return `הצעת-מחיר-${customer}.pdf`
@@ -329,7 +335,7 @@ function quotePdfFileName(job){
 function quotePdfElement(job){
   const business=state.businessProfile?.business_name||state.profile?.full_name||'בעל מקצוע';
   const businessPhone=state.businessProfile?.business_phone||'';
-  const paymentLink=safeHttpUrl(state.proSettings?.payment_link);
+  const paymentLink=safePaymentUrl(state.proSettings?.payment_link),paymentProvider=paymentProviderLabel(state.proSettings?.payment_provider);
   const license=job.trade==='electrician'&&state.proSettings?.electrician_license_number?`<div style="margin-top:5px;color:#536274;font-size:14px">רישיון חשמלאי: ${esc(state.proSettings.electrician_license_number)}</div>`:'';
   const root=document.createElement('section');
   root.setAttribute('dir','rtl');
@@ -353,7 +359,7 @@ function quotePdfElement(job){
       ${job.quote_terms?`<section style="margin:22px 0;break-inside:avoid"><div style="font-size:16px;font-weight:900;margin-bottom:8px">תנאי ההצעה</div><div style="padding:16px;border:1px solid #e1e7eb;border-radius:12px;white-space:pre-wrap;color:#465667">${esc(job.quote_terms)}</div></section>`:''}
       <section style="margin-top:24px;padding-top:18px;border-top:1px solid #dce5ea;font-size:13px;color:#536274;break-inside:avoid">
         <div><b>צפייה ואישור ההצעה:</b></div><div style="direction:ltr;text-align:left;word-break:break-all;color:#1570a6">${esc(quoteUrl(job))}</div>
-        ${paymentLink?`<div style="margin-top:12px"><b>קישור לתשלום (אופציונלי):</b></div><div style="direction:ltr;text-align:left;word-break:break-all;color:#1570a6">${esc(paymentLink)}</div>`:''}
+        ${paymentLink?`<div style="margin-top:12px"><b>תשלום ישיר לבית העסק באמצעות ${esc(paymentProvider)}:</b></div><div style="direction:ltr;text-align:left;word-break:break-all;color:#1570a6">${esc(paymentLink)}</div>`:''}
       </section>
     </main>
     <footer style="margin-top:30px;padding-top:16px;border-top:1px solid #dce5ea;text-align:center;color:#7b8996;font-size:12px">הופק באמצעות מחירלי</footer>`;
@@ -420,7 +426,7 @@ async function renderProJobDetail(){
   <div class="job-hero card"><div class="job-card-top"><span class="trade-badge ${j.trade}">${tradeIcon(j.trade)} ${tradeHe[j.trade]||'בעל מקצוע'}</span><span class="status-pill status-${j.status}">${jobStatusHe[j.status]||j.status}</span></div><h3>${esc(j.description)}</h3><p>👤 ${esc(j.customer_name)} · 📍 ${esc(j.city||'לא צוין')} · 🗓️ ${esc(formatDateTime(j.scheduled_at))}</p><div class="contact-actions"><a class="secondary" href="tel:${esc(j.customer_phone)}">📞 התקשר</a><button class="secondary" data-job-action="questions">💬 שלח שאלות</button></div></div>
   <div class="detail-price-grid"><div class="card"><small>מחיר מינימום</small><strong>${money(j.price_floor)}</strong></div><div class="card featured"><small>הצעה ללקוח</small><strong>${money(j.quoted_price)}</strong></div><div class="card"><small>יתרה לתשלום</small><strong>${money(remaining)}</strong></div></div>
   ${below?'<div class="price-warning">⚠️ המחיר ללקוח נמוך ממחיר המינימום שחושב לעבודה.</div>':''}
-  <div class="card"><h3>הצעת המחיר</h3><p>${esc(j.quote_scope||'לא נוסף פירוט להצעה.')}</p>${j.quote_terms?`<div class="terms-box">${esc(j.quote_terms)}</div>`:''}<div class="action-grid"><button class="secondary" data-job-action="quote-pdf" disabled>⏳ מכין PDF…</button><button class="secondary" data-job-action="copy">העתק קישור לאישור</button>${safeHttpUrl(state.proSettings?.payment_link)?'<button class="secondary" data-job-action="payment">שלח בקשת תשלום</button>':''}</div><p class="stored-pdf-note">🔒 ה־PDF נשמר באופן פרטי במחירלי. הקישור שנשלח ללקוח תקף ל־30 יום.</p></div>
+  <div class="card"><h3>הצעת המחיר</h3><p>${esc(j.quote_scope||'לא נוסף פירוט להצעה.')}</p>${j.quote_terms?`<div class="terms-box">${esc(j.quote_terms)}</div>`:''}<div class="action-grid"><button class="secondary" data-job-action="quote-pdf" disabled>⏳ מכין PDF…</button><button class="secondary" data-job-action="copy">העתק קישור לאישור</button>${safePaymentUrl(state.proSettings?.payment_link)?'<button class="secondary" data-job-action="payment">שלח קישור לתשלום</button>':''}</div><p class="stored-pdf-note">🔒 ה־PDF נשמר באופן פרטי במחירלי. הקישור שנשלח ללקוח תקף ל־30 יום.</p></div>
   <div class="card"><label class="inline-select">מצב העבודה<select id="jobStatusSelect">${Object.entries(jobStatusHe).map(([v,l])=>`<option value="${v}" ${j.status===v?'selected':''}>${l}</option>`).join('')}</select></label></div>
   <div class="analysis-display card"><div><h3>שאלות ללקוח</h3>${renderList(j.customer_questions)}</div><div><h3>ציוד והכנה</h3>${renderList(j.tools_needed)}</div>${j.warnings?.length?`<div class="safety-box">${j.warnings.map(w=>`<p>⚠️ ${esc(w)}</p>`).join('')}</div>`:''}</div>`;
   $('#actualHours').value=j.actual_hours||j.labor_hours||'';$('#actualMaterials').value=j.actual_materials_cost??j.materials_cost??'';$('#actualPaid').value=j.actual_paid||'';renderActualProfit(j);
@@ -464,18 +470,28 @@ async function uploadJobPhoto(file,phase){
 $('#beforePhotoInput').onchange=e=>{const file=e.target.files?.[0];uploadJobPhoto(file,'before');e.target.value=''};$('#afterPhotoInput').onchange=e=>{const file=e.target.files?.[0];uploadJobPhoto(file,'after');e.target.value=''};
 async function loadProSettingsForm(){
   if(!requireServiceAccess())return;
-  const s=await loadProSettings();$('#settingsTrade').value=s.trade;$('#settingsHourlyRate').value=s.default_hourly_rate;$('#settingsTravelCost').value=s.default_travel_cost;$('#settingsOverhead').value=s.overhead_percent;$('#settingsRisk').value=s.risk_percent;$('#settingsPaymentLink').value=s.payment_link||'';$('#settingsLicenseNumber').value=s.electrician_license_number||'';$('#settingsLicenseExpiry').value=s.electrician_license_expiry||'';$('#settingsQuoteTerms').value=s.quote_terms||'';$('#electricianSettings').classList.toggle('hidden',s.trade!=='electrician');show('#proSettingsView')
+  const s=await loadProSettings();$('#settingsTrade').value=s.trade;$('#settingsHourlyRate').value=s.default_hourly_rate;$('#settingsTravelCost').value=s.default_travel_cost;$('#settingsOverhead').value=s.overhead_percent;$('#settingsRisk').value=s.risk_percent;$('#settingsPaymentProvider').value=s.payment_provider||'';$('#settingsPaymentLink').value=s.payment_link||'';$('#settingsLicenseNumber').value=s.electrician_license_number||'';$('#settingsLicenseExpiry').value=s.electrician_license_expiry||'';$('#settingsQuoteTerms').value=s.quote_terms||'';$('#electricianSettings').classList.toggle('hidden',s.trade!=='electrician');renderPaymentConnectionStatus();show('#proSettingsView')
+}
+function renderPaymentConnectionStatus(){
+  const status=$('#settingsPaymentStatus');if(!status)return;
+  const provider=$('#settingsPaymentProvider').value,link=safePaymentUrl($('#settingsPaymentLink').value.trim());
+  status.classList.toggle('connected',Boolean(link));status.classList.toggle('not-connected',!link);
+  status.textContent=link?`✓ קישור תשלום מוכן באמצעות ${paymentProviderLabel(provider)}`:'לא חובר עדיין קישור לתשלום'
 }
 $('#proSettingsBtn').onclick=loadProSettingsForm;$('#settingsTrade').onchange=e=>$('#electricianSettings').classList.toggle('hidden',e.target.value!=='electrician');
+$('#settingsPaymentProvider').onchange=renderPaymentConnectionStatus;
+$('#settingsPaymentLink').oninput=renderPaymentConnectionStatus;
+$('#settingsPaymentTestBtn').onclick=()=>{const link=safePaymentUrl($('#settingsPaymentLink').value.trim());if(!link){toast('הדבק קודם קישור מאובטח שמתחיל ב־https://');return}window.open(link,'_blank','noopener,noreferrer')};
+$('#settingsPaymentClearBtn').onclick=()=>{$('#settingsPaymentProvider').value='';$('#settingsPaymentLink').value='';renderPaymentConnectionStatus();toast('החיבור הוסר מהטופס. לחץ שמור הגדרות כדי להשלים')};
 $('#proSettingsForm').onsubmit=async e=>{
-  e.preventDefault();if(!requireServiceAccess())return;const enteredPaymentLink=$('#settingsPaymentLink').value.trim(),paymentLink=safeHttpUrl(enteredPaymentLink);if(enteredPaymentLink&&!paymentLink){toast('קישור התשלום חייב להתחיל ב־https:// או http://');return}const row={professional_id:state.user.id,trade:$('#settingsTrade').value,default_hourly_rate:numberValue('#settingsHourlyRate'),default_travel_cost:numberValue('#settingsTravelCost'),overhead_percent:numberValue('#settingsOverhead'),risk_percent:numberValue('#settingsRisk'),payment_link:paymentLink||null,electrician_license_number:$('#settingsLicenseNumber').value.trim()||null,electrician_license_expiry:$('#settingsLicenseExpiry').value||null,quote_terms:$('#settingsQuoteTerms').value.trim()};
-  const {data,error}=await db.from('professional_settings').upsert(row).select('*').single();if(error){toast(error.message);return}state.proSettings=data;toast('ההגדרות נשמרו');await openProWorkspace()
+  e.preventDefault();if(!requireServiceAccess())return;const enteredPaymentLink=$('#settingsPaymentLink').value.trim(),paymentLink=safePaymentUrl(enteredPaymentLink),selectedProvider=$('#settingsPaymentProvider').value;if(enteredPaymentLink&&!paymentLink){toast('מטעמי אבטחה קישור התשלום חייב להתחיל ב־https://');return}if(selectedProvider&&!paymentLink){toast('בחרת חברת סליקה — עכשיו צריך להדביק את קישור התשלום שלה');return}const paymentProvider=paymentLink?(selectedProvider||'other'):null;const row={professional_id:state.user.id,trade:$('#settingsTrade').value,default_hourly_rate:numberValue('#settingsHourlyRate'),default_travel_cost:numberValue('#settingsTravelCost'),overhead_percent:numberValue('#settingsOverhead'),risk_percent:numberValue('#settingsRisk'),payment_provider:paymentProvider,payment_link:paymentLink||null,electrician_license_number:$('#settingsLicenseNumber').value.trim()||null,electrician_license_expiry:$('#settingsLicenseExpiry').value||null,quote_terms:$('#settingsQuoteTerms').value.trim()};
+  const {data,error}=await db.from('professional_settings').upsert(row).select('*').single();if(error){toast(error.message);return}state.proSettings=data;toast(paymentLink?`התשלום חובר באמצעות ${paymentProviderLabel(paymentProvider)}`:'הגדרות התשלום נשמרו ללא קישור');await openProWorkspace()
 };
 async function loadPublicQuote(token){
   const box=$('#publicQuoteContent');show('#publicQuoteView');box.innerHTML='<div class="card public-quote-card"><h2>טוען הצעת מחיר…</h2></div>';
   const {data,error}=await db.rpc('get_public_job_quote',{p_token:token});const q=Array.isArray(data)?data[0]:data;if(error||!q){box.innerHTML='<div class="card public-quote-card"><h2>ההצעה אינה זמינה</h2><p>הקישור שגוי או שההצעה בוטלה.</p></div>';return}
-  const approved=['approved','scheduled','in_progress','completed','paid'].includes(q.status),lic=q.trade==='electrician'&&q.electrician_license_number?`<span class="badge">רישיון חשמלאי ${esc(q.electrician_license_number)}</span>`:'',paymentLink=safeHttpUrl(q.payment_link),businessWhatsapp=waNumber(q.business_phone||''),paymentLabel=Number(q.deposit_amount)>0?`תשלום מקדמה ${money(q.deposit_amount)}`:'מעבר לתשלום';
-  box.innerHTML=`<div class="public-quote-brand">מחירלי <small>הצעת מחיר דיגיטלית</small></div><div class="card public-quote-card"><div class="trade-badge ${q.trade}">${tradeIcon(q.trade)} ${tradeHe[q.trade]||'בעל מקצוע'}</div><h2>שלום ${esc(q.customer_name)}</h2><p class="quote-intro">${esc(q.business_name)} הכין עבורך הצעת מחיר.</p><div class="quote-description"><small>עבור</small><b>${esc(q.description)}</b><p>${esc(q.quote_scope||'')}</p></div><div class="public-price"><small>מחיר ההצעה</small><strong>${money(q.quoted_price)}</strong>${Number(q.deposit_amount)>0?`<span>מקדמה: ${money(q.deposit_amount)}</span>`:''}</div><div class="badges">${lic}${q.scheduled_at?`<span class="badge">🗓️ ${esc(formatDateTime(q.scheduled_at))}</span>`:''}</div>${q.quote_terms?`<div class="terms-box">${esc(q.quote_terms)}</div>`:''}${approved?'<div class="approved-box">✓ ההצעה אושרה</div>':'<button id="approvePublicQuoteBtn" class="primary big">אישור הצעת המחיר</button>'}<div class="public-contact-actions">${businessWhatsapp?`<a class="secondary big pay-link" target="_blank" rel="noopener" href="https://wa.me/${esc(businessWhatsapp)}?text=${encodeURIComponent('שלום, קיבלתי את הצעת המחיר דרך מחירלי')}">💬 WhatsApp לבעל העסק</a>`:''}${approved&&paymentLink?`<a class="primary big pay-link" target="_blank" rel="noopener" href="${esc(paymentLink)}">💳 ${paymentLabel}</a>`:''}</div><p class="note">האישור מתייחס להיקף העבודה ולתנאים המופיעים בהצעה.</p></div>`;
+  const approved=['approved','scheduled','in_progress','completed','paid'].includes(q.status),lic=q.trade==='electrician'&&q.electrician_license_number?`<span class="badge">רישיון חשמלאי ${esc(q.electrician_license_number)}</span>`:'',paymentLink=safePaymentUrl(q.payment_link),businessWhatsapp=waNumber(q.business_phone||''),paymentAmount=Number(q.deposit_amount)>0?Number(q.deposit_amount):Number(q.quoted_price),paymentLabel=Number(q.deposit_amount)>0?`שלם מקדמה ${money(paymentAmount)}`:`שלם ${money(paymentAmount)}`;
+  box.innerHTML=`<div class="public-quote-brand">מחירלי <small>הצעת מחיר דיגיטלית</small></div><div class="card public-quote-card"><div class="trade-badge ${q.trade}">${tradeIcon(q.trade)} ${tradeHe[q.trade]||'בעל מקצוע'}</div><h2>שלום ${esc(q.customer_name)}</h2><p class="quote-intro">${esc(q.business_name)} הכין עבורך הצעת מחיר.</p><div class="quote-description"><small>עבור</small><b>${esc(q.description)}</b><p>${esc(q.quote_scope||'')}</p></div><div class="public-price"><small>מחיר ההצעה</small><strong>${money(q.quoted_price)}</strong>${Number(q.deposit_amount)>0?`<span>מקדמה: ${money(q.deposit_amount)}</span>`:''}</div><div class="badges">${lic}${q.scheduled_at?`<span class="badge">🗓️ ${esc(formatDateTime(q.scheduled_at))}</span>`:''}</div>${q.quote_terms?`<div class="terms-box">${esc(q.quote_terms)}</div>`:''}${approved?'<div class="approved-box">✓ ההצעה אושרה</div>':'<button id="approvePublicQuoteBtn" class="primary big">אישור הצעת המחיר</button>'}<div class="public-contact-actions">${businessWhatsapp?`<a class="secondary big pay-link" target="_blank" rel="noopener" href="https://wa.me/${esc(businessWhatsapp)}?text=${encodeURIComponent('שלום, קיבלתי את הצעת המחיר דרך מחירלי')}">💬 WhatsApp לבעל העסק</a>`:''}${approved&&paymentLink?`<a class="primary big pay-link customer-payment-button" target="_blank" rel="noopener" href="${esc(paymentLink)}">💳 ${paymentLabel} ישירות לבית העסק</a><p class="direct-payment-note">התשלום מתבצע באתר חברת הסליקה של ${esc(q.business_name)}. מחירלי אינה מקבלת את הכסף.</p>`:''}</div><p class="note">האישור מתייחס להיקף העבודה ולתנאים המופיעים בהצעה.</p></div>`;
   const btn=$('#approvePublicQuoteBtn');if(btn)btn.onclick=async()=>{btn.disabled=true;btn.textContent='מאשר…';const {error}=await db.rpc('approve_public_job_quote',{p_token:token});if(error){toast('לא ניתן לאשר: '+error.message);btn.disabled=false;btn.textContent='אישור הצעת המחיר';return}toast('ההצעה אושרה בהצלחה');await loadPublicQuote(token)}
 }
 
