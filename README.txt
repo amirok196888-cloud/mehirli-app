@@ -42,6 +42,11 @@ V40 — marketing funnel and greeting:
 - Separate maskable icons for Android launcher.
 - Install as app (not shortcut) removes browser badge.
 
+V41 — identified WhatsApp messages:
+- Every message prepared by Mehirli starts with a clear Mehirli source label.
+- Public support opens the shared Rokach Digital WhatsApp with a Mehirli support heading.
+- Quote, questions, payment and public-quote replies retain their specific purpose in the prepared message.
+
 
 V14 — Share Preview
 - Added Open Graph / WhatsApp / Facebook link preview metadata.
