@@ -187,7 +187,7 @@ fbq('track','PageView',{content_name:'Mehirli'});
       <label>עלות עוזר / קבלן משנה<input id="proAssistantCost" type="number" min="0" step="10" value="0" /></label>
       <div id="smartAnalysis" class="smart-analysis hidden"></div>
       <div class="price-result">
-        <div><small>מחיר מינימום</small><strong id="priceFloor">0 ₪</strong></div>
+        <div><small>מחיר מינימום ₪ — ניתן לשינוי</small><input id="priceFloor" type="number" min="0" step="1" /><button id="resetPriceFloorBtn" class="ghost tiny" type="button">↺ חזרה לחישוב האוטומטי</button></div>
         <div class="recommended"><small>מחיר מומלץ</small><strong id="recommendedPrice">0 ₪</strong></div>
       </div>
       <details class="quote-items-panel"><summary>פירוט סעיפים ללקוח <span>אופציונלי</span></summary><div id="quoteItemsEditor"></div><button id="addQuoteItemBtn" class="ghost tiny" type="button">＋ הוסף סעיף</button></details>
@@ -379,5 +379,5 @@ fbq('track','PageView',{content_name:'Mehirli'});
 </section>
 </main><div id="toast" class="toast"></div></div>
 <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"></script>
-<script src="app.js?v=43"></script>
+<script src="app.js?v=44"></script>
 </body></html>
