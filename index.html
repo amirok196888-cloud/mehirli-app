@@ -188,7 +188,7 @@ fbq('track','PageView',{content_name:'Mehirli'});
       <div id="smartAnalysis" class="smart-analysis hidden"></div>
       <div class="price-result">
         <div><small>מחיר מינימום ₪ — ניתן לשינוי</small><input id="priceFloor" type="number" min="0" step="1" /><button id="resetPriceFloorBtn" class="ghost tiny" type="button">↺ חזרה לחישוב האוטומטי</button></div>
-        <div class="recommended"><small>מחיר מומלץ</small><strong id="recommendedPrice">0 ₪</strong></div>
+        <div class="recommended"><small>הסכום שנקבע</small><strong id="recommendedPrice">0 ₪</strong></div>
       </div>
       <details class="quote-items-panel"><summary>פירוט סעיפים ללקוח <span>אופציונלי</span></summary><div id="quoteItemsEditor"></div><button id="addQuoteItemBtn" class="ghost tiny" type="button">＋ הוסף סעיף</button></details>
       <div class="two-cols"><label>הנחה<select id="proDiscountType"><option value="none">ללא הנחה</option><option value="percent">אחוזים</option><option value="fixed">סכום קבוע</option></select></label><label>גובה ההנחה<input id="proDiscountValue" type="number" min="0" step="1" value="0" disabled /></label></div>
@@ -256,7 +256,6 @@ fbq('track','PageView',{content_name:'Mehirli'});
     <div class="two-cols"><label>מחיר חצי יום<input id="settingsHalfDayPrice" type="number" min="0" step="10" /></label><label>מחיר יום עבודה<input id="settingsFullDayPrice" type="number" min="0" step="10" /></label></div>
     <div class="two-cols"><label>שעות בחצי יום<input id="settingsHalfDayHours" type="number" min="1" max="8" step="0.5" /></label><label>שעות ביום מלא<input id="settingsFullDayHours" type="number" min="2" max="16" step="0.5" /></label></div>
     <div class="two-cols"><label>שעה נוספת<input id="settingsOvertimeRate" type="number" min="0" step="10" /></label><label>עיגול זמן<select id="settingsTimeRounding"><option value="15">15 דקות</option><option value="30">30 דקות</option><option value="60">שעה</option></select></label></div>
-    <div class="two-cols"><label>הוצאות עסק באחוזים<input id="settingsOverhead" type="number" min="0" max="60" step="1" /></label><label>מרווח לבלת״מ באחוזים<input id="settingsRisk" type="number" min="0" max="60" step="1" /></label></div>
     <fieldset class="payment-connect-card">
       <legend>קבלת תשלומים מהלקוחות</legend>
       <p class="payment-connect-intro">בחר את חברת הסליקה והדבק את קישור התשלום האישי שקיבלת ממנה.</p>
@@ -379,5 +378,5 @@ fbq('track','PageView',{content_name:'Mehirli'});
 </section>
 </main><div id="toast" class="toast"></div></div>
 <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"></script>
-<script src="app.js?v=44"></script>
+<script src="app.js?v=45"></script>
 </body></html>
