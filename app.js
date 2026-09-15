@@ -358,10 +358,12 @@ function calculateProPrice(updateQuote=true){
   const s=state.proSettings||defaultProSettings(),mode=$('#proPricingMode')?.value||'hourly',hours=Math.max(.25,numberValue('#proLaborHours')),basePrice=numberValue('#proBasePrice'),materials=numberValue('#proMaterialsCost'),travel=numberValue('#proTravelCost'),assistant=numberValue('#proAssistantCost');
   const included=mode==='half_day'?Number(s.half_day_hours)||4:mode==='full_day'?Number(s.full_day_hours)||8:0,overtime=Math.max(0,hours-included)*(Number(s.overtime_rate)||0);const labor=mode==='hourly'?hours*basePrice:basePrice+overtime;
   const base=labor+materials+travel+assistant;
-  const floor=round10(base*(1+(Number(s.overhead_percent)||0)/100));
+  const calculatedFloor=round10(base*(1+(Number(s.overhead_percent)||0)/100)),floorInput=$('#priceFloor');
+  if(floorInput?.dataset.manualOverride!=='true')floorInput.value=calculatedFloor;
+  const floor=Math.max(0,numberValue('#priceFloor'));
   const recommended=round10(floor*(1+(Number(s.risk_percent)||0)/100));
-  $('#priceFloor').textContent=money(floor);$('#recommendedPrice').textContent=money(recommended);
-  $('#priceFloor').dataset.value=String(floor);$('#recommendedPrice').dataset.value=String(recommended);
+  $('#recommendedPrice').textContent=money(recommended);
+  $('#priceFloor').dataset.calculatedValue=String(calculatedFloor);$('#recommendedPrice').dataset.value=String(recommended);
   const itemSubtotal=state.quoteItems.filter(i=>String(i.description||'').trim()).reduce((sum,i)=>sum+(Number(i.quantity)||0)*(Number(i.unit_price)||0),0),subtotal=itemSubtotal||recommended,discountType=$('#proDiscountType')?.value||'none',discountValue=Math.max(0,numberValue('#proDiscountValue'));let discountAmount=discountType==='percent'?subtotal*Math.min(100,discountValue)/100:discountType==='fixed'?Math.min(subtotal,discountValue):0;discountAmount=Math.round(discountAmount*100)/100;const calculatedTotal=Math.max(0,subtotal-discountAmount),quoteInput=$('#proQuotedPrice');
   if(updateQuote&&quoteInput?.dataset.manualOverride!=='true')quoteInput.value=calculatedTotal;
   const total=Math.max(0,numberValue('#proQuotedPrice'));
@@ -379,7 +381,7 @@ function analyzeProfessionalJob(render=true){
 async function openNewProJob(){
   if(!requireServiceAccess())return;
   const s=await loadProSettings();await Promise.all([loadProCustomers(),loadProServices()]);$('#proJobForm').reset();state.quoteItems=[];renderQuoteItemsEditor();renderCustomerOptions();setTrade(s.trade||'handyman');
-  $('#proTravelCost').value=s.default_travel_cost||0;$('#proLaborHours').value=1;$('#proMaterialsCost').value=0;$('#proAssistantCost').value=0;$('#proDepositAmount').value=0;$('#proDiscountType').value='none';$('#proDiscountValue').value=0;$('#proDiscountValue').disabled=true;$('#proQuotedPrice').value='';$('#proQuotedPrice').dataset.manualOverride='false';const valid=new Date();valid.setDate(valid.getDate()+14);$('#proQuoteValidUntil').value=valid.toISOString().slice(0,10);$('#smartAnalysis').classList.add('hidden');setPricingMode(s.default_pricing_mode||'hourly',true);show('#proJobFormView')
+  $('#proTravelCost').value=s.default_travel_cost||0;$('#proLaborHours').value=1;$('#proMaterialsCost').value=0;$('#proAssistantCost').value=0;$('#proDepositAmount').value=0;$('#proDiscountType').value='none';$('#proDiscountValue').value=0;$('#proDiscountValue').disabled=true;$('#priceFloor').value='';$('#priceFloor').dataset.manualOverride='false';$('#proQuotedPrice').value='';$('#proQuotedPrice').dataset.manualOverride='false';const valid=new Date();valid.setDate(valid.getDate()+14);$('#proQuoteValidUntil').value=valid.toISOString().slice(0,10);$('#smartAnalysis').classList.add('hidden');setPricingMode(s.default_pricing_mode||'hourly',true);show('#proJobFormView')
 }
 async function loadProJobs(){
   const {data,error}=await db.from('pro_jobs').select('*').eq('professional_id',state.user.id).order('created_at',{ascending:false});
@@ -416,6 +418,8 @@ $$('.trade-choice').forEach(b=>b.onclick=()=>{setTrade(b.dataset.trade);analyzeP
 $('#proPricingMode').onchange=e=>setPricingMode(e.target.value,true);
 $('#proDiscountType').onchange=e=>{$('#proDiscountValue').disabled=e.target.value==='none';if(e.target.value==='none')$('#proDiscountValue').value=0;calculateProPrice(true)};
 $('#proDiscountValue').oninput=()=>calculateProPrice(true);
+$('#priceFloor').oninput=()=>{$('#priceFloor').dataset.manualOverride='true';calculateProPrice(true)};
+$('#resetPriceFloorBtn').onclick=()=>{$('#priceFloor').dataset.manualOverride='false';calculateProPrice(true);toast('מחיר המינימום חזר לחישוב האוטומטי')};
 $('#proQuotedPrice').oninput=()=>{$('#proQuotedPrice').dataset.manualOverride='true';calculateProPrice(false)};
 $('#resetQuotedPriceBtn').onclick=()=>{$('#proQuotedPrice').dataset.manualOverride='false';calculateProPrice(true);toast('המחיר חזר למחיר המחושב')};
 $('#addQuoteItemBtn').onclick=()=>addQuoteItem();
