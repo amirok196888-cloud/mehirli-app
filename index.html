@@ -193,8 +193,10 @@ fbq('track','PageView',{content_name:'Mehirli'});
       <details class="quote-items-panel"><summary>פירוט סעיפים ללקוח <span>אופציונלי</span></summary><div id="quoteItemsEditor"></div><button id="addQuoteItemBtn" class="ghost tiny" type="button">＋ הוסף סעיף</button></details>
       <div class="two-cols"><label>הנחה<select id="proDiscountType"><option value="none">ללא הנחה</option><option value="percent">אחוזים</option><option value="fixed">סכום קבוע</option></select></label><label>גובה ההנחה<input id="proDiscountValue" type="number" min="0" step="1" value="0" disabled /></label></div>
       <div class="discount-summary"><span>מחיר לפני הנחה <b id="proSubtotal">0 ₪</b></span><span>הנחה <b id="proDiscountAmount">0 ₪</b></span></div>
-      <label>המחיר שאשלח ללקוח<input id="proQuotedPrice" type="number" min="0" step="1" required readonly /></label>
-      <div id="profitabilityWarning" class="price-warning hidden">⚠️ אחרי ההנחה המחיר נמוך ממחיר המינימום שלך.</div>
+      <label>המחיר שאשלח ללקוח<input id="proQuotedPrice" type="number" min="0" step="1" required /></label>
+      <p class="field-hint">אפשר לשנות ידנית לכל סכום. מחירלי תציג אזהרה בלבד אם המחיר נמוך מהמינימום.</p>
+      <button id="resetQuotedPriceBtn" class="ghost tiny" type="button">↺ חזרה למחיר המחושב</button>
+      <div id="profitabilityWarning" class="price-warning hidden">⚠️ המחיר שבחרת נמוך ממחיר המינימום שחושב לעבודה.</div>
       <label>מקדמה מבוקשת — אופציונלי<input id="proDepositAmount" type="number" min="0" step="10" value="0" /></label>
       <label>מה כלול בהצעה?<textarea id="proQuoteScope" placeholder="עבודה, חומרים, פינוי, אחריות ומה לא כלול"></textarea></label>
       <div class="two-cols"><label>ההצעה בתוקף עד<input id="proQuoteValidUntil" type="date" /></label><label>תזכורת לטיפול<input id="proReminderAt" type="datetime-local" /></label></div>
@@ -377,5 +379,5 @@ fbq('track','PageView',{content_name:'Mehirli'});
 </section>
 </main><div id="toast" class="toast"></div></div>
 <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"></script>
-<script src="app.js?v=42"></script>
+<script src="app.js?v=43"></script>
 </body></html>
