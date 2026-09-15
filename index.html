@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<meta name="theme-color" content="#edf4ee" />
+<meta name="theme-color" content="#071b45" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="מחירלי" />
@@ -29,7 +29,7 @@
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="apple-touch-icon" sizes="180x180" href="icon-192.png" />
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
-<link rel="stylesheet" href="style.css?v=42" />
+<link rel="stylesheet" href="style.css?v=43" />
 <!-- Meta Pixel: shared Rokach Digital data source; Mehirli conversions are separated by event and content_name. -->
 <script>
 !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -47,21 +47,42 @@ fbq('track','PageView',{content_name:'Mehirli'});
 <header class="topbar"><div class="brand"><img class="logo logo-img" src="icon-192.png" alt="מחירלי" /><div><h1>מחירלי</h1><p>מנהלים עבודה. מתמחרים נכון. מרוויחים.</p></div></div><button id="installAppBtn" class="install-app-btn hidden" type="button">⬇ התקן אפליקציה</button></header>
 <main>
 <section id="authView" class="view active">
-  <div class="hero card"><h2>העסק שלך, מסודר יותר</h2><p>מרכז עבודה לבעלי מקצוע בתחומי הבית והמיזוג — מהפנייה הראשונה ועד התשלום והרווח.</p></div>
-  <form id="authForm" class="card form-card">
+  <section class="auth-showcase" aria-labelledby="authHeroTitle">
+    <img class="auth-product-visual" src="mehirli-hero-v43.jpg" alt="מחירלי — ניהול עבודות, תמחור והצעות מחיר מהטלפון" />
+    <div class="auth-showcase-shade"></div>
+    <div class="auth-showcase-copy">
+      <span class="auth-kicker">מרכז העבודה החדש לבעלי מקצוע</span>
+      <h2 id="authHeroTitle">כל עבודה מתחילה<br /><em>במחיר נכון.</em></h2>
+      <p>מהפנייה הראשונה ועד שהכסף נכנס: תמחור חכם, הצעת מחיר מקצועית ושליחה ב־WhatsApp — במקום אחד.</p>
+      <div class="auth-proof-row" aria-label="כלי מחירלי">
+        <span>⚡ תמחור חכם</span><span>📄 הצעה מקצועית</span><span>💬 WhatsApp</span>
+      </div>
+      <a class="auth-hero-cta" href="#authForm">מתחילים 14 יום בחינם <b>←</b></a>
+      <small class="auth-no-card">ללא כרטיס אשראי • 49 ₪ רק לאחר תקופת הניסיון</small>
+    </div>
+  </section>
+
+  <div class="auth-workflow" aria-label="איך מחירלי עובדת">
+    <div><b>01</b><span>קולטים את פרטי העבודה</span></div>
+    <div><b>02</b><span>מחשבים מחיר רווחי</span></div>
+    <div><b>03</b><span>שולחים הצעה וסוגרים</span></div>
+  </div>
+
+  <form id="authForm" class="card form-card auth-form-premium">
+    <div class="auth-form-head"><span>14 ימים עלינו</span><h3>פותחים חשבון ומתחילים לעבוד</h3><p>הקמה קצרה. בלי כרטיס אשראי ובלי התחייבות.</p></div>
     <label>אימייל<input id="authEmail" type="email" required autocomplete="email" /></label>
     <label>סיסמה<input id="authPassword" type="password" required minlength="6" autocomplete="current-password" /></label>
     <label>שם בעל העסק<input id="authName" placeholder="השם שיופיע בהצעות המחיר" /></label>
     <label class="legal-check"><input id="signupLegalConsent" type="checkbox" /><span>בהרשמה אני מאשר/ת שקראתי את <button class="text-link" type="button" data-open-legal>תנאי השימוש ומדיניות הפרטיות</button>.</span></label>
-    <button class="primary big" type="submit">כניסה</button>
-    <button id="signupBtn" class="secondary big" type="button">הרשמה חדשה</button>
+    <button id="signupBtn" class="primary big auth-signup" type="button">התחלת 14 ימי ניסיון בחינם</button>
+    <button class="secondary big auth-login" type="submit">כבר יש לי חשבון — כניסה</button>
     <p id="authNote" class="note"></p>
   </form>
-  <a id="mehirliSupportLink" class="secondary big pay-link" href="https://wa.me/972552715782?text=%F0%9F%9F%A0%20%D7%9E%D7%97%D7%99%D7%A8%D7%9C%D7%99%20%7C%20%D7%A4%D7%A0%D7%99%D7%99%D7%94%20%D7%9C%D7%AA%D7%9E%D7%99%D7%9B%D7%94%0A%0A%D7%A9%D7%9C%D7%95%D7%9D%2C%20%D7%94%D7%92%D7%A2%D7%AA%D7%99%20%D7%9E%D7%90%D7%AA%D7%A8%20%D7%9E%D7%97%D7%99%D7%A8%D7%9C%D7%99%20%D7%95%D7%91%D7%A8%D7%A6%D7%95%D7%A0%D7%99%20%D7%9C%D7%A7%D7%91%D7%9C%20%D7%A2%D7%96%D7%A8%D7%94." target="_blank" rel="noopener">💬 עזרה ותמיכה ב־WhatsApp</a>
+  <a id="mehirliSupportLink" class="auth-support-link" href="https://wa.me/972552715782?text=%F0%9F%9F%A0%20%D7%9E%D7%97%D7%99%D7%A8%D7%9C%D7%99%20%7C%20%D7%A4%D7%A0%D7%99%D7%99%D7%94%20%D7%9C%D7%AA%D7%9E%D7%99%D7%9B%D7%94%0A%0A%D7%A9%D7%9C%D7%95%D7%9D%2C%20%D7%94%D7%92%D7%A2%D7%AA%D7%99%20%D7%9E%D7%90%D7%AA%D7%A8%20%D7%9E%D7%97%D7%99%D7%A8%D7%9C%D7%99%20%D7%95%D7%91%D7%A8%D7%A6%D7%95%D7%A0%D7%99%20%D7%9C%D7%A7%D7%91%D7%9C%20%D7%A2%D7%96%D7%A8%D7%94." target="_blank" rel="noopener">צריכים עזרה? מדברים איתנו ב־WhatsApp</a>
   <div class="auth-benefits">
-    <div class="auth-benefit"><span>🛡️</span><b>מאובטח</b><small>המידע נשמר בענן</small></div>
-    <div class="auth-benefit"><span>⚡</span><b>מתמחרים נכון</b><small>זמן, חומרים והוצאות</small></div>
-    <div class="auth-benefit"><span>✓</span><b>סוגרים עבודה</b><small>הצעה, אישור ותשלום</small></div>
+    <div class="auth-benefit"><span>🛡️</span><b>המידע שלכם מוגן</b><small>שמירה מאובטחת בענן</small></div>
+    <div class="auth-benefit"><span>⚡</span><b>לא מנחשים מחיר</b><small>זמן, חומרים ורווח במקום אחד</small></div>
+    <div class="auth-benefit"><span>✓</span><b>נראים מקצועיים</b><small>הצעה מסודרת שהלקוח יכול לאשר</small></div>
   </div>
 </section>
 
