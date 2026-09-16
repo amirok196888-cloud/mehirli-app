@@ -662,7 +662,7 @@ async function loadAdmin(){
   $('#adminBusinessesCount').textContent=sum.businesses||0;$('#adminJobsCount').textContent=sum.jobs||0;
   $('#adminActiveSubscriptionsCount').textContent=sum.active_subscriptions||0;$('#adminSuspendedCount').textContent=sum.suspended_subscriptions||0;
   $('#adminPendingPaymentsCount').textContent=sum.pending_payments||0;$('#adminSubscriptionRevenue').textContent=money(sum.subscription_revenue||0);
-  $('#adminMonthlyPrice').value=state.billingSettings.monthly_price??49;$('#adminTrialDays').value=state.billingSettings.trial_days??14;$('#adminGraceDays').value=2;
+  $('#adminMonthlyPrice').value=state.billingSettings.monthly_price??29;$('#adminTrialDays').value=state.billingSettings.trial_days??14;$('#adminGraceDays').value=2;
   $('#adminSubscriptionPaymentUrl').value=state.billingSettings.payment_url||'';$('#adminSupportWhatsapp').value=state.billingSettings.support_whatsapp||'';
   const modeStatus=$('#adminBillingModeStatus'),automatic=state.billingSettings.payment_mode==='cardcom';
   if(modeStatus){modeStatus.classList.toggle('connected',automatic);modeStatus.classList.toggle('not-connected',!automatic);modeStatus.textContent=automatic?'✓ סליקת API אוטומטית של מחירלי פעילה':'חיבור API לקארדקום מוכן בקוד וממתין לאישור ולהפעלה'}
@@ -734,9 +734,9 @@ async function openSubscription(){
   else if(status==='past_due'){title='התשלום דורש טיפול';message=`לא עצרנו את העבודה מיד. אפשר להמשיך בתקופת חסד עד ${formatDate(s.grace_ends_at)}.`}
   else {title='השירות מושהה — המידע שמור';message='לא ניתן ליצור או לעדכן עבודות עד להסדרת התשלום. הלקוחות, התמונות והעבודות לא נמחקו.'}
   $('#subscriptionTitle').textContent=title;$('#subscriptionMessage').textContent=message;
-  $('#subscriptionDates').innerHTML=`<div><small>מחיר השקה חודשי · כולל מע״מ</small><strong>${money(s.monthly_price??49)}</strong></div>${s.trial_ends_at?`<div><small>סיום ניסיון</small><strong>${formatDate(s.trial_ends_at)}</strong></div>`:''}${s.current_period_ends_at?`<div><small>המנוי בתוקף עד</small><strong>${formatDate(s.current_period_ends_at)}</strong></div>`:''}${s.grace_ends_at&&status==='past_due'?`<div><small>סיום ימי החסד</small><strong>${formatDate(s.grace_ends_at)}</strong></div>`:''}`;
+  $('#subscriptionDates').innerHTML=`<div><small>מחיר חודשי · כולל מע״מ</small><strong>${money(s.monthly_price??29)}</strong></div>${s.trial_ends_at?`<div><small>סיום ניסיון</small><strong>${formatDate(s.trial_ends_at)}</strong></div>`:''}${s.current_period_ends_at?`<div><small>המנוי בתוקף עד</small><strong>${formatDate(s.current_period_ends_at)}</strong></div>`:''}${s.grace_ends_at&&status==='past_due'?`<div><small>סיום ימי החסד</small><strong>${formatDate(s.grace_ends_at)}</strong></div>`:''}`;
   const pay=$('#subscriptionPayBtn'),paid=$('#subscriptionPaidBtn'),support=$('#subscriptionSupportBtn'),paymentUrl=safeHttpUrl(s.payment_url),supportNumber=waNumber(s.support_whatsapp||''),automatic=s.payment_mode==='cardcom',canPay=automatic||Boolean(paymentUrl);
-  pay.classList.toggle('hidden',!canPay||status==='admin');pay.textContent=`תשלום מנוי מחירלי — ${money(s.monthly_price??49)}`;
+  pay.classList.toggle('hidden',!canPay||status==='admin');pay.textContent=`תשלום מנוי מחירלי — ${money(s.monthly_price??29)}`;
   paid.classList.toggle('hidden',automatic||!paymentUrl||status==='admin'||s.pending_payment===true);
   support.classList.toggle('hidden',!supportNumber||status==='admin');if(supportNumber)support.href=whatsappUrl(supportNumber,'🟠 מחירלי | תמיכה במנוי\n\nשלום, הגעתי מאתר מחירלי ואני צריך עזרה בהסדרת המנוי.');
   const report=$('#subscriptionPaymentStatus'),order=s.latest_payment_order;
