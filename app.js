@@ -276,7 +276,7 @@ $('#acceptLegalConsentBtn').onclick=async()=>{const button=$('#acceptLegalConsen
 $('#legalConsentLogoutBtn').onclick=async()=>{stopNotificationPolling();await db.auth.signOut();state.user=null;show('#authView')};
 $('#logoutBtn').onclick=async()=>{stopNotificationPolling();await db.auth.signOut();state.user=null;show('#authView')};
 $$('.category').forEach(b=>b.onclick=()=>{$('#reqCategory').value=b.dataset.category;show('#requestView')});
-$('#profileBtn').onclick=async()=>{if(!requireServiceAccess())return;await fillProfile();show('#profileView')};$$('.back').forEach(b=>b.onclick=async()=>{if(!state.isAdmin&&!hasServiceAccess()){await openSubscription()}else if(b.dataset.backTo==='workspace'){await openProWorkspace()}else show('#homeView')});
+$('#profileBtn').onclick=async()=>{if(!requireServiceAccess())return;await fillProfile();show('#profileView')};$$('.back:not(#legalInfoBackBtn)').forEach(b=>b.onclick=async()=>{if(!state.isAdmin&&!hasServiceAccess()){await openSubscription()}else if(b.dataset.backTo==='workspace'){await openProWorkspace()}else show('#homeView')});
 $('#whatsappSetupNotice').onclick=async()=>{if(!requireServiceAccess())return;await fillProfile();show('#profileView')};
 $('#notificationsBtn').onclick=openNotifications;
 $('#markAllNotificationsBtn').onclick=async()=>{
