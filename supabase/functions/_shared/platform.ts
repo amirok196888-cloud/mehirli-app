@@ -18,7 +18,11 @@ function namedKey(dictionaryName: string): string {
 }
 
 export function supabaseAdmin() {
-  const key = namedKey("SUPABASE_SECRET_KEYS") || env("SUPABASE_SERVICE_ROLE_KEY");
+  // Use the legacy service-role JWT first while the function gateway still
+  // performs JWT verification. A new sb_secret key is not a JWT and can be
+  // forwarded as an invalid Authorization bearer by older client paths,
+  // which makes privileged reads silently fall back to RLS.
+  const key = env("SUPABASE_SERVICE_ROLE_KEY") || namedKey("SUPABASE_SECRET_KEYS");
   if (!key) throw new Error("server_secret_missing");
   return createClient(env("SUPABASE_URL"), key, {
     auth: { persistSession: false, autoRefreshToken: false },
