@@ -1,4 +1,4 @@
-import { env } from "./platform.ts";
+import { env, supabaseAdmin } from "./platform.ts";
 
 const API_ROOT = "https://secure.cardcom.solutions/api/v11";
 
@@ -8,9 +8,19 @@ export type CardcomCredentials = {
   departmentId?: number;
 };
 
-export function cardcomCredentials(): CardcomCredentials {
-  const terminalNumber = Number(env("CARDCOM_TERMINAL_NUMBER"));
-  const apiName = env("CARDCOM_API_NAME");
+export async function cardcomCredentials(): Promise<CardcomCredentials> {
+  let terminalValue = env("CARDCOM_TERMINAL_NUMBER");
+  let apiName = env("CARDCOM_API_NAME");
+  if (!terminalValue || !apiName) {
+    const admin = supabaseAdmin();
+    const [terminalResult, apiNameResult] = await Promise.all([
+      admin.rpc("mehirli_private_config", { p_name: "cardcom_terminal_number" }),
+      admin.rpc("mehirli_private_config", { p_name: "cardcom_api_name" }),
+    ]);
+    if (!terminalValue && !terminalResult.error) terminalValue = String(terminalResult.data ?? "").trim();
+    if (!apiName && !apiNameResult.error) apiName = String(apiNameResult.data ?? "").trim();
+  }
+  const terminalNumber = Number(terminalValue);
   const department = Number(env("CARDCOM_MEHIRLI_DEPARTMENT_ID"));
   if (!Number.isInteger(terminalNumber) || terminalNumber <= 0 || !apiName) {
     throw new Error("cardcom_not_configured");
