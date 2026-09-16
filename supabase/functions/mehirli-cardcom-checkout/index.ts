@@ -74,7 +74,7 @@ Deno.serve(async (req: Request) => {
       admin.from("profiles").select("full_name").eq("id", user.id).maybeSingle(),
     ]);
 
-    const credentials = cardcomCredentials();
+    const credentials = await cardcomCredentials();
     const successUrl = publicAppUrl();
     successUrl.searchParams.set("payment", "success");
     successUrl.searchParams.set("order", order.id);
