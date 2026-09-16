@@ -51,7 +51,7 @@ Deno.serve(async (req: Request) => {
     );
     if (!lowProfileId) return response("invalid_low_profile_id", 400);
 
-    const credentials = cardcomCredentials();
+    const credentials = await cardcomCredentials();
     const verified = await cardcomPost<CardcomResult>("/LowProfile/GetLpResult", {
       TerminalNumber: credentials.terminalNumber,
       ApiName: credentials.apiName,
