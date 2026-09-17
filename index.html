@@ -165,7 +165,7 @@ fbq('track','PageView',{content_name:'Mehirli'});
     <div class="form-step">
       <div class="form-step-title"><b>2</b><div><h3>מה העבודה?</h3><p>בחר תחום ותאר בקצרה מה הלקוח ביקש.</p></div></div>
       <div class="trade-picker" role="group" aria-label="בחירת מקצוע">
-        <button type="button" class="trade-choice active" data-trade="handyman">🔨 היינדמן</button>
+        <button type="button" class="trade-choice active" data-trade="handyman">🔨 הנדימן</button>
         <button type="button" class="trade-choice" data-trade="electrician">⚡ חשמלאי</button>
         <button type="button" class="trade-choice" data-trade="home">🏠 שירותי בית</button>
         <button type="button" class="trade-choice" data-trade="air_conditioning">❄️ מיזוג</button>
@@ -211,7 +211,7 @@ fbq('track','PageView',{content_name:'Mehirli'});
   <div class="section-head"><button class="back" data-back-to="workspace">‹</button><div><span class="eyebrow">תמחור עקבי</span><h2>מחירון ותבניות</h2></div></div>
   <form id="serviceForm" class="card form-card compact-form">
     <input id="serviceId" type="hidden" />
-    <div class="two-cols"><label>שם השירות<input id="serviceName" required placeholder="לדוגמה: תליית טלוויזיה" /></label><label>תחום<select id="serviceTrade"><option value="handyman">היינדמן</option><option value="electrician">חשמלאי</option><option value="home">שירותי בית</option><option value="air_conditioning">מיזוג</option></select></label></div>
+    <div class="two-cols"><label>שם השירות<input id="serviceName" required placeholder="לדוגמה: תליית טלוויזיה" /></label><label>תחום<select id="serviceTrade"><option value="handyman">הנדימן</option><option value="electrician">חשמלאי</option><option value="home">שירותי בית</option><option value="air_conditioning">מיזוג</option></select></label></div>
     <div class="two-cols"><label>אופן תמחור<select id="servicePricingMode"><option value="fixed">מחיר קבוע</option><option value="hourly">לפי שעה</option><option value="half_day">חצי יום</option><option value="full_day">יום עבודה</option></select></label><label>מחיר בסיס<input id="serviceBasePrice" type="number" min="0" step="10" required /></label></div>
     <div class="two-cols"><label>שעות צפויות<input id="serviceDefaultHours" type="number" min="0.25" step="0.25" value="1" /></label><label>עלות חומרים רגילה<input id="serviceMaterialsCost" type="number" min="0" step="10" value="0" /></label></div>
     <label>פירוט קבוע להצעה<textarea id="serviceScope" placeholder="מה כלול בשירות"></textarea></label>
@@ -251,7 +251,7 @@ fbq('track','PageView',{content_name:'Mehirli'});
 <section id="proSettingsView" class="view">
   <div class="section-head"><button class="back" data-back-to="workspace">‹</button><div><span class="eyebrow">התאמה אישית</span><h2>תמחור ותשלום</h2></div></div>
   <form id="proSettingsForm" class="card form-card">
-    <label>מקצוע עיקרי<select id="settingsTrade"><option value="handyman">היינדמן</option><option value="electrician">חשמלאי</option><option value="home">שירותי בית</option><option value="air_conditioning">מיזוג</option></select></label>
+    <label>מקצוע עיקרי<select id="settingsTrade"><option value="handyman">הנדימן</option><option value="electrician">חשמלאי</option><option value="home">שירותי בית</option><option value="air_conditioning">מיזוג</option></select></label>
     <div class="two-cols"><label>מחיר שעה רצוי<input id="settingsHourlyRate" type="number" min="0" step="10" /></label><label>עלות נסיעה רגילה<input id="settingsTravelCost" type="number" min="0" step="10" /></label></div>
     <div class="two-cols"><label>מחיר חצי יום<input id="settingsHalfDayPrice" type="number" min="0" step="10" /></label><label>מחיר יום עבודה<input id="settingsFullDayPrice" type="number" min="0" step="10" /></label></div>
     <div class="two-cols"><label>שעות בחצי יום<input id="settingsHalfDayHours" type="number" min="1" max="8" step="0.5" /></label><label>שעות ביום מלא<input id="settingsFullDayHours" type="number" min="2" max="16" step="0.5" /></label></div>
@@ -299,7 +299,7 @@ fbq('track','PageView',{content_name:'Mehirli'});
 
 <section id="requestView" class="view"><div class="section-head"><button class="back">‹</button><h2>פרסום בקשה</h2></div>
 <form id="requestForm" class="card form-card">
-<label>תחום<select id="reqCategory" required><option value="">בחר תחום</option><option>לבית</option><option>מיזוג</option><option>חשמלאי</option><option>היינדמן</option></select></label>
+<label>תחום<select id="reqCategory" required><option value="">בחר תחום</option><option>לבית</option><option>מיזוג</option><option>חשמלאי</option><option>הנדימן</option></select></label>
 <label>מה אתה צריך?<textarea id="reqText" required placeholder="לדוגמה: צריך לתלות טלוויזיה ושני מדפים"></textarea></label>
 <button type="button" id="voiceBtn" class="voice">🎤 דבר במקום להקליד</button><p id="voiceStatus" class="note"></p>
 <label>עיר / אזור<input id="reqCity" required placeholder="לדוגמה: נתניה" /></label>
@@ -309,7 +309,7 @@ fbq('track','PageView',{content_name:'Mehirli'});
 
 <section id="requestsListView" class="view"><div class="section-head"><button class="back">‹</button><h2>הבקשות שלי</h2></div><div id="requestsList" class="stack"></div></section>
 <section id="offersView" class="view"><div class="section-head"><button class="back">‹</button><h2>הצעות שקיבלת</h2></div><div id="requestSummary" class="card"></div><div id="offersList" class="stack"></div><button id="moreOffersBtn" class="secondary big hidden">פתח סבב נוסף</button></section>
-<section id="proJobsView" class="view"><div class="section-head"><button class="back">‹</button><h2>עבודות זמינות</h2></div><div class="filter-row"><select id="jobFilter"><option value="הכל">כל התחומים</option><option>לבית</option><option>מיזוג</option><option>חשמלאי</option><option>היינדמן</option></select></div><div id="jobsList" class="stack"></div></section>
+<section id="proJobsView" class="view"><div class="section-head"><button class="back">‹</button><h2>עבודות זמינות</h2></div><div class="filter-row"><select id="jobFilter"><option value="הכל">כל התחומים</option><option>לבית</option><option>מיזוג</option><option>חשמלאי</option><option>הנדימן</option></select></div><div id="jobsList" class="stack"></div></section>
 <section id="wonJobsView" class="view"><div class="section-head"><button class="back">‹</button><h2>לקוחות שבחרו בי</h2></div><div id="wonJobsList" class="stack"></div></section>
 <section id="offerFormView" class="view"><div class="section-head"><button class="back">‹</button><h2>שליחת הצעה</h2></div><div id="jobSummary" class="card"></div>
 <form id="offerForm" class="card form-card"><label>סוג מחיר<select id="priceType"><option value="fixed">מחיר סופי</option><option value="range">טווח מחיר</option><option value="inspection">נדרשת בדיקה</option></select></label>
@@ -317,7 +317,7 @@ fbq('track','PageView',{content_name:'Mehirli'});
 <label>פירוט ההצעה<textarea id="offerText" placeholder="מה כולל המחיר, תנאים, אחריות וכו'"></textarea></label><label>תאריך הגעה<input id="offerDate" type="date" required /></label><label>שעת הגעה<input id="offerTime" type="time" required /></label><button class="primary big" type="submit">שלח הצעה (הצעה אחת)</button></form></section>
 <section id="profileView" class="view"><div class="section-head"><button class="back">‹</button><h2>פרופיל העסק</h2></div><form id="profileForm" class="card form-card">
 <div class="business-logo-editor"><img id="bizLogoPreview" class="business-logo-preview hidden" alt="לוגו העסק" /><label class="upload-btn">העלאת לוגו<input id="bizLogoInput" type="file" accept="image/png,image/jpeg,image/webp" /></label><button id="removeBizLogoBtn" class="ghost hidden" type="button">הסר לוגו</button></div>
-<label>שם העסק<input id="bizName" required /></label><div class="two-cols"><label>שם משפטי / עוסק<input id="bizLegalName" /></label><label>מספר עוסק / ח.פ.<input id="bizNumber" inputmode="numeric" /></label></div><div class="two-cols"><label>אימייל עסקי<input id="bizEmail" type="email" /></label><label>כתובת העסק<input id="bizAddress" /></label></div><label>תחום עיקרי<select id="bizCategory"><option>היינדמן</option><option>חשמלאי</option><option>לבית</option><option>מיזוג</option></select></label><label>על העסק<textarea id="bizAbout"></textarea></label><label>אזורי שירות<input id="bizArea" placeholder="נתניה, חדרה והשרון" /></label><label>מספר WhatsApp של העסק<input id="bizPhone" inputmode="tel" required placeholder="לדוגמה: 0501234567" /></label><p class="note">הפרטים והלוגו יופיעו בהצעות המחיר. מספר WhatsApp מאפשר ללקוח לחזור אליך.</p><button class="primary big" type="submit">שמור פרופיל</button></form></section>
+<label>שם העסק<input id="bizName" required /></label><div class="two-cols"><label>שם משפטי / עוסק<input id="bizLegalName" /></label><label>מספר עוסק / ח.פ.<input id="bizNumber" inputmode="numeric" /></label></div><div class="two-cols"><label>אימייל עסקי<input id="bizEmail" type="email" /></label><label>כתובת העסק<input id="bizAddress" /></label></div><label>תחום עיקרי<select id="bizCategory"><option>הנדימן</option><option>חשמלאי</option><option>לבית</option><option>מיזוג</option></select></label><label>על העסק<textarea id="bizAbout"></textarea></label><label>אזורי שירות<input id="bizArea" placeholder="נתניה, חדרה והשרון" /></label><label>מספר WhatsApp של העסק<input id="bizPhone" inputmode="tel" required placeholder="לדוגמה: 0501234567" /></label><p class="note">הפרטים והלוגו יופיעו בהצעות המחיר. מספר WhatsApp מאפשר ללקוח לחזור אליך.</p><button class="primary big" type="submit">שמור פרופיל</button></form></section>
 
 <section id="adminView" class="view"><div class="section-head"><button class="back">‹</button><div><span class="eyebrow">גישה מלאה</span><h2>ניהול מחירלי</h2></div></div>
   <div id="adminLoading" class="admin-loading hidden">טוען את נתוני הניהול…</div>
@@ -347,7 +347,7 @@ fbq('track','PageView',{content_name:'Mehirli'});
     <button class="admin-tab active" data-admin-tab="jobs">כל העבודות</button>
     <button class="admin-tab" data-admin-tab="businesses">מנויים ובעלי עסקים</button>
   </div>
-  <div id="adminJobsPanel" class="admin-panel"><div class="list-toolbar"><b>עבודות בכל הקטגוריות</b><select id="adminTradeFilter"><option value="all">הכול</option><option value="handyman">היינדמן</option><option value="electrician">חשמלאי</option><option value="home">שירותי בית</option><option value="air_conditioning">מיזוג</option></select></div><div id="adminJobsList" class="stack"></div></div>
+  <div id="adminJobsPanel" class="admin-panel"><div class="list-toolbar"><b>עבודות בכל הקטגוריות</b><select id="adminTradeFilter"><option value="all">הכול</option><option value="handyman">הנדימן</option><option value="electrician">חשמלאי</option><option value="home">שירותי בית</option><option value="air_conditioning">מיזוג</option></select></div><div id="adminJobsList" class="stack"></div></div>
   <div id="adminBusinessesPanel" class="admin-panel hidden">
     <form id="adminBillingSettingsForm" class="card form-card billing-settings-card">
       <div class="form-step-title"><b>₪</b><div><h3>הגדרות המנוי</h3><p>התשלום של בעל העסק אליך — נפרד מתשלום הלקוח אליו.</p></div></div>
@@ -379,5 +379,5 @@ fbq('track','PageView',{content_name:'Mehirli'});
 </section>
 </main><div id="toast" class="toast"></div></div>
 <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"></script>
-<script src="app.js?v=55"></script>
+<script src="app.js?v=56"></script>
 </body></html>
