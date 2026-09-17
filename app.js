@@ -545,22 +545,46 @@ async function storeQuotePdf(job,force=false){
   const listed=state.proJobs.find(item=>item.id===job.id);if(listed)Object.assign(listed,data);
   return {path,url:await signedQuotePdfUrl(path),created:true,file}
 }
-async function shareQuotePdfFileToWhatsapp(job,file){
-  const shareData={files:[file],title:`הצעת מחיר — ${job.customer_name}`,text:storedQuoteMessage(job)};
-  if(navigator.share&&(!navigator.canShare||navigator.canShare({files:[file]}))){await navigator.share(shareData);return true}
+function readyJobQuotePdfFile(job){
+  const cached=quotePdfCache.get(String(job.id||''));
+  return cached?.status==='ready'&&cached.file instanceof File?cached.file:null
+}
+function downloadQuotePdfAndOpenWhatsapp(job,file){
   const objectUrl=URL.createObjectURL(file),link=document.createElement('a');
-  link.href=objectUrl;link.download=file.name;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(objectUrl),60000);
-  openWhatsapp(job.customer_phone,`${storedQuoteMessage(job)}\n\nקובץ ה־PDF הורד למכשיר. יש לצרף אותו לשיחה.`);
-  toast('ה־PDF הורד. צרף אותו לשיחת WhatsApp.');
+  link.href=objectUrl;link.download=file.name;link.style.display='none';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(objectUrl),60000);
+  openWhatsapp(job.customer_phone,`${storedQuoteMessage(job)}\n\nה־PDF הורד למכשיר. אם הוא לא צורף אוטומטית, יש לצרף אותו לשיחה מתיקיית ההורדות.`);
+  toast('ה־PDF הורד. WhatsApp נפתח לשליחה.');
   return false
+}
+function shareQuotePdfFileToWhatsapp(job,file){
+  const shareData={files:[file],title:`הצעת מחיר — ${job.customer_name}`,text:storedQuoteMessage(job)};
+  if(navigator.share&&(!navigator.canShare||navigator.canShare({files:[file]}))){
+    return navigator.share(shareData).then(()=>true)
+  }
+  return Promise.resolve(downloadQuotePdfAndOpenWhatsapp(job,file))
 }
 async function sendStoredQuoteToWhatsapp(job,button){
   if(!requireServiceAccess())return;
   if(!waNumber(job.customer_phone)){toast('חסר מספר טלפון ללקוח');return}
+  const file=readyJobQuotePdfFile(job);
+  if(!file){
+    button.disabled=true;button.textContent='מכין PDF…';
+    try{await prepareJobQuotePdf(job);toast('ה־PDF מוכן. לחץ שוב על כפתור השיתוף.')}
+    catch(error){console.error('Quote PDF preparation failed',error);toast('לא ניתן להכין את ה־PDF: '+(error?.message||'נסה שוב'))}
+    finally{button.disabled=false;button.textContent='💬 שתף PDF ב־WhatsApp'}
+    return
+  }
+  let sharePromise;
+  try{
+    sharePromise=shareQuotePdfFileToWhatsapp(job,file);
+  }catch(error){
+    console.error('Quote PDF share start failed',error);
+    downloadQuotePdfAndOpenWhatsapp(job,file);
+    return
+  }
   const oldText=button.textContent;button.disabled=true;button.textContent='פותח שיתוף PDF…';
   try{
-    const file=await prepareJobQuotePdf(job);
-    const shared=await shareQuotePdfFileToWhatsapp(job,file);
+    const shared=await sharePromise;
     if(!shared)return;
     button.textContent='שומר PDF בתיק העבודה…';
     const {created}=await storeQuotePdf(job,true);
@@ -568,7 +592,8 @@ async function sendStoredQuoteToWhatsapp(job,button){
     toast(created?'ה־PDF נשלח ונשמר בתיק העבודה':'ה־PDF נשלח')
   }catch(error){
     if(error?.name==='AbortError'){toast('השיתוף בוטל');return}
-    console.error('Quote PDF share failed',error);toast('לא ניתן לשתף את ה־PDF: '+(error?.message||'נסה שוב'))
+    console.error('Quote PDF share failed',error);
+    downloadQuotePdfAndOpenWhatsapp(job,file)
   }finally{button.disabled=false;button.textContent=oldText}
 }
 async function openStoredQuotePdf(job,button){
