@@ -29,6 +29,20 @@ async function downloadPublicQuotePdf(q,token,button){
 }
 
 const q={business_name:'רוקח שירותי בית והנדימן',business_phone:'055-271-5782',quote_number:'M-2026-0041',quote_valid_until:'2026-10-05',customer_name:'יורם ישראלי',city:'כפר סבא',description:'הרכבת רהיט ותיקונים בבית',quote_scope:'הרכבת ארון, כיוון שתי דלתות, חיזוק מדף ופינוי אריזות בסיום העבודה.',items:[{description:'הרכבת ארון',quantity:1,unit_price:250,line_total:250},{description:'כיוון דלתות',quantity:2,unit_price:60,line_total:120},{description:'חומרים וברגים',quantity:1,unit_price:40,line_total:40}],subtotal:410,discount_amount:41,quoted_price:369,deposit_amount:100,scheduled_at:'2026-09-19T18:21:00+03:00',warranty_text:'30 יום על ההתקנה והחיבורים שבוצעו.',quote_terms:'המחיר כולל עבודה וחומרים המפורטים בהצעה. כל עבודה נוספת תבוצע רק לאחר אישור הלקוח. התשלום בסיום העבודה.',payment_link:''};
-async function run(){try{const element=publicQuotePdfElement(q,'11111111-2222-4333-8444-555555555555');await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));const blob=await window.html2pdf().set({margin:[8,8,8,8],filename:publicQuotePdfFileName(q),image:{type:'jpeg',quality:.98},html2canvas:{scale:2,useCORS:true,allowTaint:false,backgroundColor:'#ffffff',logging:false,scrollX:0,scrollY:0,windowWidth:Math.max(document.documentElement.clientWidth,760),windowHeight:Math.max(document.documentElement.scrollHeight,element.scrollHeight)},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','legacy']}}).from(element).outputPdf('blob');element.remove();const b64=await new Promise((resolve,reject)=>{const fr=new FileReader();fr.onerror=reject;fr.onload=()=>resolve(String(fr.result).split(',')[1]);fr.readAsDataURL(blob)});document.querySelector('#pdfData').value=b64;document.querySelector('#details').textContent=JSON.stringify({ok:blob.size>1000,size:blob.size,file:publicQuotePdfFileName(q),required:['רוקח שירותי בית והנדימן','יורם ישראלי','הרכבת רהיט ותיקונים בבית','הרכבת ארון','כיוון דלתות','חומרים וברגים','369 ₪','100 ₪','30 יום']});document.querySelector('#status').textContent='PDF_READY'}catch(e){document.querySelector('#status').textContent='PDF_ERROR: '+e.message}}
+async function run(){try{
+  const element=publicQuotePdfElement(q,'11111111-2222-4333-8444-555555555555');
+  await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+  const options={margin:[8,8,8,8],filename:publicQuotePdfFileName(q),image:{type:'jpeg',quality:.98},html2canvas:{scale:2,useCORS:true,allowTaint:false,backgroundColor:'#ffffff',logging:false,scrollX:0,scrollY:0,windowWidth:Math.max(document.documentElement.clientWidth,760),windowHeight:Math.max(document.documentElement.scrollHeight,element.scrollHeight)},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','legacy']}};
+  const worker=window.html2pdf().set(options).from(element).toCanvas();
+  const canvas=await worker.get('canvas');
+  const pixels=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;let sampled=0,nonWhite=0;
+  for(let i=0;i<pixels.length;i+=400){sampled++;if(pixels[i]<245||pixels[i+1]<245||pixels[i+2]<245)nonWhite++}
+  const blob=await worker.toPdf().outputPdf('blob');
+  element.remove();
+  const b64=await new Promise((resolve,reject)=>{const fr=new FileReader();fr.onerror=reject;fr.onload=()=>resolve(String(fr.result).split(',')[1]);fr.readAsDataURL(blob)});
+  document.querySelector('#pdfData').value=b64;
+  document.querySelector('#details').textContent=JSON.stringify({ok:blob.size>1000&&nonWhite>100,size:blob.size,canvas:[canvas.width,canvas.height],sampled,nonWhite,file:publicQuotePdfFileName(q),required:['רוקח שירותי בית והנדימן','יורם ישראלי','הרכבת רהיט ותיקונים בבית','הרכבת ארון','כיוון דלתות','חומרים וברגים','369 ₪','100 ₪','30 יום']});
+  document.querySelector('#status').textContent='PDF_READY'
+}catch(e){document.querySelector('#status').textContent='PDF_ERROR: '+e.message}}
 window.addEventListener('load',run);
 </script></body></html>
