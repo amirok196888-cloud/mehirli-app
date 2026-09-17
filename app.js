@@ -475,42 +475,49 @@ function quotePdfFileName(job){
   const customer=String(job.customer_name||'לקוח').replace(/[\\/:*?"<>|]+/g,'-').trim()||'לקוח';
   return `הצעת-מחיר-${customer}.pdf`
 }
-function quotePdfElement(job){
-  const business=state.businessProfile?.business_name||state.profile?.full_name||'בעל מקצוע';
-  const businessPhone=state.businessProfile?.business_phone||'',logo=businessLogoUrl(),legal=[state.businessProfile?.legal_name,state.businessProfile?.business_number&&`עוסק/ח.פ. ${state.businessProfile.business_number}`,state.businessProfile?.business_address].filter(Boolean).join(' · '),items=job.items||[];
-  const paymentLink=safePaymentUrl(state.proSettings?.payment_link),paymentProvider=paymentProviderLabel(state.proSettings?.payment_provider);
-  const license=job.trade==='electrician'&&state.proSettings?.electrician_license_number?`<div style="margin-top:5px;color:#536274;font-size:14px">רישיון חשמלאי: ${esc(state.proSettings.electrician_license_number)}</div>`:'';
+function pdfInlineText(value){return esc(value).replace(/ /g,'&nbsp;')}
+function pdfFlowText(value){
+  return String(value??'').split('\n').map(line=>line.split(/\s+/).filter(Boolean).map(word=>`<span style="white-space:nowrap">${esc(word)}</span>`).join('<span aria-hidden="true" style="display:inline-block;width:5px"></span>')).join('<br>')
+}
+function quotePdfElement(job,pdfOptions={}){
+  const business=pdfOptions.businessName||state.businessProfile?.business_name||state.profile?.full_name||'בעל מקצוע';
+  const businessPhone=pdfOptions.businessPhone??state.businessProfile?.business_phone??'',logo=pdfOptions.logoUrl??businessLogoUrl(),legal=pdfOptions.legalText??[state.businessProfile?.legal_name,state.businessProfile?.business_number&&`עוסק/ח.פ. ${state.businessProfile.business_number}`,state.businessProfile?.business_address].filter(Boolean).join(' · '),items=job.items||[];
+  const paymentLink=safePaymentUrl(pdfOptions.paymentLink??state.proSettings?.payment_link),paymentProvider=pdfOptions.paymentProvider??paymentProviderLabel(state.proSettings?.payment_provider),approvalUrl=pdfOptions.approvalUrl||quoteUrl(job),paymentHeading=paymentProvider?`תשלום ישיר לבית העסק באמצעות ${paymentProvider}`:'קישור לתשלום';
+  const licenseNumber=pdfOptions.licenseNumber??state.proSettings?.electrician_license_number;
+  const license=job.trade==='electrician'&&licenseNumber?`<div style="margin-top:5px;color:#536274;font-size:14px">רישיון חשמלאי: ${esc(licenseNumber)}</div>`:'';
   const wrapper=document.createElement('div');
   wrapper.dataset.quotePdfWrapper='true';
-  wrapper.style.cssText='position:fixed;left:-10000px;top:0;width:760px;pointer-events:none';
+  wrapper.setAttribute('dir','ltr');
+  wrapper.style.cssText='position:fixed;left:0;top:0;width:720px;direction:ltr;overflow:visible;pointer-events:none;z-index:-2147483647';
   const root=document.createElement('section');
+  root.dataset.quotePdfRoot='true';
   root.setAttribute('dir','rtl');
-  root.style.cssText='position:relative;width:760px;box-sizing:border-box;padding:46px 50px;background:#fff;color:#17212b;font-family:Arial,"Noto Sans Hebrew",sans-serif;line-height:1.55;pointer-events:none';
+  root.style.cssText='position:relative;left:0;right:auto;width:720px;margin:0;box-sizing:border-box;padding:32px 38px;background:#fff;color:#17212b;font-family:Arial,"Noto Sans Hebrew",sans-serif;line-height:1.4;word-spacing:2px;pointer-events:none;direction:rtl;text-align:right';
   root.innerHTML=`
-    <header style="display:flex;justify-content:space-between;gap:28px;align-items:flex-start;border-bottom:4px solid #1da873;padding-bottom:22px">
-      <div>${logo?`<img src="${esc(logo)}" style="width:70px;height:70px;object-fit:contain;float:right;margin-left:14px;border-radius:12px">`:''}<div style="font-size:36px;font-weight:900;color:#10243a">הצעת מחיר</div><div style="font-size:22px;font-weight:800;margin-top:4px">${esc(business)}</div>${legal?`<div style="color:#536274;font-size:12px">${esc(legal)}</div>`:''}${license}${businessPhone?`<div style="margin-top:5px;color:#536274;font-size:14px">טלפון: ${esc(businessPhone)}</div>`:''}</div>
-      <div style="text-align:left;color:#607184;font-size:14px"><div>${new Date().toLocaleDateString('he-IL')}</div><div>מס׳ ${esc(String(job.quote_number||String(job.id||'').slice(0,8)))}</div>${job.quote_valid_until?`<div>בתוקף עד ${esc(formatDate(job.quote_valid_until))}</div>`:''}</div>
+    <header style="display:flex;justify-content:space-between;gap:22px;align-items:flex-start;border-bottom:4px solid #1da873;padding-bottom:14px">
+      <div>${logo?`<img src="${esc(logo)}" style="width:58px;height:58px;object-fit:contain;float:right;margin-left:12px;border-radius:10px">`:''}<div style="font-size:30px;font-weight:900;color:#10243a">הצעת&nbsp;מחיר</div><div style="font-size:19px;font-weight:800;margin-top:2px">${pdfInlineText(business)}</div>${legal?`<div style="color:#536274;font-size:12px">${pdfFlowText(legal)}</div>`:''}${license}${businessPhone?`<div style="margin-top:3px;color:#536274;font-size:13px">טלפון:<span dir="ltr" style="display:inline-block;margin-right:5px;unicode-bidi:isolate">${esc(businessPhone)}</span></div>`:''}</div>
+      <div style="text-align:left;color:#607184;font-size:14px"><div dir="ltr" style="unicode-bidi:isolate">${new Date().toLocaleDateString('he-IL')}</div><div>מס׳&nbsp;${esc(String(job.quote_number||String(job.id||'').slice(0,8)))}</div>${job.quote_valid_until?`<div>בתוקף&nbsp;עד<span dir="ltr" style="display:inline-block;margin-right:5px;unicode-bidi:isolate">${esc(formatDate(job.quote_valid_until))}</span></div>`:''}</div>
     </header>
     <main>
-      <div style="margin:30px 0 20px"><div style="font-size:14px;color:#607184">לכבוד</div><div style="font-size:25px;font-weight:900">${esc(job.customer_name)}</div>${job.city?`<div style="color:#607184">${esc(job.city)}</div>`:''}</div>
-      <section style="margin:22px 0;padding:22px;border:1px solid #dce5ea;border-radius:16px;background:#f7fafb;break-inside:avoid">
-        <div style="font-size:14px;color:#607184">תיאור העבודה</div><div style="font-size:21px;font-weight:800;margin:5px 0 10px">${esc(job.description)}</div>
-        ${job.quote_scope?`<div style="white-space:pre-wrap;color:#344454">${esc(job.quote_scope)}</div>`:''}
+      <div style="margin:18px 0 12px"><div style="font-size:13px;color:#607184">לכבוד</div><div style="font-size:22px;font-weight:900">${pdfInlineText(job.customer_name)}</div>${job.city?`<div style="color:#607184">${esc(job.city)}</div>`:''}</div>
+      <section style="margin:12px 0;padding:14px 16px;border:1px solid #dce5ea;border-radius:14px;background:#f7fafb;break-inside:avoid">
+        <div style="font-size:13px;color:#607184">תיאור&nbsp;העבודה</div><div style="font-size:18px;font-weight:800;margin:3px 0 6px">${pdfFlowText(job.description)}</div>
+        ${job.quote_scope?`<div style="white-space:pre-wrap;color:#344454">${pdfFlowText(job.quote_scope)}</div>`:''}
       </section>
-      ${items.length?`<section style="margin:20px 0;border:1px solid #dce5ea;border-radius:14px;overflow:hidden;break-inside:avoid"><div style="display:grid;grid-template-columns:1fr 70px 110px;background:#edf5f0;padding:10px 14px;font-weight:800"><span>פירוט</span><span>כמות</span><span>סה״כ</span></div>${items.map(i=>`<div style="display:grid;grid-template-columns:1fr 70px 110px;padding:10px 14px;border-top:1px solid #e8eeea"><span>${esc(i.description)}</span><span>${Number(i.quantity)}</span><span>${money(Number(i.quantity)*Number(i.unit_price))}</span></div>`).join('')}</section>`:''}
-      <section style="margin:22px 0;padding:22px;text-align:center;border:2px solid #38b889;border-radius:16px;background:#eefaf5;break-inside:avoid">
-        <div style="font-size:14px;color:#527064">מחיר ההצעה</div>${Number(job.discount_amount)>0?`<div style="color:#607184;text-decoration:line-through">${money(job.subtotal)}</div><div style="color:#287353">הנחה ${money(job.discount_amount)}</div>`:''}<div style="font-size:40px;line-height:1.2;font-weight:900;color:#16865b">${money(job.quoted_price)}</div>
+      ${items.length?`<section style="margin:12px 0;border:1px solid #dce5ea;border-radius:12px;overflow:hidden;break-inside:avoid"><div style="display:grid;grid-template-columns:1fr 64px 104px;background:#edf5f0;padding:8px 12px;font-weight:800"><span>פירוט</span><span>כמות</span><span>סה״כ</span></div>${items.map(i=>`<div style="display:grid;grid-template-columns:1fr 64px 104px;padding:8px 12px;border-top:1px solid #e8eeea"><span>${pdfFlowText(i.description)}</span><span>${Number(i.quantity)}</span><span>${money(Number(i.quantity)*Number(i.unit_price))}</span></div>`).join('')}</section>`:''}
+      <section style="margin:12px 0;padding:14px;text-align:center;border:2px solid #38b889;border-radius:14px;background:#eefaf5;break-inside:avoid">
+        <div style="font-size:13px;color:#527064">מחיר&nbsp;ההצעה</div>${Number(job.discount_amount)>0?`<div style="color:#607184;text-decoration:line-through">${money(job.subtotal)}</div><div style="color:#287353">הנחה ${money(job.discount_amount)}</div>`:''}<div style="font-size:34px;line-height:1.15;font-weight:900;color:#16865b">${money(job.quoted_price)}</div>
         ${Number(job.deposit_amount)>0?`<div style="margin-top:5px;font-weight:800">מקדמה: ${money(job.deposit_amount)}</div>`:''}
       </section>
-      ${job.scheduled_at?`<div style="margin:18px 0;padding:14px 18px;border-right:4px solid #3f8fc7;background:#f2f8fc;break-inside:avoid"><b>מועד מתוכנן:</b> ${esc(formatDateTime(job.scheduled_at))}</div>`:''}
-      ${job.warranty_text?`<div style="margin:18px 0;padding:14px 18px;border-right:4px solid #68a57e;background:#f3f9f5;break-inside:avoid"><b>אחריות:</b> ${esc(job.warranty_text)}</div>`:''}
-      ${job.quote_terms?`<section style="margin:22px 0;break-inside:avoid"><div style="font-size:16px;font-weight:900;margin-bottom:8px">תנאי ההצעה</div><div style="padding:16px;border:1px solid #e1e7eb;border-radius:12px;white-space:pre-wrap;color:#465667">${esc(job.quote_terms)}</div></section>`:''}
-      <section style="margin-top:24px;padding-top:18px;border-top:1px solid #dce5ea;font-size:13px;color:#536274;break-inside:avoid">
-        <div><b>צפייה ואישור ההצעה:</b></div><div style="direction:ltr;text-align:left;word-break:break-all;color:#1570a6">${esc(quoteUrl(job))}</div>
-        ${paymentLink?`<div style="margin-top:12px"><b>תשלום ישיר לבית העסק באמצעות ${esc(paymentProvider)}:</b></div><div style="direction:ltr;text-align:left;word-break:break-all;color:#1570a6">${esc(paymentLink)}</div>`:''}
+      ${job.scheduled_at?`<div style="margin:10px 0;padding:10px 14px;border-right:4px solid #3f8fc7;background:#f2f8fc;break-inside:avoid"><b>מועד&nbsp;מתוכנן:</b>&nbsp;<span dir="ltr" style="unicode-bidi:isolate">${esc(formatDateTime(job.scheduled_at))}</span></div>`:''}
+      ${job.warranty_text?`<div style="margin:10px 0;padding:10px 14px;border-right:4px solid #68a57e;background:#f3f9f5;break-inside:avoid"><b>אחריות:</b> ${pdfFlowText(job.warranty_text)}</div>`:''}
+      ${job.quote_terms?`<section style="margin:12px 0;break-inside:avoid"><div style="font-size:15px;font-weight:900;margin-bottom:5px">תנאי&nbsp;ההצעה</div><div style="padding:11px 13px;border:1px solid #e1e7eb;border-radius:10px;white-space:pre-wrap;color:#465667">${pdfFlowText(job.quote_terms)}</div></section>`:''}
+      <section style="margin-top:12px;padding-top:10px;border-top:1px solid #dce5ea;font-size:12px;color:#536274;break-inside:avoid">
+        <div><b>צפייה&nbsp;ואישור&nbsp;ההצעה:</b></div><div style="direction:ltr;text-align:left;word-break:break-all;color:#1570a6">${esc(approvalUrl)}</div>
+        ${paymentLink?`<div style="margin-top:8px"><b>${pdfInlineText(paymentHeading)}:</b></div><div style="direction:ltr;text-align:left;word-break:break-all;color:#1570a6">${esc(paymentLink)}</div>`:''}
       </section>
     </main>
-    <footer style="margin-top:30px;padding-top:16px;border-top:1px solid #dce5ea;text-align:center;color:#7b8996;font-size:12px">הופק באמצעות מחירלי</footer>`;
+    <footer style="margin-top:14px;padding-top:10px;border-top:1px solid #dce5ea;text-align:center;color:#7b8996;font-size:11px">הופק באמצעות מחירלי</footer>`;
   wrapper.appendChild(root);document.body.appendChild(wrapper);return root
 }
 function removeQuotePdfElement(element){
@@ -519,21 +526,45 @@ function removeQuotePdfElement(element){
   else element?.remove()
 }
 async function renderQuoteElementToPdfBlob(element,fileName){
+  if(document.fonts?.ready)await document.fonts.ready;
+  await Promise.all([...element.querySelectorAll('img')].map(img=>img.complete?Promise.resolve():img.decode?.().catch(()=>{})||Promise.resolve()));
   await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-  const worker=window.html2pdf().set({margin:[8,8,8,8],filename:fileName,image:{type:'jpeg',quality:.98},html2canvas:{scale:2,useCORS:true,allowTaint:false,backgroundColor:'#ffffff',logging:false,scrollX:0,scrollY:0,windowWidth:760,windowHeight:Math.max(element.scrollHeight,1080)},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','legacy']}}).from(element).toCanvas();
+  const renderWidth=720,renderHeight=Math.max(element.scrollHeight,1020);
+  const worker=window.html2pdf().set({margin:[8,8,8,8],filename:fileName,image:{type:'jpeg',quality:.98},html2canvas:{scale:2,useCORS:true,allowTaint:false,backgroundColor:'#ffffff',logging:false,scrollX:0,scrollY:0,width:renderWidth,windowWidth:renderWidth,windowHeight:renderHeight,onclone:clonedDocument=>{
+    clonedDocument.documentElement.setAttribute('dir','ltr');
+    clonedDocument.body.setAttribute('dir','ltr');
+    clonedDocument.documentElement.style.cssText+=';width:720px;min-width:720px;overflow:visible';
+    clonedDocument.body.style.cssText+=';width:720px;min-width:720px;margin:0;overflow:visible;direction:ltr';
+    const clonedRoot=clonedDocument.querySelector('[data-quote-pdf-root="true"]');
+    if(clonedRoot){clonedRoot.setAttribute('dir','rtl');clonedRoot.style.left='0';clonedRoot.style.right='auto';clonedRoot.style.margin='0';clonedRoot.style.direction='rtl';clonedRoot.style.textAlign='right'}
+  }},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','legacy']}}).from(element).toContainer();
+  const overlay=await worker.get('overlay'),container=await worker.get('container');
+  if(overlay){overlay.setAttribute('dir','ltr');overlay.style.left='0';overlay.style.right='auto';overlay.style.width=`${renderWidth}px`;overlay.style.overflow='visible';overlay.style.direction='ltr'}
+  if(container){container.setAttribute('dir','ltr');container.style.left='0';container.style.right='auto';container.style.width=`${renderWidth}px`;container.style.margin='0';container.style.transform='none';container.style.direction='ltr'}
+  await worker.toCanvas();
   const canvas=await worker.get('canvas');
   if(!canvas||canvas.width<100||canvas.height<100)throw new Error('ה־PDF נוצר ללא תוכן');
   const ctx=canvas.getContext('2d',{willReadFrequently:true});
   const pixels=ctx?.getImageData(0,0,canvas.width,canvas.height).data;
   if(!pixels)throw new Error('לא ניתן היה לבדוק את תוכן ה־PDF');
-  const pixelCount=pixels.length/4,step=Math.max(1,Math.floor(pixelCount/50000));
-  let visiblePixels=0;
-  for(let pixel=0;pixel<pixelCount;pixel+=step){
-    const i=pixel*4;
-    if(pixels[i+3]>0&&(pixels[i]<245||pixels[i+1]<245||pixels[i+2]<245))visiblePixels++;
+  const scanStep=Math.max(1,Math.floor(Math.min(canvas.width,canvas.height)/450));
+  let visiblePixels=0,minX=canvas.width,maxX=-1,minY=canvas.height,maxY=-1;
+  for(let y=0;y<canvas.height;y+=scanStep){
+    for(let x=0;x<canvas.width;x+=scanStep){
+      const i=(y*canvas.width+x)*4;
+      if(pixels[i+3]>0&&(pixels[i]<245||pixels[i+1]<245||pixels[i+2]<245)){
+        visiblePixels++;if(x<minX)minX=x;if(x>maxX)maxX=x;if(y<minY)minY=y;if(y>maxY)maxY=y
+      }
+    }
   }
   if(visiblePixels<100)throw new Error('ה־PDF נוצר ללא תוכן');
-  const blob=await worker.toPdf().outputPdf('blob');
+  const contentWidth=maxX-minX,contentHeight=maxY-minY;
+  if(contentWidth<canvas.width*.7||minX>canvas.width*.18||maxX<canvas.width*.82||contentHeight<canvas.height*.28)throw new Error('פריסת ה־PDF נחתכה ולכן הקובץ לא נשמר');
+  const pdfWorker=worker.toPdf(),pdf=await pdfWorker.get('pdf'),pageCount=pdf?.internal?.getNumberOfPages?.()||0;
+  if(!pageCount)throw new Error('לא ניתן היה לבדוק את עמודי ה־PDF');
+  const pagePixelHeight=canvas.width*((297-16)/(210-16)),lastPageFill=(canvas.height-pagePixelHeight*(pageCount-1))/pagePixelHeight;
+  if(pageCount>1&&lastPageFill<.35)throw new Error('ה־PDF נשבר לעמוד נוסף כמעט ריק');
+  const blob=await pdfWorker.outputPdf('blob');
   if(!(blob instanceof Blob)||blob.size<10000)throw new Error('ה־PDF נוצר ללא תוכן');
   return blob
 }
@@ -716,7 +747,7 @@ function publicQuotePdfFileName(q){
   const customer=String(q.customer_name||'לקוח').replace(/[\\/:*?"<>|]+/g,'-').trim()||'לקוח';
   return `הצעת-מחיר-${customer}.pdf`
 }
-function publicQuotePdfElement(q,token){
+function publicQuotePdfElementLegacy(q,token){
   const items=Array.isArray(q.items)?q.items:[],approvalUrl=`${location.origin}${location.pathname}?quote=${token}`,paymentLink=safePaymentUrl(q.payment_link);
   const wrapper=document.createElement('div');wrapper.dataset.quotePdfWrapper='true';
   wrapper.style.cssText='position:fixed;left:-10000px;top:0;width:760px;pointer-events:none';
@@ -724,6 +755,23 @@ function publicQuotePdfElement(q,token){
   root.style.cssText='position:relative;width:760px;box-sizing:border-box;padding:46px 50px;background:#fff;color:#17212b;font-family:Arial,"Noto Sans Hebrew",sans-serif;line-height:1.55;pointer-events:none';
   root.innerHTML=`<header style="display:flex;justify-content:space-between;gap:28px;align-items:flex-start;border-bottom:4px solid #1da873;padding-bottom:22px"><div><div style="font-size:36px;font-weight:900;color:#10243a">הצעת מחיר</div><div style="font-size:22px;font-weight:800;margin-top:4px">${esc(q.business_name||'בעל מקצוע')}</div>${q.business_phone?`<div style="margin-top:5px;color:#536274;font-size:14px">טלפון: ${esc(q.business_phone)}</div>`:''}</div><div style="text-align:left;color:#607184;font-size:14px"><div>${new Date().toLocaleDateString('he-IL')}</div><div>מס׳ ${esc(q.quote_number||'')}</div>${q.quote_valid_until?`<div>בתוקף עד ${esc(formatDate(q.quote_valid_until))}</div>`:''}</div></header><main><div style="margin:30px 0 20px"><div style="font-size:14px;color:#607184">לכבוד</div><div style="font-size:25px;font-weight:900">${esc(q.customer_name)}</div>${q.city?`<div style="color:#607184">${esc(q.city)}</div>`:''}</div><section style="margin:22px 0;padding:22px;border:1px solid #dce5ea;border-radius:16px;background:#f7fafb;break-inside:avoid"><div style="font-size:14px;color:#607184">תיאור העבודה</div><div style="font-size:21px;font-weight:800;margin:5px 0 10px">${esc(q.description)}</div>${q.quote_scope?`<div style="white-space:pre-wrap;color:#344454">${esc(q.quote_scope)}</div>`:''}</section>${items.length?`<section style="margin:20px 0;border:1px solid #dce5ea;border-radius:14px;overflow:hidden;break-inside:avoid"><div style="display:grid;grid-template-columns:1fr 70px 110px;background:#edf5f0;padding:10px 14px;font-weight:800"><span>פירוט</span><span>כמות</span><span>סה״כ</span></div>${items.map(i=>`<div style="display:grid;grid-template-columns:1fr 70px 110px;padding:10px 14px;border-top:1px solid #e8eeea"><span>${esc(i.description)}</span><span>${Number(i.quantity)||1}</span><span>${money(i.line_total??(Number(i.quantity||1)*Number(i.unit_price||0)))}</span></div>`).join('')}</section>`:''}<section style="margin:22px 0;padding:22px;text-align:center;border:2px solid #38b889;border-radius:16px;background:#eefaf5;break-inside:avoid"><div style="font-size:14px;color:#527064">מחיר ההצעה</div>${Number(q.discount_amount)>0?`<div style="color:#607184;text-decoration:line-through">${money(q.subtotal)}</div><div style="color:#287353">הנחה ${money(q.discount_amount)}</div>`:''}<div style="font-size:40px;line-height:1.2;font-weight:900;color:#16865b">${money(q.quoted_price)}</div>${Number(q.deposit_amount)>0?`<div style="margin-top:5px;font-weight:800">מקדמה: ${money(q.deposit_amount)}</div>`:''}</section>${q.scheduled_at?`<div style="margin:18px 0;padding:14px 18px;border-right:4px solid #3f8fc7;background:#f2f8fc;break-inside:avoid"><b>מועד מתוכנן:</b> ${esc(formatDateTime(q.scheduled_at))}</div>`:''}${q.warranty_text?`<div style="margin:18px 0;padding:14px 18px;border-right:4px solid #68a57e;background:#f3f9f5;break-inside:avoid"><b>אחריות:</b> ${esc(q.warranty_text)}</div>`:''}${q.quote_terms?`<section style="margin:22px 0;break-inside:avoid"><div style="font-size:16px;font-weight:900;margin-bottom:8px">תנאי ההצעה</div><div style="padding:16px;border:1px solid #e1e7eb;border-radius:12px;white-space:pre-wrap;color:#465667">${esc(q.quote_terms)}</div></section>`:''}<section style="margin-top:24px;padding-top:18px;border-top:1px solid #dce5ea;font-size:13px;color:#536274;break-inside:avoid"><div><b>צפייה ואישור ההצעה:</b></div><div style="direction:ltr;text-align:left;word-break:break-all;color:#1570a6">${esc(approvalUrl)}</div>${paymentLink?`<div style="margin-top:12px"><b>קישור לתשלום:</b></div><div style="direction:ltr;text-align:left;word-break:break-all;color:#1570a6">${esc(paymentLink)}</div>`:''}</section></main><footer style="margin-top:30px;padding-top:16px;border-top:1px solid #dce5ea;text-align:center;color:#7b8996;font-size:12px">הופק באמצעות מחירלי</footer>`;
   wrapper.appendChild(root);document.body.appendChild(wrapper);return root
+}
+function publicQuotePdfElement(q,token){
+  const items=(Array.isArray(q.items)?q.items:[]).map(item=>({
+    ...item,
+    quantity:Number(item.quantity)||1,
+    unit_price:Number(item.unit_price)||Number(item.line_total)||0
+  }));
+  return quotePdfElement({...q,items,public_token:token},{
+    businessName:q.business_name||'בעל מקצוע',
+    businessPhone:q.business_phone||'',
+    logoUrl:'',
+    legalText:'',
+    licenseNumber:q.electrician_license_number||'',
+    approvalUrl:`${location.origin}${location.pathname}?quote=${token}`,
+    paymentLink:q.payment_link||'',
+    paymentProvider:''
+  })
 }
 async function downloadPublicQuotePdf(q,token,button){
   if(typeof window.html2pdf!=='function'){toast('לא ניתן להכין כרגע את מסמך ה־PDF');return}
