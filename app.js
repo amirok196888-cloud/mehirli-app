@@ -469,7 +469,7 @@ const mehirliSupportLink=$('#mehirliSupportLink');
 if(mehirliSupportLink)mehirliSupportLink.href=whatsappUrl(ROKACH_DIGITAL_WHATSAPP,'🟠 מחירלי | פנייה לתמיכה\n\nשלום, הגעתי מאתר מחירלי וברצוני לקבל עזרה.');
 function questionMessage(job){return `🟠 מחירלי | השלמת פרטים להצעת מחיר\n\nשלום ${job.customer_name}, כדי להכין את העבודה והמחיר בצורה מדויקת אשמח למענה קצר:\n\n${(job.customer_questions||[]).map((q,i)=>`${i+1}. ${q}`).join('\n')}\n\nתודה, ${state.businessProfile?.business_name||state.profile?.full_name||'מחירלי'}\n\nנשלח באמצעות מחירלי`}
 function quoteMessage(job){return `🟠 מחירלי | הצעת מחיר\n\nשלום ${job.customer_name}, הכנתי עבורך הצעת מחיר עבור: ${job.description}\n\nמחיר: ${money(job.quoted_price)}${Number(job.deposit_amount)>0?`\nמקדמה: ${money(job.deposit_amount)}`:''}\n\nלצפייה ואישור ההצעה:\n${quoteUrl(job)}\n\nנשלח באמצעות מחירלי`}
-function storedQuoteMessage(job,pdfUrl){return `🟠 מחירלי | הצעת מחיר\n\nשלום ${job.customer_name}, הכנתי עבורך הצעת מחיר עבור: ${job.description}\n\nמחיר: ${money(job.quoted_price)}${Number(job.deposit_amount)>0?`\nמקדמה: ${money(job.deposit_amount)}`:''}\n\nפתיחת הצעת המחיר כ־PDF:\n${pdfUrl}\n\nלאישור ההצעה:\n${quoteUrl(job)}\n\nנשלח באמצעות מחירלי`}
+function storedQuoteMessage(job){return `🟠 מחירלי | הצעת מחיר\n\nשלום ${job.customer_name}, הכנתי עבורך הצעת מחיר עבור: ${job.description}\n\nמחיר: ${money(job.quoted_price)}${Number(job.deposit_amount)>0?`\nמקדמה: ${money(job.deposit_amount)}`:''}\n\nלאישור ההצעה:\n${quoteUrl(job)}\n\nקובץ הצעת המחיר מצורף כ־PDF.\n\nנשלח באמצעות מחירלי`}
 function paymentMessage(job){const amount=Math.max(0,Number(job.quoted_price||0)-Number(job.actual_paid||0)),link=safePaymentUrl(state.proSettings?.payment_link),provider=paymentProviderLabel(state.proSettings?.payment_provider);return `🟠 מחירלי | קישור לתשלום\n\nשלום ${job.customer_name}, לתשלום ${money(amount)} עבור העבודה: ${job.description}.${link?`\n\nקישור לתשלום ישיר ומאובטח באמצעות ${provider}:\n${link}`:''}\n\nהתשלום מועבר ישירות לבית העסק.\n\nנשלח באמצעות מחירלי`}
 function quotePdfFileName(job){
   const customer=String(job.customer_name||'לקוח').replace(/[\\/:*?"<>|]+/g,'-').trim()||'לקוח';
@@ -482,7 +482,7 @@ function quotePdfElement(job){
   const license=job.trade==='electrician'&&state.proSettings?.electrician_license_number?`<div style="margin-top:5px;color:#536274;font-size:14px">רישיון חשמלאי: ${esc(state.proSettings.electrician_license_number)}</div>`:'';
   const root=document.createElement('section');
   root.setAttribute('dir','rtl');
-  root.style.cssText='position:fixed;left:-10000px;top:0;width:760px;box-sizing:border-box;padding:46px 50px;background:#fff;color:#17212b;font-family:Arial,"Noto Sans Hebrew",sans-serif;line-height:1.55;z-index:-1';
+  root.style.cssText='position:fixed;left:0;top:0;width:760px;box-sizing:border-box;padding:46px 50px;background:#fff;color:#17212b;font-family:Arial,"Noto Sans Hebrew",sans-serif;line-height:1.55;z-index:2147483647;pointer-events:none';
   root.innerHTML=`
     <header style="display:flex;justify-content:space-between;gap:28px;align-items:flex-start;border-bottom:4px solid #1da873;padding-bottom:22px">
       <div>${logo?`<img src="${esc(logo)}" style="width:70px;height:70px;object-fit:contain;float:right;margin-left:14px;border-radius:12px">`:''}<div style="font-size:36px;font-weight:900;color:#10243a">הצעת מחיר</div><div style="font-size:22px;font-weight:800;margin-top:4px">${esc(business)}</div>${legal?`<div style="color:#536274;font-size:12px">${esc(legal)}</div>`:''}${license}${businessPhone?`<div style="margin-top:5px;color:#536274;font-size:14px">טלפון: ${esc(businessPhone)}</div>`:''}</div>
@@ -513,13 +513,17 @@ function quotePdfElement(job){
 async function createQuotePdfFile(job){
   if(typeof window.html2pdf!=='function')throw new Error('PDF library unavailable');
   const element=quotePdfElement(job);
-  try{return new File([await window.html2pdf().set({margin:[8,8,8,8],filename:quotePdfFileName(job),image:{type:'jpeg',quality:.98},html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','legacy']}}).from(element).outputPdf('blob')],quotePdfFileName(job),{type:'application/pdf',lastModified:Date.now()})}
-  finally{element.remove()}
+  try{
+    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+    const blob=await window.html2pdf().set({margin:[8,8,8,8],filename:quotePdfFileName(job),image:{type:'jpeg',quality:.98},html2canvas:{scale:2,useCORS:true,allowTaint:false,backgroundColor:'#ffffff',logging:false,scrollX:0,scrollY:0,windowWidth:Math.max(document.documentElement.clientWidth,760),windowHeight:Math.max(document.documentElement.scrollHeight,element.scrollHeight)},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','legacy']}}).from(element).outputPdf('blob');
+    if(!(blob instanceof Blob)||blob.size<1000)throw new Error('ה־PDF נוצר ללא תוכן');
+    return new File([blob],quotePdfFileName(job),{type:'application/pdf',lastModified:Date.now()})
+  }finally{element.remove()}
 }
 function prepareJobQuotePdf(job){
   const key=String(job.id||''),existing=quotePdfCache.get(key);
   if(existing?.status==='ready')return Promise.resolve(existing.file);if(existing?.status==='loading')return existing.promise;
-  const promise=createQuotePdfFile(job).then(file=>{quotePdfCache.set(key,{status:'ready',file});const btn=$('#jobDetailContent')?.querySelector('[data-job-action="quote-pdf"]');if(btn&&state.selectedProJob?.id===job.id){btn.disabled=false;btn.textContent=job.quote_pdf_path?'📄 צפה ב־PDF השמור':'📄 שמור PDF באפליקציה'}return file}).catch(error=>{quotePdfCache.delete(key);const btn=$('#jobDetailContent')?.querySelector('[data-job-action="quote-pdf"]');if(btn&&state.selectedProJob?.id===job.id){btn.disabled=false;btn.textContent='נסה שוב להכין PDF'}throw error});
+  const promise=createQuotePdfFile(job).then(file=>{quotePdfCache.set(key,{status:'ready',file});const btn=$('#jobDetailContent')?.querySelector('[data-job-action="quote-pdf"]');if(btn&&state.selectedProJob?.id===job.id){btn.disabled=false;btn.textContent=job.quote_pdf_path?'📄 צור PDF תקין מחדש':'📄 צור ופתח PDF'}const waBtn=$('#jobDetailContent')?.querySelector('[data-job-action="quote-whatsapp"]');if(waBtn&&state.selectedProJob?.id===job.id){waBtn.disabled=false;waBtn.textContent='💬 שתף PDF ב־WhatsApp'}return file}).catch(error=>{quotePdfCache.delete(key);const btn=$('#jobDetailContent')?.querySelector('[data-job-action="quote-pdf"]');if(btn&&state.selectedProJob?.id===job.id){btn.disabled=false;btn.textContent='נסה שוב להכין PDF'}throw error});
   quotePdfCache.set(key,{status:'loading',promise});return promise
 }
 async function signedQuotePdfUrl(path){
@@ -527,37 +531,52 @@ async function signedQuotePdfUrl(path){
   if(error||!data?.signedUrl)throw error||new Error('לא נוצר קישור למסמך');
   return data.signedUrl
 }
-async function storeQuotePdf(job){
-  if(job.quote_pdf_path)return {path:job.quote_pdf_path,url:await signedQuotePdfUrl(job.quote_pdf_path),created:false};
+async function storeQuotePdf(job,force=false){
+  const previousPath=job.quote_pdf_path||'';
+  if(previousPath&&!force)return {path:previousPath,url:await signedQuotePdfUrl(previousPath),created:false,file:await prepareJobQuotePdf(job)};
   const file=await prepareJobQuotePdf(job),path=`${state.user.id}/${job.id}/${Date.now()}-${crypto.randomUUID()}.pdf`;
   const {error:uploadError}=await db.storage.from(QUOTE_PDF_BUCKET).upload(path,file,{cacheControl:'3600',upsert:false,contentType:'application/pdf'});
   if(uploadError)throw uploadError;
   const generatedAt=new Date().toISOString();
   const {data,error}=await db.from('pro_jobs').update({quote_pdf_path:path,quote_pdf_generated_at:generatedAt}).eq('id',job.id).eq('professional_id',state.user.id).select('*').single();
   if(error){await db.storage.from(QUOTE_PDF_BUCKET).remove([path]);throw error}
+  if(previousPath&&previousPath!==path)await db.storage.from(QUOTE_PDF_BUCKET).remove([previousPath]);
   Object.assign(job,data);state.selectedProJob=job;
   const listed=state.proJobs.find(item=>item.id===job.id);if(listed)Object.assign(listed,data);
-  return {path,url:await signedQuotePdfUrl(path),created:true}
+  return {path,url:await signedQuotePdfUrl(path),created:true,file}
+}
+async function shareQuotePdfFileToWhatsapp(job,file){
+  const shareData={files:[file],title:`הצעת מחיר — ${job.customer_name}`,text:storedQuoteMessage(job)};
+  if(navigator.share&&(!navigator.canShare||navigator.canShare({files:[file]}))){await navigator.share(shareData);return true}
+  const objectUrl=URL.createObjectURL(file),link=document.createElement('a');
+  link.href=objectUrl;link.download=file.name;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(objectUrl),60000);
+  openWhatsapp(job.customer_phone,`${storedQuoteMessage(job)}\n\nקובץ ה־PDF הורד למכשיר. יש לצרף אותו לשיחה.`);
+  toast('ה־PDF הורד. צרף אותו לשיחת WhatsApp.');
+  return false
 }
 async function sendStoredQuoteToWhatsapp(job,button){
   if(!requireServiceAccess())return;
   if(!waNumber(job.customer_phone)){toast('חסר מספר טלפון ללקוח');return}
-  const oldText=button.textContent;button.disabled=true;button.textContent=job.quote_pdf_path?'פותח WhatsApp…':'שומר PDF באפליקציה…';
+  const oldText=button.textContent;button.disabled=true;button.textContent='פותח שיתוף PDF…';
   try{
-    const {url,created}=await storeQuotePdf(job);
-    button.textContent='פותח WhatsApp…';
-    const status=$('#quoteStorageStatus');if(status){status.textContent='ה־PDF שמור באפליקציה';status.classList.add('stored')}
-    toast(created?'ה־PDF נשמר. פותח WhatsApp…':'פותח WhatsApp…');
-    openWhatsapp(job.customer_phone,storedQuoteMessage(job,url))
-  }catch(error){console.error('Quote PDF storage failed',error);toast('לא ניתן לשמור את ה־PDF: '+(error?.message||'נסה שוב'))}
-  finally{button.disabled=false;button.textContent=oldText}
+    const file=await prepareJobQuotePdf(job);
+    const shared=await shareQuotePdfFileToWhatsapp(job,file);
+    if(!shared)return;
+    button.textContent='שומר PDF בתיק העבודה…';
+    const {created}=await storeQuotePdf(job,true);
+    const status=$('#quoteStorageStatus');if(status){status.textContent='ה־PDF התקין נשמר באפליקציה';status.classList.add('stored')}
+    toast(created?'ה־PDF נשלח ונשמר בתיק העבודה':'ה־PDF נשלח')
+  }catch(error){
+    if(error?.name==='AbortError'){toast('השיתוף בוטל');return}
+    console.error('Quote PDF share failed',error);toast('לא ניתן לשתף את ה־PDF: '+(error?.message||'נסה שוב'))
+  }finally{button.disabled=false;button.textContent=oldText}
 }
 async function openStoredQuotePdf(job,button){
   if(!requireServiceAccess())return;
   const preview=window.open('about:blank','_blank');
   if(preview){preview.document.write('<!doctype html><html lang="he" dir="rtl"><meta charset="utf-8"><title>מחירלי</title><body style="font-family:Arial;text-align:center;padding:40px">מכין את הצעת המחיר…</body></html>');preview.document.close()}
   const oldText=button.textContent;button.disabled=true;button.textContent=job.quote_pdf_path?'פותח מסמך…':'שומר מסמך…';
-  try{const {url}=await storeQuotePdf(job);if(preview)preview.location.replace(url);else window.location.assign(url);await renderProJobDetail();toast('ה־PDF שמור בתיק העבודה')}
+  try{const {url}=await storeQuotePdf(job,true);if(preview)preview.location.replace(url);else window.location.assign(url);await renderProJobDetail();toast('נוצר PDF תקין והוא נשמר בתיק העבודה')}
   catch(error){if(preview)preview.close();console.error('Quote PDF preview failed',error);toast('לא ניתן לפתוח את ה־PDF: '+(error?.message||'נסה שוב'));button.disabled=false;button.textContent=oldText}
 }
 async function copyText(value,success='הקישור הועתק'){
@@ -573,11 +592,11 @@ function quoteItemsView(job){const items=job.items||[];return items.length?`<div
 async function renderProJobDetail(){
   const j=state.selectedProJob;if(!j)return;await loadProSettings();if(!j.items)await loadJobExtras(j);$('#jobDetailTitle').textContent=j.customer_name;
   const below=Number(j.quoted_price)<Number(j.price_floor),remaining=Math.max(0,Number(j.quoted_price||0)-Number(j.actual_paid||0));
-  $('#jobDetailContent').innerHTML=`<div class="quote-send-callout card"><span id="quoteStorageStatus" class="quote-send-status ${j.quote_pdf_path?'stored':''}">${j.quote_pdf_path?'ה־PDF שמור באפליקציה':'ההצעה נשמרה — ה־PDF יישמר בזמן השליחה'}</span><h3>שליחת ההצעה ל־${esc(j.customer_name)}</h3><p>בלחיצה אחת נשמור את ה־PDF באופן פרטי ונפתח את WhatsApp למספר ${esc(j.customer_phone)} עם קישור מאובטח למסמך. שם נשאר רק ללחוץ על שליחה.</p><button class="primary big whatsapp-action" data-job-action="quote-whatsapp">💬 שמור ושלח הצעת מחיר</button></div>
+  $('#jobDetailContent').innerHTML=`<div class="quote-send-callout card"><span id="quoteStorageStatus" class="quote-send-status ${j.quote_pdf_path?'stored':''}">${j.quote_pdf_path?'ה־PDF שמור באפליקציה':'ההצעה נשמרה — ה־PDF ייווצר בזמן השליחה'}</span><h3>שליחת ההצעה ל־${esc(j.customer_name)}</h3><p>בלחיצה אחת ניצור קובץ PDF אמיתי ונפתח את תפריט השיתוף בטלפון. בחר WhatsApp ואת הלקוח ושלח את הקובץ.</p><button class="primary big whatsapp-action" data-job-action="quote-whatsapp" disabled>⏳ מכין PDF…</button></div>
   <div class="job-hero card"><div class="job-card-top"><span class="trade-badge ${j.trade}">${tradeIcon(j.trade)} ${tradeHe[j.trade]||'בעל מקצוע'}</span><span class="status-pill status-${j.status}">${jobStatusHe[j.status]||j.status}</span></div><span class="quote-number">הצעה מס׳ ${esc(j.quote_number||String(j.id).slice(0,8))} · ${PRICING_MODE_HE[j.pricing_mode]||'תמחור'}</span><h3>${esc(j.description)}</h3><p>👤 ${esc(j.customer_name)} · 📍 ${esc(j.city||'לא צוין')} · 🗓️ ${esc(formatDateTime(j.scheduled_at))}</p><div class="contact-actions"><a class="secondary" href="tel:${esc(j.customer_phone)}">📞 התקשר</a><button class="secondary" data-job-action="questions">💬 שלח שאלות</button></div></div>
   <div class="detail-price-grid"><div class="card"><small>מחיר מינימום</small><strong>${money(j.price_floor)}</strong></div><div class="card featured"><small>הצעה ללקוח</small><strong>${money(j.quoted_price)}</strong></div><div class="card"><small>יתרה לתשלום</small><strong>${money(remaining)}</strong></div></div>
   ${below?'<div class="price-warning">⚠️ המחיר ללקוח נמוך ממחיר המינימום שחושב לעבודה.</div>':''}
-  <div class="card"><h3>הצעת המחיר</h3><p>${esc(j.quote_scope||'לא נוסף פירוט להצעה.')}</p>${quoteItemsView(j)}<div class="quote-totals">${Number(j.discount_amount)>0?`<div><span>לפני הנחה</span><b>${money(j.subtotal)}</b></div><div><span>הנחה</span><b>− ${money(j.discount_amount)}</b></div>`:''}<div class="final"><span>סה״כ</span><b>${money(j.quoted_price)}</b></div></div>${j.warranty_text?`<p><b>אחריות:</b> ${esc(j.warranty_text)}</p>`:''}${j.quote_terms?`<div class="terms-box">${esc(j.quote_terms)}</div>`:''}<div class="action-grid"><button class="secondary" data-job-action="quote-pdf" disabled>⏳ מכין PDF…</button><button class="secondary" data-job-action="copy">העתק קישור לאישור</button>${safePaymentUrl(state.proSettings?.payment_link)?'<button class="secondary" data-job-action="payment">שלח קישור לתשלום</button>':''}</div><p class="stored-pdf-note">🔒 ה־PDF נשמר באופן פרטי במחירלי. הקישור שנשלח ללקוח תקף ל־30 יום.</p></div>
+  <div class="card"><h3>הצעת המחיר</h3><p>${esc(j.quote_scope||'לא נוסף פירוט להצעה.')}</p>${quoteItemsView(j)}<div class="quote-totals">${Number(j.discount_amount)>0?`<div><span>לפני הנחה</span><b>${money(j.subtotal)}</b></div><div><span>הנחה</span><b>− ${money(j.discount_amount)}</b></div>`:''}<div class="final"><span>סה״כ</span><b>${money(j.quoted_price)}</b></div></div>${j.warranty_text?`<p><b>אחריות:</b> ${esc(j.warranty_text)}</p>`:''}${j.quote_terms?`<div class="terms-box">${esc(j.quote_terms)}</div>`:''}<div class="action-grid"><button class="secondary" data-job-action="quote-pdf" disabled>⏳ מכין PDF…</button><button class="secondary" data-job-action="copy">העתק קישור לאישור</button>${safePaymentUrl(state.proSettings?.payment_link)?'<button class="secondary" data-job-action="payment">שלח קישור לתשלום</button>':''}</div><p class="stored-pdf-note">🔒 ה־PDF נשמר באופן פרטי במחירלי. ללקוח נשלח קובץ PDF אמיתי וקישור נפרד לאישור ההצעה.</p></div>
   <div class="card timer-card"><h3>⏱️ שעתון עבודה</h3><div id="jobTimerDisplay" class="timer-display">00:00:00</div><div class="timer-actions"><button class="primary" data-job-action="timer-start" ${state.proTimeEntries.some(e=>!e.ended_at)?'disabled':''}>${state.proTimeEntries.length?'המשך עבודה':'התחל עבודה'}</button><button class="secondary" data-job-action="timer-stop" ${state.proTimeEntries.some(e=>!e.ended_at)?'':'disabled'}>עצור</button></div><p class="timer-note">הזמן נשמר בתיק ויועבר לשעות בפועל בסיום.</p></div>
   <div class="card"><h3>תזכורת חדשה</h3><div class="reminder-inline"><label>מועד<input id="detailReminderAt" type="datetime-local"></label><button class="secondary" data-job-action="add-reminder">שמור</button></div></div>
   <div class="card"><label class="inline-select">מצב העבודה<select id="jobStatusSelect">${Object.entries(jobStatusHe).map(([v,l])=>`<option value="${v}" ${j.status===v?'selected':''}>${l}</option>`).join('')}</select></label></div>
