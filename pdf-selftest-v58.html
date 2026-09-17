@@ -1,4 +1,4 @@
-<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><title>בדיקת PDF מחירלי</title><script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"></script></head><body><h1 id="status">מפיק PDF לבדיקה…</h1><pre id="details"></pre><textarea id="pdfData" style="position:absolute;left:-99999px"></textarea><script>
+<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><title>בדיקת PDF מחירלי</title><script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"></script></head><body><h1 id="status">מפיק PDF לבדיקה…</h1><pre id="details"></pre><textarea id="pdfData" style="display:none"></textarea><iframe id="preview" title="תצוגת PDF" style="width:100%;height:1200px;border:2px solid #1da873"></iframe><script>
 function esc(s=''){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function money(n){return `${Math.round(Number(n)||0).toLocaleString('he-IL')} ₪`}
 function formatDate(value){if(!value)return '';try{return new Date(value).toLocaleDateString('he-IL')}catch{return ''}}
@@ -40,7 +40,7 @@ async function run(){try{
   const blob=await worker.toPdf().outputPdf('blob');
   element.remove();
   const b64=await new Promise((resolve,reject)=>{const fr=new FileReader();fr.onerror=reject;fr.onload=()=>resolve(String(fr.result).split(',')[1]);fr.readAsDataURL(blob)});
-  document.querySelector('#pdfData').value=b64;
+  document.querySelector('#pdfData').value=b64;document.querySelector('#preview').src=URL.createObjectURL(blob);
   document.querySelector('#details').textContent=JSON.stringify({ok:blob.size>1000&&nonWhite>100,size:blob.size,canvas:[canvas.width,canvas.height],sampled,nonWhite,file:publicQuotePdfFileName(q),required:['רוקח שירותי בית והנדימן','יורם ישראלי','הרכבת רהיט ותיקונים בבית','הרכבת ארון','כיוון דלתות','חומרים וברגים','369 ₪','100 ₪','30 יום']});
   document.querySelector('#status').textContent='PDF_READY'
 }catch(e){document.querySelector('#status').textContent='PDF_ERROR: '+e.message}}
