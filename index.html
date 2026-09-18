@@ -17,7 +17,7 @@
   <meta name="twitter:card" content="summary_large_image" />
   <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="icon-192.png" />
-  <link rel="stylesheet" href="landing.css?v=61" />
+  <link rel="stylesheet" href="landing.css?v=62" />
   <script>
     (function(){
       var p=new URLSearchParams(location.search);
@@ -56,33 +56,16 @@
         <div class="trust-row"><span>✓ פרטי העסק והלוגו</span><span>✓ אישור דיגיטלי</span><span>✓ PDF להורדה ולהדפסה</span></div>
       </div>
 
-      <div class="phone-demo" aria-label="דוגמה להצעת מחיר דיגיטלית">
-        <div class="phone-top"><span>9:41</span><i></i><span>● ● ●</span></div>
-        <div class="quote-demo">
-          <div class="demo-brand"><img src="icon-192.png" alt="" /><span><b>ישראל עבודות לבית</b><small>הצעת מחיר דיגיטלית</small></span></div>
-          <div class="demo-number">הצעה מס׳ 1042</div>
-          <h2>שלום דניאל</h2>
-          <p>התקנת 3 מדפים ותליית טלוויזיה</p>
-          <div class="demo-total"><small>מחיר ההצעה</small><b>850 ₪</b></div>
-          <button type="button">📥 הורד PDF לטלפון</button>
-          <div class="demo-approve">✓ אישור הצעת המחיר</div>
+      <div class="hero-video-card">
+        <div class="video-heading">
+          <span aria-hidden="true">▶</span>
+          <div><b>כך מחירלי עובדת</b><small>28 שניות מהפנייה ועד ניהול העבודה</small></div>
         </div>
-        <div class="whatsapp-bubble"><b>WhatsApp</b><span>הכנתי עבורך הצעת מחיר. לצפייה ואישור:</span><u>mehirli.app/quote…</u></div>
-      </div>
-    </section>
-
-    <section class="problem">
-      <div><span>לפני מחירלי</span><h2>״יצא בערך 850, נדבר״</h2><p>המחיר נבלע בצ׳אט, אין פירוט, אין אישור ואין מסמך מסודר.</p></div>
-      <div class="after"><span>עם מחירלי</span><h2>הצעה מסודרת בשם העסק שלך</h2><p>פירוט, מחיר, תנאים, אישור דיגיטלי ו־PDF שהלקוח יכול לשמור.</p></div>
-    </section>
-
-    <section class="section" id="how">
-      <span class="section-kicker">פשוט בשטח</span>
-      <h2>שלושה צעדים מהפנייה להצעה</h2>
-      <div class="steps">
-        <article><b>1</b><h3>קולטים את העבודה</h3><p>שם הלקוח, מה צריך לעשות, זמן וחומרים.</p></article>
-        <article><b>2</b><h3>בודקים את הרווח</h3><p>מחירלי מציגה עלויות, מחיר מינימום ורווח צפוי.</p></article>
-        <article><b>3</b><h3>שולחים וסוגרים</h3><p>הלקוח מקבל קישור ב־WhatsApp, מאשר ומוריד PDF.</p></article>
+        <video class="landing-video" controls playsinline preload="metadata" poster="mehirli-explainer-poster-v62.jpg" aria-label="סרטון הסבר קצר על מחירלי">
+          <source src="mehirli-explainer-v62.mp4" type="video/mp4" />
+          הדפדפן שלך אינו תומך בהצגת הסרטון.
+        </video>
+        <small class="video-note">לחצו להפעלה עם קול</small>
       </div>
     </section>
 
@@ -132,6 +115,10 @@
           if(typeof fbq==='function')fbq('trackCustom','MehirliTrialClick',{placement:link.dataset.cta});
         });
       });
+      var video=document.querySelector('.landing-video');
+      if(video)video.addEventListener('play',function(){
+        if(typeof fbq==='function')fbq('trackCustom','MehirliVideoPlay');
+      },{once:true});
     })();
   </script>
 </body>
