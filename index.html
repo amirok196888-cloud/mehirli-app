@@ -1,383 +1,138 @@
 <!doctype html>
 <html lang="he" dir="rtl">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<meta name="theme-color" content="#071b45" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="default" />
-<meta name="apple-mobile-web-app-title" content="מחירלי" />
-<title>מחירלי</title>
-<meta name="description" content="מחירלי — מרכז עבודה חכם לבעלי מקצוע בתחומי הבית והמיזוג: תמחור, הצעות, תיעוד ורווח." />
-<link rel="canonical" href="https://amirok196888-cloud.github.io/mehirli-app/" />
-<meta property="og:type" content="website" />
-<meta property="og:locale" content="he_IL" />
-<meta property="og:site_name" content="מחירלי" />
-<meta property="og:title" content="מחירלי — מפסיקים לנחש כמה לגבות" />
-<meta property="og:description" content="תמחור לפי זמן, חומרים והוצאות, בדיקת רווח, הצעת מחיר מקצועית ושליחה ב־WhatsApp. 14 יום חינם, אחר כך 29 ₪ לחודש." />
-<meta property="og:url" content="https://amirok196888-cloud.github.io/mehirli-app/" />
-<meta property="og:image" content="https://amirok196888-cloud.github.io/mehirli-app/mehirli-facebook-benefits-v53.jpg" />
-<meta property="og:image:secure_url" content="https://amirok196888-cloud.github.io/mehirli-app/mehirli-facebook-benefits-v53.jpg" />
-<meta property="og:image:type" content="image/jpeg" />
-<meta property="og:image:width" content="1200" />
-<meta property="og:image:height" content="630" />
-<meta property="og:image:alt" content="מחירלי — תמחור חכם וניהול עבודה לבעלי מקצוע" />
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="מחירלי — מפסיקים לנחש כמה לגבות" />
-<meta name="twitter:description" content="תמחור לפי זמן, חומרים והוצאות, בדיקת רווח, הצעת מחיר מקצועית ושליחה ב־WhatsApp. 14 יום חינם, אחר כך 29 ₪ לחודש." />
-<meta name="twitter:image" content="https://amirok196888-cloud.github.io/mehirli-app/mehirli-facebook-benefits-v53.jpg" />
-<link rel="manifest" href="manifest.webmanifest" />
-<link rel="apple-touch-icon" sizes="180x180" href="icon-192.png" />
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
-<link rel="stylesheet" href="style.css?v=60" />
-<!-- Meta Pixel: shared Rokach Digital data source; Mehirli conversions are separated by event and content_name. -->
-<script>
-!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
-n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
-t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script',
-'https://connect.facebook.net/en_US/fbevents.js');
-fbq('init','1944984039489234');
-fbq('track','PageView',{content_name:'Mehirli'});
-</script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#071b45" />
+  <title>מחירלי — הצעת מחיר מקצועית מהטלפון</title>
+  <meta name="description" content="יוצרים הצעת מחיר דיגיטלית ממותגת, שולחים ללקוח ב־WhatsApp ומאפשרים לו לצפות, לאשר ולהוריד PDF. 14 יום חינם." />
+  <link rel="canonical" href="https://amirok196888-cloud.github.io/mehirli-app/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="he_IL" />
+  <meta property="og:site_name" content="מחירלי" />
+  <meta property="og:title" content="מחירלי — הצעת מחיר מקצועית מהטלפון" />
+  <meta property="og:description" content="מתמחרים עבודה, שולחים קישור ב־WhatsApp, והלקוח צופה, מאשר ומוריד PDF." />
+  <meta property="og:url" content="https://amirok196888-cloud.github.io/mehirli-app/" />
+  <meta property="og:image" content="https://amirok196888-cloud.github.io/mehirli-app/mehirli-facebook-benefits-v53.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="icon-192.png" />
+  <link rel="stylesheet" href="landing.css?v=61" />
+  <script>
+    (function(){
+      var p=new URLSearchParams(location.search);
+      var appQuery=p.has('quote')||p.has('payment')||p.has('order')||p.has('code');
+      var authHash=/access_token|refresh_token|type=recovery|error_description/.test(location.hash);
+      if(appQuery||authHash)location.replace('./app.html'+location.search+location.hash);
+    })();
+  </script>
+  <script>
+  !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+  n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script',
+  'https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init','1944984039489234');
+  fbq('track','PageView',{content_name:'Mehirli Landing'});
+  </script>
 </head>
 <body>
-<div class="app-shell">
-<header class="topbar"><div class="brand"><img class="logo logo-img" src="icon-192.png" alt="מחירלי" /><div><h1>מחירלי</h1><p>מנהלים עבודה. מתמחרים נכון. מרוויחים.</p></div></div><button id="installAppBtn" class="install-app-btn hidden" type="button">⬇ התקן אפליקציה</button></header>
-<main>
-<section id="authView" class="view active">
-  <section class="auth-showcase" aria-labelledby="authHeroTitle">
-    <img class="auth-product-visual" src="mehirli-hero-v43.jpg" alt="מחירלי — ניהול עבודות, תמחור והצעות מחיר מהטלפון" />
-    <div class="auth-showcase-shade"></div>
-    <div class="auth-showcase-copy">
-      <span class="auth-kicker">מרכז העבודה החדש לבעלי מקצוע</span>
-      <h2 id="authHeroTitle">כל עבודה מתחילה<br /><em>במחיר נכון.</em></h2>
-      <p>מהפנייה הראשונה ועד שהכסף נכנס: תמחור חכם, הצעת מחיר מקצועית ושליחה ב־WhatsApp — במקום אחד.</p>
-      <div class="auth-proof-row" aria-label="כלי מחירלי">
-        <span>⚡ תמחור חכם</span><span>📄 הצעה מקצועית</span><span>💬 WhatsApp</span>
+  <header class="site-header">
+    <a class="brand" href="./" aria-label="מחירלי — דף הבית">
+      <img src="icon-192.png" alt="" />
+      <span><b>מחירלי</b><small>הצעות מחיר וניהול עבודה</small></span>
+    </a>
+    <a class="login-link app-link" href="app.html?from=landing#authForm">כניסה למערכת</a>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <span class="eyebrow">לבעלי מקצוע שעובדים מהשטח</span>
+        <h1>הצעת מחיר מקצועית מהטלפון — <em>בתוך דקות.</em></h1>
+        <p>מזינים את פרטי העבודה, בודקים שהמחיר באמת רווחי ושולחים ללקוח קישור מסודר ב־WhatsApp. הלקוח יכול לצפות, לאשר ולהוריד PDF לטלפון.</p>
+        <a class="cta primary app-link" href="app.html?from=landing#authForm" data-cta="hero">מתחילים 14 יום בחינם <span>←</span></a>
+        <small class="microcopy">ללא כרטיס אשראי • הרשמה קצרה • אחר כך 29 ₪ לחודש</small>
+        <div class="trust-row"><span>✓ פרטי העסק והלוגו</span><span>✓ אישור דיגיטלי</span><span>✓ PDF להורדה ולהדפסה</span></div>
       </div>
-      <a class="auth-hero-cta" href="#authForm">מתחילים 14 יום בחינם <b>←</b></a>
-      <small class="auth-no-card">ללא כרטיס אשראי • אחר כך 29 ₪ לחודש</small>
-    </div>
-  </section>
 
-  <div class="auth-workflow" aria-label="איך מחירלי עובדת">
-    <div><b>01</b><span>קולטים את פרטי העבודה</span></div>
-    <div><b>02</b><span>מחשבים מחיר רווחי</span></div>
-    <div><b>03</b><span>שולחים הצעה וסוגרים</span></div>
-  </div>
-
-  <form id="authForm" class="card form-card auth-form-premium">
-    <div class="auth-form-head"><span>14 ימים עלינו</span><h3>פותחים חשבון ומתחילים לעבוד</h3><p>הקמה קצרה. בלי כרטיס אשראי ובלי התחייבות.</p></div>
-    <label>אימייל<input id="authEmail" type="email" required autocomplete="email" /></label>
-    <label>סיסמה<input id="authPassword" type="password" required minlength="6" autocomplete="current-password" /></label>
-    <label>שם בעל העסק<input id="authName" placeholder="השם שיופיע בהצעות המחיר" /></label>
-    <label class="legal-check"><input id="signupLegalConsent" type="checkbox" /><span>בהרשמה אני מאשר/ת שקראתי את <button class="text-link" type="button" data-open-legal>תנאי השימוש ומדיניות הפרטיות</button>.</span></label>
-    <button id="signupBtn" class="primary big auth-signup" type="button">התחלת 14 ימי ניסיון בחינם</button>
-    <button class="secondary big auth-login" type="submit">כבר יש לי חשבון — כניסה</button>
-    <p id="authNote" class="note"></p>
-  </form>
-  <a id="mehirliSupportLink" class="auth-support-link" href="https://wa.me/972552715782?text=%F0%9F%9F%A0%20%D7%9E%D7%97%D7%99%D7%A8%D7%9C%D7%99%20%7C%20%D7%A4%D7%A0%D7%99%D7%99%D7%94%20%D7%9C%D7%AA%D7%9E%D7%99%D7%9B%D7%94%0A%0A%D7%A9%D7%9C%D7%95%D7%9D%2C%20%D7%94%D7%92%D7%A2%D7%AA%D7%99%20%D7%9E%D7%90%D7%AA%D7%A8%20%D7%9E%D7%97%D7%99%D7%A8%D7%9C%D7%99%20%D7%95%D7%91%D7%A8%D7%A6%D7%95%D7%A0%D7%99%20%D7%9C%D7%A7%D7%91%D7%9C%20%D7%A2%D7%96%D7%A8%D7%94." target="_blank" rel="noopener">צריכים עזרה? מדברים איתנו ב־WhatsApp</a>
-  <div class="auth-benefits">
-    <div class="auth-benefit"><span>🛡️</span><b>המידע שלכם מוגן</b><small>שמירה מאובטחת בענן</small></div>
-    <div class="auth-benefit"><span>⚡</span><b>לא מנחשים מחיר</b><small>זמן, חומרים ורווח במקום אחד</small></div>
-    <div class="auth-benefit"><span>✓</span><b>נראים מקצועיים</b><small>הצעה מסודרת שהלקוח יכול לאשר</small></div>
-  </div>
-</section>
-
-<section id="legalConsentView" class="view">
-  <div class="section-head"><div><span class="eyebrow">שלב אחרון לפני שמתחילים</span><h2>אישור תנאי מחירלי</h2></div></div>
-  <div class="card legal-consent-card"><span class="legal-shield">🛡️</span><h3>שקיפות והגנה לשני הצדדים</h3><p>מחירלי היא מערכת ניהול לבעלי עסקים. האחריות המקצועית לעבודה, למחיר, לרישוי, למסמכי המס ולשירות ללקוח נשארת בידי בעל העסק.</p><button class="secondary big" type="button" data-open-legal>קריאת התנאים ומדיניות הפרטיות</button><label class="legal-check prominent"><input id="existingLegalConsent" type="checkbox" /><span>קראתי ואני מסכים/ה לתנאי השימוש ולמדיניות הפרטיות.</span></label><button id="acceptLegalConsentBtn" class="primary big" type="button" disabled>אישור והמשך למחירלי</button><button id="legalConsentLogoutBtn" class="logout-link" type="button">התנתק</button></div>
-</section>
-
-<section id="legalInfoView" class="view">
-  <div class="section-head"><button id="legalInfoBackBtn" class="back" type="button">‹</button><div><span class="eyebrow">גרסה 15.9.2026</span><h2>תנאי שימוש ופרטיות</h2></div></div>
-  <article class="card legal-document">
-    <h3>עיקרי תנאי השימוש</h3>
-    <p><b>השירות:</b> מחירלי, המופעלת על ידי רוקח דיגיטל, מספקת לבעלי עסקים כלים לניהול פניות, תמחור, הצעות מחיר, מעקב עבודה וקישורי תשלום.</p>
-    <p><b>אחריות בעל העסק:</b> בעל העסק אחראי לנכונות הפרטים והמחירים, לביצוע המקצועי והבטיחותי, לרישיונות הנדרשים, לאחריות, לביטולים, לגבייה, להפקת מסמכי מס ולשירות שהוא מספק ללקוחותיו.</p>
-    <p><b>עסקאות עם לקוחות:</b> מחירלי אינה צד לעסקה בין בעל העסק ללקוח שלו ואינה מקבלת את כספי העסק. קישור תשלום של בעל העסק מפנה ישירות לספק הסליקה שבחר.</p>
-    <p><b>ניסיון ומינוי:</b> תקופת הניסיון היא 14 יום. לאחריה מחיר המינוי הוא 29 ₪ לחודש, כולל מע״מ. כל תשלום מפעיל 30 ימי שימוש ואינו מתחדש אוטומטית, אלא אם תוצע בעתיד הרשאה נפרדת ומפורשת לכך.</p>
-    <p><b>ביטול והשעיה:</b> אפשר להפסיק רכישות עתידיות בכל עת. אי־תשלום עשוי להשעות פעולות באפליקציה לאחר 48 שעות חסד; המידע אינו נמחק אוטומטית. שימוש אסור, מסוכן או בלתי חוקי עשוי להביא להשעיה.</p>
-    <p><b>זמינות:</b> אנו פועלים לאבטחה ולזמינות סבירות, אך שירות מקוון עלול להיפסק זמנית עקב תחזוקה, תקלה או שירות צד שלישי. אין בתנאים כדי לגרוע מזכות שלא ניתן לוותר עליה לפי דין.</p>
-    <h3>מדיניות פרטיות מקוצרת</h3>
-    <p>נשמרים פרטי החשבון והעסק, מידע שבעל העסק מזין על עבודות ולקוחות, הצעות מחיר, מסמכים, תשלומי המינוי ונתוני שימוש טכניים מצומצמים. המידע משמש להפעלת מחירלי, אבטחה, תמיכה, חיוב ושיפור השירות.</p>
-    <p>למדידת שיווק נשמר מזהה אקראי, מקור כניסה ואירועי שימוש בסיסיים. בנוסף מופעל כלי המדידה Meta Pixel, שמדווח ל־Meta על צפייה באתר ועל השלמת הרשמה לתקופת ניסיון, לצורך מדידת פרסום ושיפור התאמתו. לא נשלחים באירועים אלה שם, אימייל או מספר טלפון. Meta עשויה לעבד נתונים טכניים ומזהי דפדפן בהתאם למדיניות הפרטיות שלה. בעל העסק אחראי למסור ללקוחותיו הודעת פרטיות מתאימה לגבי המידע שהוא מזין למערכת.</p>
-    <p>ספקי תשתית וסליקה מעבדים מידע רק לצורך השירות שלהם. פרטי כרטיס אינם נשמרים במחירלי. ניתן לבקש עיון, תיקון או מחיקה באמצעות ערוץ התמיכה המופיע באפליקציה, בכפוף לחובות שמירה חוקיות.</p>
-    <p class="legal-caution">זהו נוסח תפעולי ראשוני. לפני שיווק מסחרי רחב מומלץ שעורך דין ישראלי יתאים את הנוסח לפרטי העוסק ולמדיניות הביטול הסופית.</p>
-  </article>
-</section>
-
-<section id="homeView" class="view">
-  <div class="home-hero">
-    <div class="home-kicker">🏠 העסק שלך במקום אחד</div>
-    <h2 id="homeGreeting">שלום, מתחילים מכאן</h2>
-    <p>כל עבודה עוברת במסלול פשוט: קולטים פנייה, מתמחרים ושולחים ללקוח.</p>
-    <div class="home-utility-row"><button id="notificationsBtn" class="notification-btn" type="button">🔔 התראות <span id="notificationBadge" class="notification-badge hidden">0</span></button><button id="enablePhoneNotificationsBtn" class="notification-permission hidden" type="button">אפשר התראות בטלפון</button></div><button id="logoutBtn" class="logout-link">התנתק</button>
-  </div>
-  <div id="proHome">
-    <button id="subscriptionBanner" class="subscription-banner hidden" type="button"></button>
-    <div class="flow-overview card">
-      <span class="eyebrow">איך זה עובד</span>
-      <div class="flow-steps">
-        <div><b>1</b><span>פרטי הלקוח והעבודה</span></div>
-        <div><b>2</b><span>תמחור והכנת הצעה</span></div>
-        <div><b>3</b><span>שליחת PDF ב־WhatsApp</span></div>
+      <div class="phone-demo" aria-label="דוגמה להצעת מחיר דיגיטלית">
+        <div class="phone-top"><span>9:41</span><i></i><span>● ● ●</span></div>
+        <div class="quote-demo">
+          <div class="demo-brand"><img src="icon-192.png" alt="" /><span><b>ישראל עבודות לבית</b><small>הצעת מחיר דיגיטלית</small></span></div>
+          <div class="demo-number">הצעה מס׳ 1042</div>
+          <h2>שלום דניאל</h2>
+          <p>התקנת 3 מדפים ותליית טלוויזיה</p>
+          <div class="demo-total"><small>מחיר ההצעה</small><b>850 ₪</b></div>
+          <button type="button">📥 הורד PDF לטלפון</button>
+          <div class="demo-approve">✓ אישור הצעת המחיר</div>
+        </div>
+        <div class="whatsapp-bubble"><b>WhatsApp</b><span>הכנתי עבורך הצעת מחיר. לצפייה ואישור:</span><u>mehirli.app/quote…</u></div>
       </div>
-    </div>
-    <div class="home-primary-actions"><button id="homeNewJobBtn" class="primary big" type="button">＋ עבודה חדשה</button><button id="proWorkspaceBtn" class="secondary big" type="button">📋 כל העבודות שלי</button></div>
-    <button id="whatsappSetupNotice" class="whatsapp-setup big hidden" type="button">💬 להפעלת WhatsApp ללקוחות — הוסף מספר עסקי</button>
-    <button id="profileBtn" class="profile-entry big" type="button">🏪 פרטי העסק, WhatsApp ותשלום</button><button id="subscriptionBtn" class="subscription-entry big" type="button">💳 המנוי שלי</button><button id="adminBtn" class="admin-entry big hidden" type="button">⚙️ כניסת מנהל — כל הקטגוריות</button>
-  </div>
-</section>
+    </section>
 
-<section id="proWorkspaceView" class="view">
-  <div class="section-head"><button class="back">‹</button><div><span class="eyebrow">לבעלי עסקים</span><h2>מרכז העבודה</h2></div></div>
-  <div class="workspace-stats">
-    <div class="stat-card"><small>עבודות פתוחות</small><strong id="proOpenCount">0</strong></div>
-    <div class="stat-card"><small>ממתינות לתשלום</small><strong id="proUnpaidCount">0</strong></div>
-    <div class="stat-card"><small>הכנסות החודש</small><strong id="proMonthRevenue">0 ₪</strong></div>
-  </div>
-  <div class="workspace-actions">
-    <button id="newProJobBtn" class="primary big">＋ פנייה חדשה ותמחור</button>
-    <button id="proSettingsBtn" class="secondary big">⚙️ הגדרות תמחור ותשלום</button>
-  </div>
-  <div class="workspace-tools" aria-label="כלי ניהול">
-    <button id="priceBookBtn" type="button"><span>🏷️</span><b>מחירון</b><small>שירותים ותבניות</small></button>
-    <button id="customersBtn" type="button"><span>👥</span><b>לקוחות</b><small>פרטים והיסטוריה</small></button>
-    <button id="calendarBtn" type="button"><span>📅</span><b>יומן</b><small>פגישות ותזכורות</small></button>
-  </div>
-  <div id="workspaceReminders" class="workspace-reminders hidden"></div>
-  <div class="list-toolbar"><b>העבודות שלי</b><select id="proJobStatusFilter"><option value="all">הכול</option><option value="open">פתוחות</option><option value="unpaid">ממתינות לתשלום</option><option value="paid">שולמו</option></select></div>
-  <div id="proJobsList" class="stack"></div>
-</section>
+    <section class="problem">
+      <div><span>לפני מחירלי</span><h2>״יצא בערך 850, נדבר״</h2><p>המחיר נבלע בצ׳אט, אין פירוט, אין אישור ואין מסמך מסודר.</p></div>
+      <div class="after"><span>עם מחירלי</span><h2>הצעה מסודרת בשם העסק שלך</h2><p>פירוט, מחיר, תנאים, אישור דיגיטלי ו־PDF שהלקוח יכול לשמור.</p></div>
+    </section>
 
-<section id="proJobFormView" class="view">
-  <div class="section-head"><button class="back" data-back-to="workspace">‹</button><div><span class="eyebrow">פנייה חדשה</span><h2>תמחור עבודה</h2></div></div>
-  <form id="proJobForm" class="card form-card">
-    <div class="form-step">
-      <div class="form-step-title"><b>1</b><div><h3>מי הלקוח?</h3><p>הפרטים נשמרים רק בתיק העבודה.</p></div></div>
-      <label>לקוח קיים — אופציונלי<select id="proCustomerSelect"><option value="">לקוח חדש</option></select></label>
-      <div class="two-cols"><label>שם הלקוח<input id="proCustomerName" required autocomplete="name" /></label><label>טלפון / WhatsApp<input id="proCustomerPhone" required inputmode="tel" autocomplete="tel" /></label></div>
-      <label>עיר / אזור<input id="proCustomerCity" placeholder="לדוגמה: כפר סבא" /></label>
-    </div>
-    <div class="form-step">
-      <div class="form-step-title"><b>2</b><div><h3>מה העבודה?</h3><p>בחר תחום ותאר בקצרה מה הלקוח ביקש.</p></div></div>
-      <div class="trade-picker" role="group" aria-label="בחירת מקצוע">
-        <button type="button" class="trade-choice active" data-trade="handyman">🔨 הנדימן</button>
-        <button type="button" class="trade-choice" data-trade="electrician">⚡ חשמלאי</button>
-        <button type="button" class="trade-choice" data-trade="home">🏠 שירותי בית</button>
-        <button type="button" class="trade-choice" data-trade="air_conditioning">❄️ מיזוג</button>
+    <section class="section" id="how">
+      <span class="section-kicker">פשוט בשטח</span>
+      <h2>שלושה צעדים מהפנייה להצעה</h2>
+      <div class="steps">
+        <article><b>1</b><h3>קולטים את העבודה</h3><p>שם הלקוח, מה צריך לעשות, זמן וחומרים.</p></article>
+        <article><b>2</b><h3>בודקים את הרווח</h3><p>מחירלי מציגה עלויות, מחיר מינימום ורווח צפוי.</p></article>
+        <article><b>3</b><h3>שולחים וסוגרים</h3><p>הלקוח מקבל קישור ב־WhatsApp, מאשר ומוריד PDF.</p></article>
       </div>
-      <input id="proJobTrade" type="hidden" value="handyman" />
-      <label>סוג העבודה<select id="proJobType"></select></label>
-      <label>תבנית מהמחירון — אופציונלי<select id="proServiceTemplate"><option value="">ללא תבנית</option></select></label>
-      <label>מה הלקוח ביקש?<textarea id="proJobDescription" required placeholder="אפשר לכתוב או להקליט את הודעת הלקוח"></textarea></label>
-      <button id="proVoiceBtn" type="button" class="voice">🎤 הקלט את פרטי הפנייה</button><p id="proVoiceStatus" class="note"></p>
-      <label>מועד מתוכנן<input id="proScheduledAt" type="datetime-local" /></label>
-    </div>
-    <div class="form-step form-step-pricing">
-      <div class="form-step-title"><b>3</b><div><h3>כמה לגבות?</h3><p>מחירלי מחשבת אם העבודה משתלמת לך.</p></div></div>
-      <div class="pricing-title"><div><span class="eyebrow">מחשבון אישי</span><h3>עלויות העבודה</h3></div><button id="analyzeJobBtn" type="button" class="secondary tiny">נתח את העבודה</button></div>
-      <label>אופן תמחור<select id="proPricingMode"><option value="hourly">לפי שעה</option><option value="fixed">מחיר קבוע</option><option value="half_day">חצי יום</option><option value="full_day">יום עבודה</option></select></label>
-      <div class="two-cols"><label>שעות מתוכננות<input id="proLaborHours" type="number" min="0.25" step="0.25" value="1" /></label><label>מחיר בסיס<input id="proBasePrice" type="number" min="0" step="10" /></label></div>
-      <p id="pricingModeHint" class="field-hint"></p>
-      <div class="two-cols"><label>חומרים<input id="proMaterialsCost" type="number" min="0" step="10" value="0" /></label><label>נסיעה וחניה<input id="proTravelCost" type="number" min="0" step="10" /></label></div>
-      <label>עלות עוזר / קבלן משנה<input id="proAssistantCost" type="number" min="0" step="10" value="0" /></label>
-      <div id="smartAnalysis" class="smart-analysis hidden"></div>
-      <div class="price-result">
-        <div><small>מחיר מינימום ₪ — ניתן לשינוי</small><input id="priceFloor" type="number" min="0" step="1" /><button id="resetPriceFloorBtn" class="ghost tiny" type="button">↺ חזרה לחישוב האוטומטי</button></div>
-        <div class="recommended"><small>הסכום שנקבע</small><strong id="recommendedPrice">0 ₪</strong></div>
+    </section>
+
+    <section class="section features">
+      <div class="feature-copy">
+        <span class="section-kicker">לא רק מסמך יפה</span>
+        <h2>פחות ניחושים. יותר שליטה בעסק.</h2>
+        <p>מחירלי מחברת בין התמחור בשטח לבין המעקב אחרי הלקוח והכסף.</p>
       </div>
-      <details class="quote-items-panel"><summary>פירוט סעיפים ללקוח <span>אופציונלי</span></summary><div id="quoteItemsEditor"></div><button id="addQuoteItemBtn" class="ghost tiny" type="button">＋ הוסף סעיף</button></details>
-      <div class="two-cols"><label>הנחה<select id="proDiscountType"><option value="none">ללא הנחה</option><option value="percent">אחוזים</option><option value="fixed">סכום קבוע</option></select></label><label>גובה ההנחה<input id="proDiscountValue" type="number" min="0" step="1" value="0" disabled /></label></div>
-      <div class="discount-summary"><span>מחיר לפני הנחה <b id="proSubtotal">0 ₪</b></span><span>הנחה <b id="proDiscountAmount">0 ₪</b></span></div>
-      <label>המחיר שאשלח ללקוח<input id="proQuotedPrice" type="number" min="0" step="1" required /></label>
-      <p class="field-hint">אפשר לשנות ידנית לכל סכום. מחירלי תציג אזהרה בלבד אם המחיר נמוך מהמינימום.</p>
-      <button id="resetQuotedPriceBtn" class="ghost tiny" type="button">↺ חזרה למחיר המחושב</button>
-      <div id="profitabilityWarning" class="price-warning hidden">⚠️ המחיר שבחרת נמוך ממחיר המינימום שחושב לעבודה.</div>
-      <label>מקדמה מבוקשת — אופציונלי<input id="proDepositAmount" type="number" min="0" step="10" value="0" /></label>
-      <label>מה כלול בהצעה?<textarea id="proQuoteScope" placeholder="עבודה, חומרים, פינוי, אחריות ומה לא כלול"></textarea></label>
-      <div class="two-cols"><label>ההצעה בתוקף עד<input id="proQuoteValidUntil" type="date" /></label><label>תזכורת לטיפול<input id="proReminderAt" type="datetime-local" /></label></div>
-      <label>אחריות — אופציונלי<input id="proWarrantyText" placeholder="לדוגמה: 3 חודשי אחריות על העבודה" /></label>
-    </div>
-    <p class="privacy-note">🔒 פרטי הלקוח משמשים לטיפול בעבודה בלבד ולא לשיווק ללא הסכמתו.</p>
-    <button class="primary big flow-submit" type="submit">שמור ועבור לשליחה ב־WhatsApp</button>
-  </form>
-</section>
-
-<section id="priceBookView" class="view">
-  <div class="section-head"><button class="back" data-back-to="workspace">‹</button><div><span class="eyebrow">תמחור עקבי</span><h2>מחירון ותבניות</h2></div></div>
-  <form id="serviceForm" class="card form-card compact-form">
-    <input id="serviceId" type="hidden" />
-    <div class="two-cols"><label>שם השירות<input id="serviceName" required placeholder="לדוגמה: תליית טלוויזיה" /></label><label>תחום<select id="serviceTrade"><option value="handyman">הנדימן</option><option value="electrician">חשמלאי</option><option value="home">שירותי בית</option><option value="air_conditioning">מיזוג</option></select></label></div>
-    <div class="two-cols"><label>אופן תמחור<select id="servicePricingMode"><option value="fixed">מחיר קבוע</option><option value="hourly">לפי שעה</option><option value="half_day">חצי יום</option><option value="full_day">יום עבודה</option></select></label><label>מחיר בסיס<input id="serviceBasePrice" type="number" min="0" step="10" required /></label></div>
-    <div class="two-cols"><label>שעות צפויות<input id="serviceDefaultHours" type="number" min="0.25" step="0.25" value="1" /></label><label>עלות חומרים רגילה<input id="serviceMaterialsCost" type="number" min="0" step="10" value="0" /></label></div>
-    <label>פירוט קבוע להצעה<textarea id="serviceScope" placeholder="מה כלול בשירות"></textarea></label>
-    <div class="form-actions"><button class="primary" type="submit">שמור תבנית</button><button id="cancelServiceEditBtn" class="ghost hidden" type="button">ביטול עריכה</button></div>
-  </form>
-  <div id="servicesList" class="stack"></div>
-</section>
-
-<section id="customersView" class="view">
-  <div class="section-head"><button class="back" data-back-to="workspace">‹</button><div><span class="eyebrow">כל הקשר במקום אחד</span><h2>לקוחות</h2></div></div>
-  <label class="search-card">חיפוש<input id="customerSearch" type="search" placeholder="שם, טלפון או עיר" /></label>
-  <div id="customersList" class="stack"></div>
-</section>
-
-<section id="calendarView" class="view">
-  <div class="section-head"><button class="back" data-back-to="workspace">‹</button><div><span class="eyebrow">היום והשבוע הקרוב</span><h2>יומן ותזכורות</h2></div></div>
-  <div id="calendarList" class="timeline-list"></div>
-</section>
-
-<section id="proJobDetailView" class="view">
-  <div class="section-head"><button class="back" data-back-to="workspace">‹</button><div><span class="eyebrow">תיק עבודה</span><h2 id="jobDetailTitle">פרטי העבודה</h2></div></div>
-  <div id="jobDetailContent"></div>
-  <div class="card">
-    <h3>תמונות ותיעוד</h3><p class="muted">צלם לפני ואחרי. התמונות נשמרות בתיק העבודה הפרטי שלך.</p>
-    <div class="media-upload-row"><label class="upload-btn">📷 לפני העבודה<input id="beforePhotoInput" type="file" accept="image/*" capture="environment" /></label><label class="upload-btn">✅ אחרי העבודה<input id="afterPhotoInput" type="file" accept="image/*" capture="environment" /></label></div>
-    <div id="jobMediaGrid" class="media-grid"></div>
-  </div>
-  <form id="actualProfitForm" class="card form-card">
-    <h3>סיום ורווח בפועל</h3>
-    <div class="two-cols"><label>סה״כ זמן כולל נסיעה<input id="actualHours" type="number" min="0.25" step="0.25" /></label><label>עלות חומרים בפועל<input id="actualMaterials" type="number" min="0" step="10" /></label></div>
-    <label>סכום שהתקבל בפועל<input id="actualPaid" type="number" min="0" step="10" /></label>
-    <button class="primary big" type="submit">שמור וסמן כעבודה ששולמה</button>
-    <div id="actualProfitResult" class="profit-result hidden"></div>
-  </form>
-</section>
-
-<section id="proSettingsView" class="view">
-  <div class="section-head"><button class="back" data-back-to="workspace">‹</button><div><span class="eyebrow">התאמה אישית</span><h2>תמחור ותשלום</h2></div></div>
-  <form id="proSettingsForm" class="card form-card">
-    <label>מקצוע עיקרי<select id="settingsTrade"><option value="handyman">הנדימן</option><option value="electrician">חשמלאי</option><option value="home">שירותי בית</option><option value="air_conditioning">מיזוג</option></select></label>
-    <div class="two-cols"><label>מחיר שעה רצוי<input id="settingsHourlyRate" type="number" min="0" step="10" /></label><label>עלות נסיעה רגילה<input id="settingsTravelCost" type="number" min="0" step="10" /></label></div>
-    <div class="two-cols"><label>מחיר חצי יום<input id="settingsHalfDayPrice" type="number" min="0" step="10" /></label><label>מחיר יום עבודה<input id="settingsFullDayPrice" type="number" min="0" step="10" /></label></div>
-    <div class="two-cols"><label>שעות בחצי יום<input id="settingsHalfDayHours" type="number" min="1" max="8" step="0.5" /></label><label>שעות ביום מלא<input id="settingsFullDayHours" type="number" min="2" max="16" step="0.5" /></label></div>
-    <div class="two-cols"><label>שעה נוספת<input id="settingsOvertimeRate" type="number" min="0" step="10" /></label><label>עיגול זמן<select id="settingsTimeRounding"><option value="15">15 דקות</option><option value="30">30 דקות</option><option value="60">שעה</option></select></label></div>
-    <fieldset class="payment-connect-card">
-      <legend>קבלת תשלומים מהלקוחות</legend>
-      <p class="payment-connect-intro">בחר את חברת הסליקה והדבק את קישור התשלום האישי שקיבלת ממנה.</p>
-      <label>חברת הסליקה שלך
-        <select id="settingsPaymentProvider">
-          <option value="">בחר חברת סליקה</option>
-          <option value="cardcom">קארדקום</option>
-          <option value="grow">Grow</option>
-          <option value="meshulam">משולם</option>
-          <option value="bit">bit לעסקים</option>
-          <option value="paybox">PayBox</option>
-          <option value="other">חברת סליקה אחרת</option>
-        </select>
-      </label>
-      <label>קישור התשלום האישי שלך
-        <input id="settingsPaymentLink" type="url" inputmode="url" autocomplete="off" placeholder="https://..." />
-      </label>
-      <div class="payment-link-actions">
-        <button id="settingsPaymentTestBtn" class="secondary" type="button">🔗 פתח ובדוק את הקישור</button>
-        <button id="settingsPaymentClearBtn" class="ghost" type="button">הסר חיבור</button>
+      <div class="feature-grid">
+        <article><span>⚡</span><h3>תמחור רווחי</h3><p>זמן, חומרים, נסיעה והוצאות במקום אחד.</p></article>
+        <article><span>📄</span><h3>הצעה ממותגת</h3><p>לוגו, שם העסק, מספר עוסק ופרטי קשר.</p></article>
+        <article><span>📲</span><h3>קישור שעובד</h3><p>צפייה נוחה בטלפון, אישור והורדת PDF.</p></article>
+        <article><span>🗓️</span><h3>מעקב עבודה</h3><p>לקוחות, תזכורות, תיעוד לפני ואחרי וגבייה.</p></article>
       </div>
-      <div id="settingsPaymentStatus" class="payment-connect-status not-connected">לא חובר עדיין קישור לתשלום</div>
-      <p class="payment-security-note">🔒 מחירלי שומרת רק את הקישור. אין להזין שם משתמש, סיסמה, מספר אשראי או מפתח סודי.</p>
-    </fieldset>
-    <div id="electricianSettings" class="electrician-only hidden"><div class="two-cols"><label>מספר רישיון חשמלאי<input id="settingsLicenseNumber" /></label><label>תוקף הרישיון<input id="settingsLicenseExpiry" type="date" /></label></div></div>
-    <label>תנאים שיופיעו בהצעה<textarea id="settingsQuoteTerms" placeholder="תוקף ההצעה, אחריות, מה אינו כלול"></textarea></label>
-    <p class="note">הלקוח משלם באתר של חברת הסליקה שבחרת, והכסף מתקבל ישירות בחשבון שלך. מחירלי אינה מחזיקה בכספי הלקוח.</p>
-    <button class="primary big" type="submit">שמור הגדרות</button>
-  </form>
-</section>
+    </section>
 
-<section id="publicQuoteView" class="view">
-  <div id="publicQuoteContent"></div>
-</section>
+    <section class="section faq">
+      <span class="section-kicker">שאלות קצרות</span>
+      <h2>מה חשוב לדעת?</h2>
+      <details open><summary>הלקוח חייב להוריד אפליקציה?</summary><p>לא. הוא פותח את ההצעה בקישור רגיל מה־WhatsApp, בלי הרשמה ובלי התקנה.</p></details>
+      <details><summary>אפשר להוריד את ההצעה לטלפון?</summary><p>כן. בתוך ההצעה יש כפתור להורדת PDF וכפתור לפתיחה או הדפסה, לפי האפשרויות במכשיר.</p></details>
+      <details><summary>צריך כרטיס אשראי לניסיון?</summary><p>לא. 14 הימים הראשונים חינם וללא כרטיס אשראי. לאחר מכן המחיר הוא 29 ₪ לחודש, כולל מע״מ.</p></details>
+      <details><summary>מחירלי מפיקה חשבוניות מס?</summary><p>לא. הצעת המחיר נשמרת במחירלי, אבל חשבונית מס או קבלה רשמית מופקת במערכת החשבוניות או הסליקה המורשית של העסק.</p></details>
+    </section>
 
-<section id="notificationsView" class="view">
-  <div class="section-head"><button class="back">‹</button><h2>התראות</h2></div>
-  <div class="notifications-toolbar"><button id="markAllNotificationsBtn" class="secondary tiny" type="button">סמן הכול כנקרא</button></div>
-  <div id="notificationsList" class="stack"></div>
-</section>
+    <section class="bottom-cta">
+      <span>14 יום לבדוק בשטח</span>
+      <h2>העבודה הבאה יכולה להתחיל עם מחיר מסודר.</h2>
+      <p>בלי כרטיס אשראי, בלי התחייבות ועם תמיכה ישירה ב־WhatsApp.</p>
+      <a class="cta primary app-link" href="app.html?from=landing#authForm" data-cta="bottom">מתחילים ניסיון חינם <span>←</span></a>
+    </section>
+  </main>
 
-<section id="requestView" class="view"><div class="section-head"><button class="back">‹</button><h2>פרסום בקשה</h2></div>
-<form id="requestForm" class="card form-card">
-<label>תחום<select id="reqCategory" required><option value="">בחר תחום</option><option>לבית</option><option>מיזוג</option><option>חשמלאי</option><option>הנדימן</option></select></label>
-<label>מה אתה צריך?<textarea id="reqText" required placeholder="לדוגמה: צריך לתלות טלוויזיה ושני מדפים"></textarea></label>
-<button type="button" id="voiceBtn" class="voice">🎤 דבר במקום להקליד</button><p id="voiceStatus" class="note"></p>
-<label>עיר / אזור<input id="reqCity" required placeholder="לדוגמה: נתניה" /></label>
-<label>תאריך רצוי<input id="reqDate" type="date" required /></label><label>שעה רצויה<input id="reqTime" type="time" /></label>
-<button class="primary big" type="submit">פרסם וקבל עד 3 הצעות</button><p class="note">פרסום הבקשה חינם.</p>
-</form></section>
-
-<section id="requestsListView" class="view"><div class="section-head"><button class="back">‹</button><h2>הבקשות שלי</h2></div><div id="requestsList" class="stack"></div></section>
-<section id="offersView" class="view"><div class="section-head"><button class="back">‹</button><h2>הצעות שקיבלת</h2></div><div id="requestSummary" class="card"></div><div id="offersList" class="stack"></div><button id="moreOffersBtn" class="secondary big hidden">פתח סבב נוסף</button></section>
-<section id="proJobsView" class="view"><div class="section-head"><button class="back">‹</button><h2>עבודות זמינות</h2></div><div class="filter-row"><select id="jobFilter"><option value="הכל">כל התחומים</option><option>לבית</option><option>מיזוג</option><option>חשמלאי</option><option>הנדימן</option></select></div><div id="jobsList" class="stack"></div></section>
-<section id="wonJobsView" class="view"><div class="section-head"><button class="back">‹</button><h2>לקוחות שבחרו בי</h2></div><div id="wonJobsList" class="stack"></div></section>
-<section id="offerFormView" class="view"><div class="section-head"><button class="back">‹</button><h2>שליחת הצעה</h2></div><div id="jobSummary" class="card"></div>
-<form id="offerForm" class="card form-card"><label>סוג מחיר<select id="priceType"><option value="fixed">מחיר סופי</option><option value="range">טווח מחיר</option><option value="inspection">נדרשת בדיקה</option></select></label>
-<div id="singlePriceWrap"><label>מחיר / דמי בדיקה ₪<input id="offerPrice" inputmode="numeric" /></label></div><div id="rangePriceWrap" class="hidden two-cols"><label>מ־₪<input id="offerMin" inputmode="numeric" /></label><label>עד ₪<input id="offerMax" inputmode="numeric" /></label></div>
-<label>פירוט ההצעה<textarea id="offerText" placeholder="מה כולל המחיר, תנאים, אחריות וכו'"></textarea></label><label>תאריך הגעה<input id="offerDate" type="date" required /></label><label>שעת הגעה<input id="offerTime" type="time" required /></label><button class="primary big" type="submit">שלח הצעה (הצעה אחת)</button></form></section>
-<section id="profileView" class="view"><div class="section-head"><button class="back">‹</button><h2>פרופיל העסק</h2></div><form id="profileForm" class="card form-card">
-<div class="business-logo-editor"><img id="bizLogoPreview" class="business-logo-preview hidden" alt="לוגו העסק" /><label class="upload-btn">העלאת לוגו<input id="bizLogoInput" type="file" accept="image/png,image/jpeg,image/webp" /></label><button id="removeBizLogoBtn" class="ghost hidden" type="button">הסר לוגו</button></div>
-<label>שם העסק<input id="bizName" required /></label><div class="two-cols"><label>שם משפטי / סוג העוסק<input id="bizLegalName" placeholder="לדוגמה: ישראל ישראלי — עוסק מורשה" /></label><label>מספר עוסק / ח.פ.<input id="bizNumber" inputmode="numeric" /></label></div><div class="two-cols"><label>אימייל עסקי<input id="bizEmail" type="email" /></label><label>כתובת העסק<input id="bizAddress" /></label></div><label>תחום עיקרי<select id="bizCategory"><option>הנדימן</option><option>חשמלאי</option><option>לבית</option><option>מיזוג</option></select></label><label>על העסק<textarea id="bizAbout"></textarea></label><label>אזורי שירות<input id="bizArea" placeholder="נתניה, חדרה והשרון" /></label><label>מספר WhatsApp של העסק<input id="bizPhone" inputmode="tel" required placeholder="לדוגמה: 0501234567" /></label><p class="note">הלוגו, השם המשפטי, מספר העוסק, הכתובת, האימייל והטלפון יופיעו בהצעת המחיר וב־PDF. חשבוניות מס וקבלות חייבות להיות מופקות במערכת החשבוניות או הסליקה המורשית של העסק.</p><button class="primary big" type="submit">שמור פרופיל</button></form></section>
-
-<section id="adminView" class="view"><div class="section-head"><button class="back">‹</button><div><span class="eyebrow">גישה מלאה</span><h2>ניהול מחירלי</h2></div></div>
-  <div id="adminLoading" class="admin-loading hidden">טוען את נתוני הניהול…</div>
-  <section class="admin-funnel card" aria-labelledby="adminFunnelTitle">
-    <div class="admin-section-title"><div><span class="eyebrow">מהפרסום ועד לתשלום</span><h3 id="adminFunnelTitle">כניסות והמרות</h3></div><span id="adminVisitors30d" class="funnel-period">30 יום: 0</span></div>
-    <div class="admin-funnel-grid">
-      <div class="funnel-stat"><span>👀</span><small>מבקרים ייחודיים</small><strong id="adminUniqueVisitors">0</strong></div>
-      <div class="funnel-stat intent"><span>👆</span><small>לחצו התחלת ניסיון</small><strong id="adminTrialClicks">0</strong></div>
-      <div class="funnel-stat"><span>🎁</span><small>נרשמו בהצלחה</small><strong id="adminTrialSignups">0</strong></div>
-      <div class="funnel-stat"><span>📲</span><small>התקינו בטלפון</small><strong id="adminAppInstalls">0</strong></div>
-      <div class="funnel-stat paid"><span>✓</span><small>הפכו למשלמים</small><strong id="adminPayingCustomers">0</strong></div>
-    </div>
-    <div class="conversion-row"><span>כניסה ← לחיצה <b id="adminVisitClickConversion">0%</b></span><span>לחיצה ← הרשמה <b id="adminClickTrialConversion">0%</b></span><span>הרשמה ← תשלום <b id="adminTrialPaidConversion">0%</b></span></div>
-    <div id="adminTrafficSources" class="traffic-sources"><small>מקורות כניסה יופיעו לאחר תחילת המדידה.</small></div>
-    <p class="analytics-note">המדידה מציגה 30 יום ומפרידה בין צפייה, לחיצה, הרשמה ותשלום. הרשמה ישנה שלא נשמר לה מקור תופיע כ״ללא שיוך״.</p>
-  </section>
-  <h3 class="admin-subheading">פעילות ותפעול</h3>
-  <div class="admin-grid">
-    <div class="admin-stat card"><small>בעלי עסקים</small><strong id="adminBusinessesCount">0</strong></div>
-    <div class="admin-stat card"><small>כל העבודות</small><strong id="adminJobsCount">0</strong></div>
-    <div class="admin-stat card"><small>מנויים פעילים</small><strong id="adminActiveSubscriptionsCount">0</strong></div>
-    <div class="admin-stat card"><small>חשבונות מושהים</small><strong id="adminSuspendedCount">0</strong></div>
-    <div class="admin-stat card"><small>תשלומים לאישור</small><strong id="adminPendingPaymentsCount">0</strong></div>
-    <div class="admin-stat card"><small>הכנסות ממנויים</small><strong id="adminSubscriptionRevenue">0 ₪</strong></div>
-  </div>
-  <div class="admin-tabs">
-    <button class="admin-tab active" data-admin-tab="jobs">כל העבודות</button>
-    <button class="admin-tab" data-admin-tab="businesses">מנויים ובעלי עסקים</button>
-  </div>
-  <div id="adminJobsPanel" class="admin-panel"><div class="list-toolbar"><b>עבודות בכל הקטגוריות</b><select id="adminTradeFilter"><option value="all">הכול</option><option value="handyman">הנדימן</option><option value="electrician">חשמלאי</option><option value="home">שירותי בית</option><option value="air_conditioning">מיזוג</option></select></div><div id="adminJobsList" class="stack"></div></div>
-  <div id="adminBusinessesPanel" class="admin-panel hidden">
-    <form id="adminBillingSettingsForm" class="card form-card billing-settings-card">
-      <div class="form-step-title"><b>₪</b><div><h3>הגדרות המנוי</h3><p>התשלום של בעל העסק אליך — נפרד מתשלום הלקוח אליו.</p></div></div>
-      <div class="two-cols"><label>מחיר חודשי<input id="adminMonthlyPrice" type="number" min="0" step="1" /></label><label>ימי ניסיון<input id="adminTrialDays" type="number" min="0" max="365" /></label></div>
-      <label>זמן חסד לאחר סיום המנוי — קבוע: 48 שעות<input id="adminGraceDays" type="number" value="2" readonly /></label>
-      <label>קישור תשלום ייעודי של מחירלי בקארדקום<input id="adminSubscriptionPaymentUrl" type="url" placeholder="https://..." /></label>
-      <div id="adminBillingModeStatus" class="payment-connect-status not-connected">חיבור API לקארדקום ממתין לאישור</div>
-      <label>WhatsApp לתמיכה בתשלומים<input id="adminSupportWhatsapp" inputmode="tel" placeholder="לדוגמה: 0501234567" /></label>
-      <button class="primary big" type="submit">שמור הגדרות מנוי</button>
-    </form>
-    <p class="admin-warning">השהיה עוצרת שימוש ויצירת הצעות, אבל אינה מוחקת את בעל העסק, לקוחותיו או עבודותיו. מחיקה היא פעולה נפרדת ולצמיתות.</p>
-    <div id="adminBusinessesList" class="stack"></div>
-  </div>
-</section>
-
-<section id="subscriptionView" class="view"><div class="section-head"><button id="subscriptionBackBtn" class="back" type="button">‹</button><h2>המנוי שלי</h2></div>
-  <div class="subscription-card card">
-    <div id="subscriptionStatusBadge" class="subscription-status">טוען…</div>
-    <h3 id="subscriptionTitle">מנוי מחירלי</h3>
-    <p id="subscriptionMessage"></p>
-    <div id="subscriptionDates" class="subscription-dates"></div>
-    <button id="subscriptionPayBtn" class="primary big hidden" type="button">תשלום מנוי מחירלי — 29 ₪</button>
-    <button id="subscriptionPaidBtn" class="secondary big hidden" type="button">✓ שילמתי — שלח לאישור</button>
-    <a id="subscriptionSupportBtn" class="secondary big pay-link hidden" href="#" target="_blank" rel="noopener">WhatsApp לתמיכה</a>
-    <div id="subscriptionPaymentStatus" class="payment-status hidden"></div>
-    <p class="note">התשלום כאן הוא על השימוש במחירלי. תשלומי הלקוחות ממשיכים להיכנס ישירות לבעל העסק.</p>
-    <button id="subscriptionLogoutBtn" class="logout-link" type="button">התנתק</button>
-  </div>
-</section>
-</main><a id="developerSupportLink" class="developer-support-link hidden" href="#" target="_blank" rel="noopener" aria-label="דיווח תקלה או שיחה עם המפתח ב־WhatsApp">💬 דיווח תקלה / שיחה עם המפתח</a><div id="toast" class="toast"></div></div>
-<script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"></script>
-<script src="app.js?v=60"></script>
-</body></html>
+  <footer><span>© מחירלי מבית רוקח דיגיטל</span><a class="app-link" href="app.html?from=landing#authForm">כניסה למערכת</a></footer>
+  <a class="support" href="https://wa.me/972552715782?text=%F0%9F%9F%A0%20%D7%9E%D7%97%D7%99%D7%A8%D7%9C%D7%99%20%7C%20%D7%A4%D7%A0%D7%99%D7%99%D7%94%20%D7%9E%D7%94%D7%90%D7%AA%D7%A8%0A%0A%D7%A9%D7%9C%D7%95%D7%9D%2C%20%D7%90%D7%A0%D7%99%20%D7%91%D7%A2%D7%9C%2F%D7%AA%20%D7%A2%D7%A1%D7%A7%20%D7%95%D7%A8%D7%95%D7%A6%D7%94%20%D7%9C%D7%91%D7%A8%D7%A8%20%D7%A2%D7%9C%20%D7%9E%D7%97%D7%99%D7%A8%D7%9C%D7%99." target="_blank" rel="noopener" aria-label="שיחה עם מפתח מחירלי ב־WhatsApp">💬 <span>דברו איתנו</span></a>
+  <script>
+    (function(){
+      var current=new URLSearchParams(location.search);
+      document.querySelectorAll('.app-link').forEach(function(link){
+        var url=new URL(link.getAttribute('href'),location.href);
+        current.forEach(function(value,key){if(!url.searchParams.has(key))url.searchParams.set(key,value)});
+        link.href=url.pathname+url.search+url.hash;
+      });
+      document.querySelectorAll('[data-cta]').forEach(function(link){
+        link.addEventListener('click',function(){
+          if(typeof fbq==='function')fbq('trackCustom','MehirliTrialClick',{placement:link.dataset.cta});
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

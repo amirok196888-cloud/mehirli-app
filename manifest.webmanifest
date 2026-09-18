@@ -3,7 +3,7 @@
   "name": "מחירלי",
   "short_name": "מחירלי",
   "description": "מחירלי — מרכז עבודה חכם לבעלי מקצוע בתחומי הבית והמיזוג.",
-  "start_url": "/mehirli-app/",
+  "start_url": "/mehirli-app/app.html",
   "scope": "/mehirli-app/",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],

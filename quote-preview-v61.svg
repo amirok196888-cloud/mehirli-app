@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0d54bc"/><stop offset="1" stop-color="#071b45"/></linearGradient>
+    <linearGradient id="glow" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#4e9cff" stop-opacity=".62"/><stop offset="1" stop-color="#4e9cff" stop-opacity="0"/></linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#00153d" flood-opacity=".38"/></filter>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="140" cy="60" r="290" fill="url(#glow)"/>
+  <circle cx="1120" cy="610" r="330" fill="#0ca771" opacity=".12"/>
+  <image href="icon-512.png" x="110" y="125" width="245" height="245" filter="url(#shadow)"/>
+  <g filter="url(#shadow)">
+    <rect x="525" y="74" width="500" height="482" rx="34" fill="#fff"/>
+    <rect x="565" y="118" width="180" height="24" rx="12" fill="#12315e"/>
+    <rect x="565" y="160" width="350" height="14" rx="7" fill="#d6e0eb"/>
+    <rect x="565" y="188" width="265" height="14" rx="7" fill="#e3eaf1"/>
+    <rect x="565" y="235" width="420" height="126" rx="24" fill="#eaf7f1" stroke="#b8dfcc" stroke-width="3"/>
+    <text x="775" y="286" text-anchor="middle" font-family="Arial,DejaVu Sans,sans-serif" font-size="22" font-weight="700" fill="#527064">TOTAL</text>
+    <text x="775" y="334" text-anchor="middle" font-family="Arial,DejaVu Sans,sans-serif" font-size="46" font-weight="900" fill="#16865b">850 ₪</text>
+    <rect x="565" y="397" width="420" height="62" rx="18" fill="#0e64da"/>
+    <text x="775" y="438" text-anchor="middle" font-family="Arial,DejaVu Sans,sans-serif" font-size="27" font-weight="900" fill="#fff">PDF ↓</text>
+    <circle cx="608" cy="501" r="23" fill="#1caa72"/>
+    <path d="M596 501l8 8 17-19" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="648" y="488" width="250" height="14" rx="7" fill="#cbd7e4"/>
+    <rect x="648" y="514" width="176" height="12" rx="6" fill="#e0e7ef"/>
+  </g>
+  <g fill="#fff" font-family="Arial,DejaVu Sans,sans-serif" text-anchor="middle">
+    <text x="232" y="425" font-size="54" font-weight="900">MEHIRLI</text>
+    <text x="232" y="468" font-size="22" font-weight="700" fill="#d4e5ff">DIGITAL QUOTE</text>
+    <text x="232" y="510" font-size="18" font-weight="700" fill="#ffd738">VIEW · APPROVE · DOWNLOAD</text>
+  </g>
+</svg>

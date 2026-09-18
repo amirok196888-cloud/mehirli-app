@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>קיבלת הצעת מחיר דיגיטלית | מחירלי</title>
+  <meta name="description" content="לצפייה בפרטי ההצעה, אישור והורדת PDF לטלפון." />
+  <meta name="robots" content="noindex,nofollow,noarchive" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="he_IL" />
+  <meta property="og:site_name" content="מחירלי" />
+  <meta property="og:title" content="קיבלת הצעת מחיר דיגיטלית" />
+  <meta property="og:description" content="פותחים לצפייה בפרטי ההצעה, אישור והורדת PDF לטלפון." />
+  <meta property="og:image" content="https://amirok196888-cloud.github.io/mehirli-app/quote-preview-v61.jpg" />
+  <meta property="og:image:secure_url" content="https://amirok196888-cloud.github.io/mehirli-app/quote-preview-v61.jpg" />
+  <meta property="og:image:type" content="image/jpeg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="מחירלי — הצעת מחיר דיגיטלית לצפייה, אישור והורדה" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="קיבלת הצעת מחיר דיגיטלית" />
+  <meta name="twitter:description" content="פותחים לצפייה בפרטי ההצעה, אישור והורדת PDF לטלפון." />
+  <meta name="twitter:image" content="https://amirok196888-cloud.github.io/mehirli-app/quote-preview-v61.jpg" />
+  <meta name="theme-color" content="#071b45" />
+  <style>
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:22px;background:#071b45;color:#fff;font-family:Arial,sans-serif}.box{max-width:520px;text-align:center}.logo{width:92px;height:92px;border-radius:25px;box-shadow:0 18px 45px #0005}.box h1{margin:20px 0 8px;font-size:32px}.box p{margin:0;color:#cbdaf2;line-height:1.6}.btn{display:inline-block;margin-top:22px;padding:14px 22px;border-radius:15px;background:#ffd738;color:#082350;text-decoration:none;font-weight:900}
+  </style>
+  <script>
+    (function(){
+      var token=new URLSearchParams(location.search).get('quote')||'';
+      if(/^[0-9a-f-]{36}$/i.test(token)){
+        location.replace('./app.html?quote='+encodeURIComponent(token));
+      }
+    })();
+  </script>
+</head>
+<body>
+  <main class="box">
+    <img class="logo" src="icon-192.png" alt="מחירלי" />
+    <h1>הצעת מחיר דיגיטלית</h1>
+    <p>צפייה בפרטי ההצעה, אישור והורדת PDF לטלפון.</p>
+    <a id="openQuote" class="btn" href="app.html">פתיחת ההצעה</a>
+  </main>
+  <script>
+    var token=new URLSearchParams(location.search).get('quote')||'';
+    if(/^[0-9a-f-]{36}$/i.test(token))document.getElementById('openQuote').href='app.html?quote='+encodeURIComponent(token);
+  </script>
+</body>
+</html>
