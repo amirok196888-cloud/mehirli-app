@@ -29,7 +29,7 @@
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="apple-touch-icon" sizes="180x180" href="icon-192.png" />
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
-<link rel="stylesheet" href="style.css?v=53" />
+<link rel="stylesheet" href="style.css?v=60" />
 <!-- Meta Pixel: shared Rokach Digital data source; Mehirli conversions are separated by event and content_name. -->
 <script>
 !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -317,7 +317,7 @@ fbq('track','PageView',{content_name:'Mehirli'});
 <label>פירוט ההצעה<textarea id="offerText" placeholder="מה כולל המחיר, תנאים, אחריות וכו'"></textarea></label><label>תאריך הגעה<input id="offerDate" type="date" required /></label><label>שעת הגעה<input id="offerTime" type="time" required /></label><button class="primary big" type="submit">שלח הצעה (הצעה אחת)</button></form></section>
 <section id="profileView" class="view"><div class="section-head"><button class="back">‹</button><h2>פרופיל העסק</h2></div><form id="profileForm" class="card form-card">
 <div class="business-logo-editor"><img id="bizLogoPreview" class="business-logo-preview hidden" alt="לוגו העסק" /><label class="upload-btn">העלאת לוגו<input id="bizLogoInput" type="file" accept="image/png,image/jpeg,image/webp" /></label><button id="removeBizLogoBtn" class="ghost hidden" type="button">הסר לוגו</button></div>
-<label>שם העסק<input id="bizName" required /></label><div class="two-cols"><label>שם משפטי / עוסק<input id="bizLegalName" /></label><label>מספר עוסק / ח.פ.<input id="bizNumber" inputmode="numeric" /></label></div><div class="two-cols"><label>אימייל עסקי<input id="bizEmail" type="email" /></label><label>כתובת העסק<input id="bizAddress" /></label></div><label>תחום עיקרי<select id="bizCategory"><option>הנדימן</option><option>חשמלאי</option><option>לבית</option><option>מיזוג</option></select></label><label>על העסק<textarea id="bizAbout"></textarea></label><label>אזורי שירות<input id="bizArea" placeholder="נתניה, חדרה והשרון" /></label><label>מספר WhatsApp של העסק<input id="bizPhone" inputmode="tel" required placeholder="לדוגמה: 0501234567" /></label><p class="note">הפרטים והלוגו יופיעו בהצעות המחיר. מספר WhatsApp מאפשר ללקוח לחזור אליך.</p><button class="primary big" type="submit">שמור פרופיל</button></form></section>
+<label>שם העסק<input id="bizName" required /></label><div class="two-cols"><label>שם משפטי / סוג העוסק<input id="bizLegalName" placeholder="לדוגמה: ישראל ישראלי — עוסק מורשה" /></label><label>מספר עוסק / ח.פ.<input id="bizNumber" inputmode="numeric" /></label></div><div class="two-cols"><label>אימייל עסקי<input id="bizEmail" type="email" /></label><label>כתובת העסק<input id="bizAddress" /></label></div><label>תחום עיקרי<select id="bizCategory"><option>הנדימן</option><option>חשמלאי</option><option>לבית</option><option>מיזוג</option></select></label><label>על העסק<textarea id="bizAbout"></textarea></label><label>אזורי שירות<input id="bizArea" placeholder="נתניה, חדרה והשרון" /></label><label>מספר WhatsApp של העסק<input id="bizPhone" inputmode="tel" required placeholder="לדוגמה: 0501234567" /></label><p class="note">הלוגו, השם המשפטי, מספר העוסק, הכתובת, האימייל והטלפון יופיעו בהצעת המחיר וב־PDF. חשבוניות מס וקבלות חייבות להיות מופקות במערכת החשבוניות או הסליקה המורשית של העסק.</p><button class="primary big" type="submit">שמור פרופיל</button></form></section>
 
 <section id="adminView" class="view"><div class="section-head"><button class="back">‹</button><div><span class="eyebrow">גישה מלאה</span><h2>ניהול מחירלי</h2></div></div>
   <div id="adminLoading" class="admin-loading hidden">טוען את נתוני הניהול…</div>
@@ -377,7 +377,7 @@ fbq('track','PageView',{content_name:'Mehirli'});
     <button id="subscriptionLogoutBtn" class="logout-link" type="button">התנתק</button>
   </div>
 </section>
-</main><div id="toast" class="toast"></div></div>
+</main><a id="developerSupportLink" class="developer-support-link hidden" href="#" target="_blank" rel="noopener" aria-label="דיווח תקלה או שיחה עם המפתח ב־WhatsApp">💬 דיווח תקלה / שיחה עם המפתח</a><div id="toast" class="toast"></div></div>
 <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"></script>
-<script src="app.js?v=59"></script>
+<script src="app.js?v=60"></script>
 </body></html>
