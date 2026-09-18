@@ -68,6 +68,8 @@ button,select,input,textarea{font:inherit}
 .home-hero .role-switch{margin:18px 0 9px;background:rgba(2,10,20,.38);border-color:rgba(255,255,255,.06)}
 .home-hero .role{min-height:44px}
 .logout-link{display:block;margin:4px auto 0;padding:7px 11px;border:0;background:transparent;color:#8093aa;font-size:12px;text-decoration:underline;text-underline-offset:3px}
+.developer-support-link{position:fixed;left:max(14px,env(safe-area-inset-left));bottom:max(14px,env(safe-area-inset-bottom));z-index:120;display:flex;align-items:center;justify-content:center;min-height:48px;padding:10px 16px;border:1px solid #8fd6aa;border-radius:999px;background:linear-gradient(135deg,#27b864,#128c4a);color:#fff;font-size:14px;font-weight:900;text-decoration:none;box-shadow:0 12px 30px rgba(18,140,74,.3)}
+.developer-support-link:hover,.developer-support-link:focus-visible{filter:brightness(1.06);outline:3px solid rgba(39,184,100,.24);outline-offset:3px}
 .home-section-title{display:flex;justify-content:space-between;align-items:end;margin:0 4px 10px}.home-section-title b{font-size:18px}.home-section-title span{font-size:11px;color:#7f92a9}
 #homeView .category-grid{gap:10px;margin-top:0}
 #homeView .category{min-height:142px;border-radius:26px;border-color:rgba(170,201,228,.13);padding:16px;background:linear-gradient(145deg,rgba(24,45,72,.92),rgba(11,25,43,.94));transform:translateZ(0)}
@@ -85,6 +87,8 @@ button,select,input,textarea{font:inherit}
 #proHome .credits strong{color:#76e6b6}
 #proHome .big{border-radius:19px}
 @media(max-width:430px){.home-hero{padding:22px 17px 17px;border-radius:26px}.home-hero h2{font-size:29px}#homeView .category{min-height:136px;border-radius:23px}#homeView .category span{width:46px;height:46px;border-radius:15px}}
+@media(max-width:430px){.developer-support-link{left:max(9px,env(safe-area-inset-left));bottom:max(9px,env(safe-area-inset-bottom));min-height:44px;padding:9px 12px;font-size:12px}}
+.public-business-details{margin:8px 0 16px;padding:12px 14px;border:1px solid #dce5ea;border-radius:14px;background:#f7fafb;color:#536274;font-size:13px;line-height:1.65}.public-business-details b{display:block;color:#284635;font-size:15px}.public-business-details a{color:#176ca0;overflow-wrap:anywhere}
 
 
 /* V9 — simple PayBox payment flow */
