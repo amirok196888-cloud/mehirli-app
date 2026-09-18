@@ -259,6 +259,7 @@ async function loadMe(){
   }
   state.profile=p;state.role=state.isAdmin?'admin':'pro';
   const {data:bp}=await db.from('business_profiles').select('*').eq('user_id',state.user.id).maybeSingle();state.businessProfile=bp||null;
+  refreshDeveloperSupportLink();
   await loadSubscription();
   const ab=$('#adminBtn');if(ab)ab.classList.toggle('hidden',!state.isAdmin);
   const wn=$('#whatsappSetupNotice');if(wn)wn.classList.toggle('hidden',!!String(bp?.business_phone||'').trim());
@@ -273,8 +274,8 @@ $$('[data-open-legal]').forEach(button=>button.onclick=()=>{const active=$('.vie
 $('#legalInfoBackBtn').onclick=()=>show(legalReturnView||'#authView');
 $('#existingLegalConsent').onchange=e=>$('#acceptLegalConsentBtn').disabled=!e.target.checked;
 $('#acceptLegalConsentBtn').onclick=async()=>{const button=$('#acceptLegalConsentBtn');if(!$('#existingLegalConsent').checked)return;button.disabled=true;button.textContent='שומר את האישור…';const {error}=await db.rpc('accept_legal_terms_v40',{p_document_version:LEGAL_VERSION,p_accepted_via:'app'});button.textContent='אישור והמשך למחירלי';if(error){toast('לא ניתן לשמור את האישור: '+error.message);button.disabled=false;return}await routeAfterLogin()};
-$('#legalConsentLogoutBtn').onclick=async()=>{stopNotificationPolling();await db.auth.signOut();state.user=null;show('#authView')};
-$('#logoutBtn').onclick=async()=>{stopNotificationPolling();await db.auth.signOut();state.user=null;show('#authView')};
+$('#legalConsentLogoutBtn').onclick=async()=>{stopNotificationPolling();await db.auth.signOut();state.user=null;refreshDeveloperSupportLink();show('#authView')};
+$('#logoutBtn').onclick=async()=>{stopNotificationPolling();await db.auth.signOut();state.user=null;refreshDeveloperSupportLink();show('#authView')};
 $$('.category').forEach(b=>b.onclick=()=>{$('#reqCategory').value=b.dataset.category;show('#requestView')});
 $('#profileBtn').onclick=async()=>{if(!requireServiceAccess())return;await fillProfile();show('#profileView')};$$('.back:not(#legalInfoBackBtn)').forEach(b=>b.onclick=async()=>{if(!state.isAdmin&&!hasServiceAccess()){await openSubscription()}else if(b.dataset.backTo==='workspace'){await openProWorkspace()}else show('#homeView')});
 $('#whatsappSetupNotice').onclick=async()=>{if(!requireServiceAccess())return;await fillProfile();show('#profileView')};
@@ -467,6 +468,16 @@ function whatsappUrl(phone,message){const number=waNumber(phone);return number?`
 function openWhatsapp(phone,message){const url=whatsappUrl(phone,message);if(!url){toast('חסר מספר טלפון ללקוח');return false}window.location.assign(url);return true}
 const mehirliSupportLink=$('#mehirliSupportLink');
 if(mehirliSupportLink)mehirliSupportLink.href=whatsappUrl(ROKACH_DIGITAL_WHATSAPP,'🟠 מחירלי | פנייה לתמיכה\n\nשלום, הגעתי מאתר מחירלי וברצוני לקבל עזרה.');
+function developerSupportMessage(){
+  const business=state.businessProfile?.business_name||state.profile?.full_name||'לא הוגדר';
+  const email=state.user?.email||'לא הוגדר';
+  return `🟠 מחירלי | תמיכה לבעל עסק\n\nשלום עמוס, אני משתמש/ת במחירלי.\nשם העסק: ${business}\nאימייל החשבון: ${email}\n\nסוג הפנייה: תקלה / הערה / הצעה לשיפור\nתיאור: `
+}
+function refreshDeveloperSupportLink(){
+  const link=$('#developerSupportLink');if(!link)return;
+  link.classList.toggle('hidden',!state.user);
+  if(state.user)link.href=whatsappUrl(ROKACH_DIGITAL_WHATSAPP,developerSupportMessage())
+}
 function questionMessage(job){return `🟠 מחירלי | השלמת פרטים להצעת מחיר\n\nשלום ${job.customer_name}, כדי להכין את העבודה והמחיר בצורה מדויקת אשמח למענה קצר:\n\n${(job.customer_questions||[]).map((q,i)=>`${i+1}. ${q}`).join('\n')}\n\nתודה, ${state.businessProfile?.business_name||state.profile?.full_name||'מחירלי'}\n\nנשלח באמצעות מחירלי`}
 function quoteMessage(job){return `🟠 מחירלי | הצעת מחיר\n\nשלום ${job.customer_name}, הכנתי עבורך הצעת מחיר עבור: ${job.description}\n\nמחיר: ${money(job.quoted_price)}${Number(job.deposit_amount)>0?`\nמקדמה: ${money(job.deposit_amount)}`:''}\n\nלצפייה ואישור ההצעה:\n${quoteUrl(job)}\n\nנשלח באמצעות מחירלי`}
 function storedQuoteMessage(job){return `🟠 מחירלי | הצעת מחיר\n\nשלום ${job.customer_name}, הכנתי עבורך הצעת מחיר עבור: ${job.description}\n\nמחיר: ${money(job.quoted_price)}${Number(job.deposit_amount)>0?`\nמקדמה: ${money(job.deposit_amount)}`:''}\n\nלאישור ההצעה:\n${quoteUrl(job)}\n\nקובץ הצעת המחיר מצורף כ־PDF.\n\nנשלח באמצעות מחירלי`}
@@ -481,7 +492,7 @@ function pdfFlowText(value){
 }
 function quotePdfElement(job,pdfOptions={}){
   const business=pdfOptions.businessName||state.businessProfile?.business_name||state.profile?.full_name||'בעל מקצוע';
-  const businessPhone=pdfOptions.businessPhone??state.businessProfile?.business_phone??'',logo=pdfOptions.logoUrl??businessLogoUrl(),legal=pdfOptions.legalText??[state.businessProfile?.legal_name,state.businessProfile?.business_number&&`עוסק/ח.פ. ${state.businessProfile.business_number}`,state.businessProfile?.business_address].filter(Boolean).join(' · '),items=job.items||[];
+  const businessPhone=pdfOptions.businessPhone??state.businessProfile?.business_phone??'',logo=pdfOptions.logoUrl??businessLogoUrl(),legal=pdfOptions.legalText??[state.businessProfile?.legal_name,state.businessProfile?.business_number&&`עוסק/ח.פ. ${state.businessProfile.business_number}`,state.businessProfile?.business_address,state.businessProfile?.business_email&&`אימייל ${state.businessProfile.business_email}`].filter(Boolean).join(' · '),items=job.items||[];
   const paymentLink=safePaymentUrl(pdfOptions.paymentLink??state.proSettings?.payment_link),paymentProvider=pdfOptions.paymentProvider??paymentProviderLabel(state.proSettings?.payment_provider),approvalUrl=pdfOptions.approvalUrl||quoteUrl(job),paymentHeading=paymentProvider?`תשלום ישיר לבית העסק באמצעות ${paymentProvider}`:'קישור לתשלום';
   const licenseNumber=pdfOptions.licenseNumber??state.proSettings?.electrician_license_number;
   const license=job.trade==='electrician'&&licenseNumber?`<div style="margin-top:5px;color:#536274;font-size:14px">רישיון חשמלאי: ${esc(licenseNumber)}</div>`:'';
@@ -762,11 +773,13 @@ function publicQuotePdfElement(q,token){
     quantity:Number(item.quantity)||1,
     unit_price:Number(item.unit_price)||Number(item.line_total)||0
   }));
+  const logoUrl=q.logo_path?db.storage.from('business-logos').getPublicUrl(q.logo_path).data?.publicUrl||'':'';
+  const legalText=[q.legal_name,q.business_number&&`עוסק/ח.פ. ${q.business_number}`,q.business_address,q.business_email&&`אימייל ${q.business_email}`].filter(Boolean).join(' · ');
   return quotePdfElement({...q,items,public_token:token},{
     businessName:q.business_name||'בעל מקצוע',
     businessPhone:q.business_phone||'',
-    logoUrl:'',
-    legalText:'',
+    logoUrl,
+    legalText,
     licenseNumber:q.electrician_license_number||'',
     approvalUrl:`${location.origin}${location.pathname}?quote=${token}`,
     paymentLink:q.payment_link||'',
@@ -785,8 +798,8 @@ async function downloadPublicQuotePdf(q,token,button){
 async function loadPublicQuote(token){
   const box=$('#publicQuoteContent');show('#publicQuoteView');box.innerHTML='<div class="card public-quote-card"><h2>טוען הצעת מחיר…</h2></div>';
   const {data,error}=await db.rpc('get_public_job_quote',{p_token:token});const q=Array.isArray(data)?data[0]:data;if(error||!q){box.innerHTML='<div class="card public-quote-card"><h2>ההצעה אינה זמינה</h2><p>הקישור שגוי או שההצעה בוטלה.</p></div>';return}
-  const approved=['approved','scheduled','in_progress','completed','paid'].includes(q.status),lic=q.trade==='electrician'&&q.electrician_license_number?`<span class="badge">רישיון חשמלאי ${esc(q.electrician_license_number)}</span>`:'',paymentLink=safePaymentUrl(q.payment_link),businessWhatsapp=waNumber(q.business_phone||''),paymentAmount=Number(q.deposit_amount)>0?Number(q.deposit_amount):Number(q.quoted_price),paymentLabel=Number(q.deposit_amount)>0?`שלם מקדמה ${money(paymentAmount)}`:`שלם ${money(paymentAmount)}`,logo=q.logo_path?db.storage.from('business-logos').getPublicUrl(q.logo_path).data?.publicUrl:'',items=Array.isArray(q.items)?q.items:[];
-  box.innerHTML=`<div class="public-quote-brand">מחירלי <small>הצעת מחיר דיגיטלית</small></div><div class="card public-quote-card">${logo?`<img class="public-business-logo" src="${esc(logo)}" alt="לוגו ${esc(q.business_name)}">`:''}<div class="trade-badge ${q.trade}">${tradeIcon(q.trade)} ${tradeHe[q.trade]||'בעל מקצוע'}</div><span class="quote-number">הצעה מס׳ ${esc(q.quote_number||'')}</span><h2>שלום ${esc(q.customer_name)}</h2><p class="quote-intro">${esc(q.business_name)} הכין עבורך הצעת מחיר.</p><div class="quote-description"><small>עבור</small><b>${esc(q.description)}</b><p>${esc(q.quote_scope||'')}</p></div>${items.length?`<div class="quote-items-view">${items.map(i=>`<div><span>${esc(i.description)} · ${Number(i.quantity)}</span><b>${money(i.line_total)}</b></div>`).join('')}</div>`:''}<div class="public-price"><small>מחיר ההצעה</small>${Number(q.discount_amount)>0?`<span><s>${money(q.subtotal)}</s> · הנחה ${money(q.discount_amount)}</span>`:''}<strong>${money(q.quoted_price)}</strong>${Number(q.deposit_amount)>0?`<span>מקדמה: ${money(q.deposit_amount)}</span>`:''}</div><div class="badges">${lic}${q.scheduled_at?`<span class="badge">🗓️ ${esc(formatDateTime(q.scheduled_at))}</span>`:''}${q.quote_valid_until?`<span class="badge">בתוקף עד ${esc(formatDate(q.quote_valid_until))}</span>`:''}</div>${q.warranty_text?`<p><b>אחריות:</b> ${esc(q.warranty_text)}</p>`:''}${q.quote_terms?`<div class="terms-box">${esc(q.quote_terms)}</div>`:''}<button id="downloadPublicQuotePdfBtn" class="secondary big">📄 הורד הצעת מחיר כ־PDF</button>${approved?'<div class="approved-box">✓ ההצעה אושרה</div>':'<label class="quote-approval-consent"><input id="publicQuoteConsent" type="checkbox"><span>אני מאשר/ת שקראתי את היקף העבודה, המחיר, התוקף והתנאים המופיעים בהצעה.</span></label><button id="approvePublicQuoteBtn" class="primary big" disabled>אישור הצעת המחיר</button>'}<div class="public-contact-actions">${businessWhatsapp?`<a class="secondary big pay-link" target="_blank" rel="noopener" href="https://wa.me/${esc(businessWhatsapp)}?text=${encodeURIComponent(`🟠 מחירלי | שאלה על הצעת מחיר\n\nשלום, קיבלתי את הצעת המחיר${q.quote_number?' מס׳ '+q.quote_number:''} דרך מחירלי וברצוני לברר:`)}">💬 WhatsApp לבעל העסק</a>`:''}${approved&&paymentLink?`<a class="primary big pay-link customer-payment-button" target="_blank" rel="noopener" href="${esc(paymentLink)}">💳 ${paymentLabel} ישירות לבית העסק</a><p class="direct-payment-note">התשלום מתבצע באתר חברת הסליקה של ${esc(q.business_name)}. מחירלי אינה מקבלת את הכסף.</p>`:''}</div><p class="note">האישור מתייחס להיקף העבודה ולתנאים המופיעים בהצעה.</p></div>`;
+  const approved=['approved','scheduled','in_progress','completed','paid'].includes(q.status),lic=q.trade==='electrician'&&q.electrician_license_number?`<span class="badge">רישיון חשמלאי ${esc(q.electrician_license_number)}</span>`:'',paymentLink=safePaymentUrl(q.payment_link),businessWhatsapp=waNumber(q.business_phone||''),paymentAmount=Number(q.deposit_amount)>0?Number(q.deposit_amount):Number(q.quoted_price),paymentLabel=Number(q.deposit_amount)>0?`שלם מקדמה ${money(paymentAmount)}`:`שלם ${money(paymentAmount)}`,logo=q.logo_path?db.storage.from('business-logos').getPublicUrl(q.logo_path).data?.publicUrl:'',items=Array.isArray(q.items)?q.items:[],businessDetails=[q.legal_name,q.business_number&&`עוסק/ח.פ. ${q.business_number}`,q.business_address,q.business_email,q.business_phone].filter(Boolean);
+  box.innerHTML=`<div class="public-quote-brand">מחירלי <small>הצעת מחיר דיגיטלית</small></div><div class="card public-quote-card">${logo?`<img class="public-business-logo" src="${esc(logo)}" alt="לוגו ${esc(q.business_name)}">`:''}<div class="trade-badge ${q.trade}">${tradeIcon(q.trade)} ${tradeHe[q.trade]||'בעל מקצוע'}</div><span class="quote-number">הצעה מס׳ ${esc(q.quote_number||'')}</span><h2>שלום ${esc(q.customer_name)}</h2><p class="quote-intro">${esc(q.business_name)} הכין עבורך הצעת מחיר.</p>${businessDetails.length?`<div class="public-business-details"><b>${esc(q.business_name)}</b>${businessDetails.map(detail=>`<div>${esc(detail)}</div>`).join('')}</div>`:''}<div class="quote-description"><small>עבור</small><b>${esc(q.description)}</b><p>${esc(q.quote_scope||'')}</p></div>${items.length?`<div class="quote-items-view">${items.map(i=>`<div><span>${esc(i.description)} · ${Number(i.quantity)}</span><b>${money(i.line_total)}</b></div>`).join('')}</div>`:''}<div class="public-price"><small>מחיר ההצעה</small>${Number(q.discount_amount)>0?`<span><s>${money(q.subtotal)}</s> · הנחה ${money(q.discount_amount)}</span>`:''}<strong>${money(q.quoted_price)}</strong>${Number(q.deposit_amount)>0?`<span>מקדמה: ${money(q.deposit_amount)}</span>`:''}</div><div class="badges">${lic}${q.scheduled_at?`<span class="badge">🗓️ ${esc(formatDateTime(q.scheduled_at))}</span>`:''}${q.quote_valid_until?`<span class="badge">בתוקף עד ${esc(formatDate(q.quote_valid_until))}</span>`:''}</div>${q.warranty_text?`<p><b>אחריות:</b> ${esc(q.warranty_text)}</p>`:''}${q.quote_terms?`<div class="terms-box">${esc(q.quote_terms)}</div>`:''}<button id="downloadPublicQuotePdfBtn" class="secondary big">📄 הורד הצעת מחיר כ־PDF</button>${approved?'<div class="approved-box">✓ ההצעה אושרה</div>':'<label class="quote-approval-consent"><input id="publicQuoteConsent" type="checkbox"><span>אני מאשר/ת שקראתי את היקף העבודה, המחיר, התוקף והתנאים המופיעים בהצעה.</span></label><button id="approvePublicQuoteBtn" class="primary big" disabled>אישור הצעת המחיר</button>'}<div class="public-contact-actions">${businessWhatsapp?`<a class="secondary big pay-link" target="_blank" rel="noopener" href="https://wa.me/${esc(businessWhatsapp)}?text=${encodeURIComponent(`🟠 מחירלי | שאלה על הצעת מחיר\n\nשלום, קיבלתי את הצעת המחיר${q.quote_number?' מס׳ '+q.quote_number:''} דרך מחירלי וברצוני לברר:`)}">💬 WhatsApp לבעל העסק</a>`:''}${approved&&paymentLink?`<a class="primary big pay-link customer-payment-button" target="_blank" rel="noopener" href="${esc(paymentLink)}">💳 ${paymentLabel} ישירות לבית העסק</a><p class="direct-payment-note">התשלום מתבצע באתר חברת הסליקה של ${esc(q.business_name)}. מחירלי אינה מקבלת את הכסף.</p>`:''}</div><p class="note">האישור מתייחס להיקף העבודה ולתנאים המופיעים בהצעה.</p></div>`;
   const pdfBtn=$('#downloadPublicQuotePdfBtn');if(pdfBtn)pdfBtn.onclick=()=>downloadPublicQuotePdf(q,token,pdfBtn);
   const btn=$('#approvePublicQuoteBtn'),consent=$('#publicQuoteConsent');if(btn&&consent){consent.onchange=()=>btn.disabled=!consent.checked;btn.onclick=async()=>{if(!consent.checked)return;btn.disabled=true;btn.textContent='מאשר…';const {error}=await db.rpc('approve_public_job_quote_v40',{p_token:token,p_consent_version:QUOTE_CONSENT_VERSION});if(error){toast('לא ניתן לאשר: '+error.message);btn.disabled=false;btn.textContent='אישור הצעת המחיר';return}toast('ההצעה אושרה בהצלחה');await loadPublicQuote(token)}}
 }
@@ -890,7 +903,7 @@ async function openSubscription(){
 }
 $('#subscriptionBtn').onclick=openSubscription;$('#subscriptionBanner').onclick=openSubscription;
 $('#subscriptionBackBtn').onclick=()=>hasServiceAccess()?show('#homeView'):openSubscription();
-$('#subscriptionLogoutBtn').onclick=async()=>{stopNotificationPolling();await db.auth.signOut();state.user=null;show('#authView')};
+$('#subscriptionLogoutBtn').onclick=async()=>{stopNotificationPolling();await db.auth.signOut();state.user=null;refreshDeveloperSupportLink();show('#authView')};
 $('#subscriptionPayBtn').onclick=async()=>{
   const s=state.subscription||{},button=$('#subscriptionPayBtn');
   if(s.payment_mode!=='cardcom'){
