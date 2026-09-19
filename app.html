@@ -126,7 +126,7 @@ fbq('track','PageView',{content_name:'Mehirli'});
         <div><b>3</b><span>שליחת הצעה דיגיטלית ב־WhatsApp</span></div>
       </div>
     </div>
-    <div class="home-primary-actions"><button id="homeNewJobBtn" class="primary big" type="button">＋ עבודה חדשה</button><button id="proWorkspaceBtn" class="secondary big" type="button">📋 כל העבודות שלי</button></div>
+    <div class="home-primary-actions"><button id="homeNewJobBtn" class="primary big" type="button">＋ עבודה חדשה</button><button id="sampleQuoteBtn" class="secondary big" type="button">👁️ הצעת מחיר לדוגמה</button><button id="proWorkspaceBtn" class="secondary big" type="button">📋 כל העבודות שלי</button></div>
     <button id="whatsappSetupNotice" class="whatsapp-setup big hidden" type="button">💬 להפעלת WhatsApp ללקוחות — הוסף מספר עסקי</button>
     <button id="profileBtn" class="profile-entry big" type="button">🏪 פרטי העסק, WhatsApp ותשלום</button><button id="subscriptionBtn" class="subscription-entry big" type="button">💳 המנוי שלי</button><button id="adminBtn" class="admin-entry big hidden" type="button">⚙️ כניסת מנהל — כל הקטגוריות</button>
   </div>
@@ -326,11 +326,15 @@ fbq('track','PageView',{content_name:'Mehirli'});
     <div class="admin-funnel-grid">
       <div class="funnel-stat"><span>👀</span><small>מבקרים ייחודיים</small><strong id="adminUniqueVisitors">0</strong></div>
       <div class="funnel-stat intent"><span>👆</span><small>לחצו התחלת ניסיון</small><strong id="adminTrialClicks">0</strong></div>
+      <div class="funnel-stat"><span>📝</span><small>פתחו טופס הרשמה</small><strong id="adminFormOpens">0</strong></div>
+      <div class="funnel-stat"><span>⌨️</span><small>ניסו להירשם</small><strong id="adminSignupAttempts">0</strong></div>
       <div class="funnel-stat"><span>🎁</span><small>נרשמו בהצלחה</small><strong id="adminTrialSignups">0</strong></div>
+      <div class="funnel-stat"><span>🧰</span><small>יצרו עבודה ראשונה</small><strong id="adminFirstJobs">0</strong></div>
+      <div class="funnel-stat"><span>💬</span><small>פתחו שליחת הצעה</small><strong id="adminQuoteSends">0</strong></div>
       <div class="funnel-stat"><span>📲</span><small>התקינו בטלפון</small><strong id="adminAppInstalls">0</strong></div>
       <div class="funnel-stat paid"><span>✓</span><small>הפכו למשלמים</small><strong id="adminPayingCustomers">0</strong></div>
     </div>
-    <div class="conversion-row"><span>כניסה ← לחיצה <b id="adminVisitClickConversion">0%</b></span><span>לחיצה ← הרשמה <b id="adminClickTrialConversion">0%</b></span><span>הרשמה ← תשלום <b id="adminTrialPaidConversion">0%</b></span></div>
+    <div class="conversion-row"><span>כניסה ← לחיצה <b id="adminVisitClickConversion">0%</b></span><span>לחיצה ← הרשמה <b id="adminClickTrialConversion">0%</b></span><span>הרשמה ← עבודה ראשונה <b id="adminTrialJobConversion">0%</b></span><span>הרשמה ← תשלום <b id="adminTrialPaidConversion">0%</b></span></div>
     <div id="adminTrafficSources" class="traffic-sources"><small>מקורות כניסה יופיעו לאחר תחילת המדידה.</small></div>
     <p class="analytics-note">המדידה מציגה 30 יום ומפרידה בין צפייה, לחיצה, הרשמה ותשלום. הרשמה ישנה שלא נשמר לה מקור תופיע כ״ללא שיוך״.</p>
   </section>
@@ -379,6 +383,5 @@ fbq('track','PageView',{content_name:'Mehirli'});
 </section>
 </main><a id="developerSupportLink" class="developer-support-link hidden" href="#" target="_blank" rel="noopener" aria-label="דיווח תקלה או שיחה עם המפתח ב־WhatsApp">💬 דיווח תקלה / שיחה עם המפתח</a><div id="toast" class="toast"></div></div>
 <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"></script>
-<script src="app.js?v=61"></script>
+<script src="app.js?v=63"></script>
 </body></html>
-
