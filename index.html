@@ -35,6 +35,7 @@
   fbq('init','1944984039489234');
   fbq('track','PageView',{content_name:'Mehirli Landing'});
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
   <header class="site-header">
@@ -104,6 +105,12 @@
   <a class="support" href="https://wa.me/972552715782?text=%F0%9F%9F%A0%20%D7%9E%D7%97%D7%99%D7%A8%D7%9C%D7%99%20%7C%20%D7%A4%D7%A0%D7%99%D7%99%D7%94%20%D7%9E%D7%94%D7%90%D7%AA%D7%A8%0A%0A%D7%A9%D7%9C%D7%95%D7%9D%2C%20%D7%90%D7%A0%D7%99%20%D7%91%D7%A2%D7%9C%2F%D7%AA%20%D7%A2%D7%A1%D7%A7%20%D7%95%D7%A8%D7%95%D7%A6%D7%94%20%D7%9C%D7%91%D7%A8%D7%A8%20%D7%A2%D7%9C%20%D7%9E%D7%97%D7%99%D7%A8%D7%9C%D7%99." target="_blank" rel="noopener" aria-label="שיחה עם מפתח מחירלי ב־WhatsApp">💬 <span>דברו איתנו</span></a>
   <script>
     (function(){
+      var analytics=window.supabase.createClient('https://jgnbcrlvsudfqfofmvlx.supabase.co','sb_publishable_WnOhGZSlik7zqpO-cRYGvA_lOUz68Wp');
+      var visitorKey='mehirli_visitor_v1',attributionKey='mehirli_attribution_v2';
+      function visitorId(){var id='';try{id=localStorage.getItem(visitorKey)||''}catch(e){}if(!/^[0-9a-f-]{36}$/i.test(id)){id=crypto.randomUUID();try{localStorage.setItem(visitorKey,id)}catch(e){}}return id}
+      function attribution(){var p=new URLSearchParams(location.search),campaign=p.get('utm_campaign')||'',raw=(p.get('utm_source')||p.get('source')||p.get('from')||'').toLowerCase();var source=raw||'direct';if(['fb','facebook','facebook.com','m.facebook.com','l.facebook.com'].includes(source))source=campaign?'meta_paid':'facebook_organic';if(['ig','instagram','instagram.com','l.instagram.com'].includes(source))source=campaign?'meta_paid':'instagram_organic';if(source.indexOf('tiktok')>=0)source=campaign?'tiktok_paid':'tiktok_organic';var value={source:source,campaign:campaign};if(raw){try{localStorage.setItem(attributionKey,JSON.stringify(value))}catch(e){}return value}try{return JSON.parse(localStorage.getItem(attributionKey)||'null')||value}catch(e){return value}}
+      function track(name){var a=attribution();return analytics.rpc('track_app_event_v40',{p_visitor_id:visitorId(),p_event_name:name,p_source:a.source,p_campaign:a.campaign})}
+      track('landing_page_view');
       var current=new URLSearchParams(location.search);
       document.querySelectorAll('.app-link').forEach(function(link){
         var url=new URL(link.getAttribute('href'),location.href);
@@ -111,8 +118,11 @@
         link.href=url.pathname+url.search+url.hash;
       });
       document.querySelectorAll('[data-cta]').forEach(function(link){
-        link.addEventListener('click',function(){
+        link.addEventListener('click',async function(event){
+          event.preventDefault();var target=link.href;
           if(typeof fbq==='function')fbq('trackCustom','MehirliTrialClick',{placement:link.dataset.cta});
+          await Promise.race([track('landing_cta_click'),new Promise(function(resolve){setTimeout(resolve,700)})]);
+          location.assign(target);
         });
       });
       var video=document.querySelector('.landing-video');
