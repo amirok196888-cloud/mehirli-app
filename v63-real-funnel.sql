@@ -1,5 +1,15 @@
 -- V63: measure the real journey from landing page to first customer quote.
 
+alter table public.app_analytics_events
+  drop constraint if exists app_analytics_events_event_name_check;
+alter table public.app_analytics_events
+  add constraint app_analytics_events_event_name_check check (event_name in (
+    'page_view','landing_page_view','landing_cta_click','signup_form_open',
+    'signup_attempt','trial_signup','trial_activated','app_open','account_active',
+    'first_job_created','quote_send_opened','app_installed','standalone_open',
+    'payment_started','payment_completed'
+  ));
+
 create or replace function public.track_app_event_v40(
   p_visitor_id uuid,
   p_event_name text,
