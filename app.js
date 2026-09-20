@@ -193,7 +193,24 @@ function renderSubscriptionBanner(){
 async function routeAfterLogin(){
   if(!state.isAdmin&&!(await ensureLegalConsent()))return;
   if(!state.isAdmin&&!hasServiceAccess()){await openSubscription();return}
+  if(!state.isAdmin&&state.user?.user_metadata?.install_onboarding_pending===true){
+    if(isStandaloneMode()){await finishInstallOnboarding();return}
+    updateInstallOnboardingCopy();show('#installOnboardingView');return
+  }
   show('#homeView')
+}
+async function finishInstallOnboarding(){
+  if(!state.user){show('#homeView');return}
+  const metadata={...(state.user.user_metadata||{}),install_onboarding_pending:false,install_onboarding_completed_at:new Date().toISOString()};
+  const {data,error}=await db.auth.updateUser({data:metadata});
+  if(!error&&data?.user)state.user=data.user;
+  if(error)console.warn('install onboarding metadata was not saved',error.message);
+  show('#homeView')
+}
+function updateInstallOnboardingCopy(){
+  const button=$('#installOnboardingBtn'),hint=$('#installOnboardingHint');if(!button)return;
+  button.textContent=isIosDevice()?' הוראות התקנה באייפון':'⬇ התקנת מחירלי בטלפון';
+  if(hint)hint.textContent=isIosDevice()?'באייפון מתקינים דרך Safari: שיתוף ← הוספה למסך הבית.':'ההתקנה אינה מחייבת בתשלום. אפשר להסיר את מחירלי בכל עת.'
 }
 async function ensureLegalConsent(){
   const {data,error}=await db.rpc('has_accepted_legal_terms_v40',{p_document_version:LEGAL_VERSION});
@@ -283,7 +300,7 @@ async function loadMe(){
 }
 async function boot(){updateGreeting();trackAppEvent('app_open');if(new URLSearchParams(location.search).get('from')==='landing')trackAppEvent('signup_form_open');if(isStandaloneMode())trackAppEvent('standalone_open');const quoteToken=currentPublicQuoteToken();if(quoteToken){await loadPublicQuote(quoteToken);return}const {data:{session}}=await db.auth.getSession();state.user=session?.user||null;if(state.user){await loadMe();trackAppEvent('account_active');if(paymentReturn())await handlePaymentReturn();else await routeAfterLogin()}else show('#authView')}
 $('#authForm').onsubmit=async e=>{e.preventDefault();$('#authNote').textContent='מתחבר…';const {data,error}=await db.auth.signInWithPassword({email:$('#authEmail').value.trim(),password:$('#authPassword').value});if(error){$('#authNote').textContent=authErrorMessage(error);return}state.user=data.user;await loadMe();$('#authNote').textContent='';if(paymentReturn())await handlePaymentReturn();else await routeAfterLogin()};
-$('#signupBtn').onclick=async()=>{const email=$('#authEmail').value.trim(),password=$('#authPassword').value,name=$('#authName').value.trim(),role='professional';if(!email||password.length<6){toast('הזן אימייל וסיסמה של לפחות 6 תווים');return}if(!$('#signupLegalConsent').checked){toast('כדי להירשם יש לאשר את תנאי השימוש ומדיניות הפרטיות');return}trackAppEvent('signup_attempt');const {data,error}=await db.auth.signUp({email,password,options:{data:{role,full_name:name,legal_version:LEGAL_VERSION,legal_accepted_at:new Date().toISOString()}}});if(error){const message=authErrorMessage(error);toast(message);if(isExistingAccountError(error))showExistingAccountLogin();else $('#authNote').textContent=message;return}const isNewSignup=!!data.user&&(!Array.isArray(data.user.identities)||data.user.identities.length>0);if(isNewSignup){await trackAppEvent('trial_signup');trackMetaTrialSignup(data.user)}if(data.session){state.user=data.user;await loadMe();await db.rpc('accept_legal_terms_v40',{p_document_version:LEGAL_VERSION,p_accepted_via:'signup'});trackAppEvent('trial_activated');await routeAfterLogin();toast('ההרשמה הושלמה — תקופת הניסיון הופעלה')}else{$('#authNote').textContent='נשלח אליך אימייל לאישור ההרשמה. לאחר האישור חזור והתחבר.'}};
+$('#signupBtn').onclick=async()=>{const email=$('#authEmail').value.trim(),password=$('#authPassword').value,name=$('#authName').value.trim(),role='professional';if(!email||password.length<6){toast('הזן אימייל וסיסמה של לפחות 6 תווים');return}if(!$('#signupLegalConsent').checked){toast('כדי להירשם יש לאשר את תנאי השימוש ומדיניות הפרטיות');return}trackAppEvent('signup_attempt');const {data,error}=await db.auth.signUp({email,password,options:{data:{role,full_name:name,legal_version:LEGAL_VERSION,legal_accepted_at:new Date().toISOString(),install_onboarding_pending:true}}});if(error){const message=authErrorMessage(error);toast(message);if(isExistingAccountError(error))showExistingAccountLogin();else $('#authNote').textContent=message;return}const isNewSignup=!!data.user&&(!Array.isArray(data.user.identities)||data.user.identities.length>0);if(isNewSignup){await trackAppEvent('trial_signup');trackMetaTrialSignup(data.user)}if(data.session){state.user=data.user;await loadMe();await db.rpc('accept_legal_terms_v40',{p_document_version:LEGAL_VERSION,p_accepted_via:'signup'});trackAppEvent('trial_activated');await routeAfterLogin();toast('ההרשמה הושלמה — תקופת הניסיון הופעלה')}else{$('#authNote').textContent='נשלח אליך אימייל לאישור ההרשמה. לאחר האישור חזור והתחבר.'}};
 let legalReturnView='#authView';
 $$('[data-open-legal]').forEach(button=>button.onclick=()=>{const active=$('.view.active');legalReturnView=active?.id?`#${active.id}`:(state.user?'#homeView':'#authView');show('#legalInfoView')});
 $('#legalInfoBackBtn').onclick=()=>show(legalReturnView||'#authView');
@@ -1030,6 +1047,19 @@ function updateInstallButton(){
   installBtn.classList.toggle('hidden',isStandalone());
   if(!isStandalone())installBtn.textContent=isIosDevice()?' התקנה באייפון':'⬇ התקן אפליקציה';
 }
+async function openInstallExperience(){
+  if(isStandalone()){await finishInstallOnboarding();toast('מחירלי כבר מותקנת כאפליקציה');return}
+  if(isIosDevice()){showIosInstallHelp();return}
+  if(deferredInstallPrompt){
+    deferredInstallPrompt.prompt();
+    const choice=await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt=null;
+    updateInstallButton();
+    if(choice?.outcome==='accepted')await finishInstallOnboarding();
+    return
+  }
+  toast('בתפריט הדפדפן בחר ״התקנת אפליקציה״ — לא ״הוסף קיצור דרך״.')
+}
 window.addEventListener('beforeinstallprompt',e=>{
   e.preventDefault();
   deferredInstallPrompt=e;
@@ -1039,20 +1069,13 @@ window.addEventListener('appinstalled',()=>{
   deferredInstallPrompt=null;
   trackAppEvent('app_installed');
   if(installBtn) installBtn.classList.add('hidden');
+  if($('#installOnboardingView')?.classList.contains('active'))finishInstallOnboarding();
   toast('מחירלי הותקנה כאפליקציה ✅');
 });
-if(installBtn) installBtn.onclick=async()=>{
-  if(isStandalone()){toast('מחירלי כבר מותקנת כאפליקציה');return}
-  if(isIosDevice()){showIosInstallHelp();return}
-  if(deferredInstallPrompt){
-    deferredInstallPrompt.prompt();
-    await deferredInstallPrompt.userChoice;
-    deferredInstallPrompt=null;
-    updateInstallButton();
-    return;
-  }
-  toast('בתפריט הדפדפן בחר ״התקנת אפליקציה״ — לא ״הוסף קיצור דרך״.');
-};
+if(installBtn)installBtn.onclick=openInstallExperience;
+$('#installOnboardingBtn').onclick=openInstallExperience;
+$('#installOnboardingDoneBtn').onclick=finishInstallOnboarding;
+$('#installOnboardingBrowserBtn').onclick=finishInstallOnboarding;
 updateInstallButton();
 
 boot();
