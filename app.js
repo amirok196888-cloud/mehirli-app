@@ -294,7 +294,8 @@ $('#logoutBtn').onclick=async()=>{stopNotificationPolling();await db.auth.signOu
 $$('.category').forEach(b=>b.onclick=()=>{$('#reqCategory').value=b.dataset.category;show('#requestView')});
 $('#profileBtn').onclick=async()=>{if(!requireServiceAccess())return;await fillProfile();show('#profileView')};$$('.back:not(#legalInfoBackBtn)').forEach(b=>b.onclick=async()=>{if(!state.isAdmin&&!hasServiceAccess()){await openSubscription()}else if(b.dataset.backTo==='workspace'){await openProWorkspace()}else show('#homeView')});
 $('#whatsappSetupNotice').onclick=async()=>{if(!requireServiceAccess())return;await fillProfile();show('#profileView')};
-$('#profileOpenSettingsBtn').onclick=loadProSettingsForm;
+let openSettingsAfterProfileSave=false;
+$('#profileOpenSettingsBtn').onclick=()=>{openSettingsAfterProfileSave=true;$('#profileForm').requestSubmit()};
 $('#settingsOpenProfileBtn').onclick=async()=>{await fillProfile();show('#profileView')};
 $('#notificationsBtn').onclick=openNotifications;
 $('#markAllNotificationsBtn').onclick=async()=>{
@@ -371,7 +372,7 @@ $('#profileForm').onsubmit=async e=>{
   const {error}=await db.from('business_profiles').upsert(row);if(error){toast(error.message);return}
   const {error:settingsError}=await db.from('professional_settings').upsert({professional_id:state.user.id,trade},{onConflict:'professional_id'});if(settingsError){toast(settingsError.message);return}
   if(!state.isAdmin)await db.from('profiles').update({role:'professional'}).eq('id',state.user.id);
-  await loadMe();toast('פרופיל העסק נשמר בענן');show('#homeView')
+  await loadMe();toast('פרופיל העסק נשמר בענן');if(openSettingsAfterProfileSave){openSettingsAfterProfileSave=false;await loadProSettingsForm()}else show('#homeView')
 };
 $('#bizLogoInput').onchange=async e=>{const file=e.target.files?.[0];e.target.value='';if(!file)return;if(!requireServiceAccess())return;if(!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>2*1024*1024){toast('אפשר להעלות לוגו JPG, PNG או WEBP עד 2MB');return}const ext=file.type.split('/')[1].replace('jpeg','jpg'),path=`${state.user.id}/logo-${Date.now()}.${ext}`,old=state.businessProfile?.logo_path;const {error}=await db.storage.from('business-logos').upload(path,file,{contentType:file.type,upsert:false});if(error){toast('הלוגו לא הועלה: '+error.message);return}const {error:updateError}=await db.from('business_profiles').upsert({user_id:state.user.id,logo_path:path},{onConflict:'user_id'});if(updateError){await db.storage.from('business-logos').remove([path]);toast('הלוגו לא נשמר: '+updateError.message);return}if(old)await db.storage.from('business-logos').remove([old]);state.businessProfile={...(state.businessProfile||{}),logo_path:path};renderBusinessLogoEditor();toast('הלוגו נשמר')};
 $('#removeBizLogoBtn').onclick=async()=>{const path=state.businessProfile?.logo_path;if(!path||!confirm('להסיר את לוגו העסק מההצעות?'))return;const {error}=await db.from('business_profiles').update({logo_path:null}).eq('user_id',state.user.id);if(error){toast(error.message);return}await db.storage.from('business-logos').remove([path]);state.businessProfile.logo_path=null;renderBusinessLogoEditor();toast('הלוגו הוסר')};
