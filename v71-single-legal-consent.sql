@@ -30,3 +30,11 @@ $$;
 
 revoke all on function public.accept_legal_terms_v40(text, text) from public, anon, authenticated;
 grant execute on function public.accept_legal_terms_v40(text, text) to authenticated;
+
+-- Repair signups that already checked the box while the database still expected v1.
+insert into public.legal_consents(user_id, document_version, accepted_via)
+select u.id, '2026-09-15-v2', 'signup'
+from auth.users u
+where u.raw_user_meta_data ->> 'legal_version' = '2026-09-15-v2'
+  and u.raw_user_meta_data ->> 'legal_accepted_at' is not null
+on conflict (user_id, document_version) do nothing;
