@@ -314,8 +314,40 @@ async function loadMe(){
   const np=$('#enablePhoneNotificationsBtn');if(np&&'Notification' in window)np.classList.toggle('hidden',Notification.permission!=='default');
   startNotificationPolling()
 }
-async function boot(){updateGreeting();trackAppEvent('app_open');const params=new URLSearchParams(location.search),signupHandoff=params.get('view')==='signup';if(params.get('from')==='landing')trackAppEvent('signup_form_open');if(isStandaloneMode())trackAppEvent('standalone_open');const quoteToken=currentPublicQuoteToken();if(quoteToken){await loadPublicQuote(quoteToken);return}const {data:{session}}=await db.auth.getSession();state.user=session?.user||null;if(signupHandoff&&state.user){await db.auth.signOut({scope:'local'});state.user=null;stopNotificationPolling()}if(signupHandoff){const url=new URL(location.href);url.searchParams.delete('view');history.replaceState({},'',url.pathname+url.search+url.hash)}if(state.user){await loadMe();trackAppEvent('account_active');if(paymentReturn())await handlePaymentReturn();else await routeAfterLogin()}else{show('#authView');if(signupHandoff)$('#authNote').textContent='המשך הרשמה או התחבר לחשבון שיצרת כדי להתקין את מחירלי.';if(isAndroidInAppBrowser())$('#inAppBrowserNotice')?.classList.remove('hidden')}}
+function isPasswordRecovery(){
+  const params=new URLSearchParams(location.search),hash=new URLSearchParams(location.hash.replace(/^#/,''));
+  return params.get('reset')==='1'||hash.get('type')==='recovery'
+}
+function showPasswordReset(){show('#passwordResetView');setTimeout(()=>$('#newPassword')?.focus(),50)}
+db.auth.onAuthStateChange((event,session)=>{
+  if(event==='PASSWORD_RECOVERY'){
+    state.user=session?.user||null;
+    showPasswordReset()
+  }
+});
+async function boot(){updateGreeting();trackAppEvent('app_open');const params=new URLSearchParams(location.search),signupHandoff=params.get('view')==='signup';if(params.get('from')==='landing')trackAppEvent('signup_form_open');if(isStandaloneMode())trackAppEvent('standalone_open');const quoteToken=currentPublicQuoteToken();if(quoteToken){await loadPublicQuote(quoteToken);return}const {data:{session}}=await db.auth.getSession();state.user=session?.user||null;if(isPasswordRecovery()&&state.user){showPasswordReset();return}if(signupHandoff&&state.user){await db.auth.signOut({scope:'local'});state.user=null;stopNotificationPolling()}if(signupHandoff){const url=new URL(location.href);url.searchParams.delete('view');history.replaceState({},'',url.pathname+url.search+url.hash)}if(state.user){await loadMe();trackAppEvent('account_active');if(paymentReturn())await handlePaymentReturn();else await routeAfterLogin()}else{show('#authView');if(isPasswordRecovery())$('#authNote').textContent='קישור האיפוס אינו תקף או שפג תוקפו. בקשו קישור חדש.';else if(signupHandoff)$('#authNote').textContent='המשך הרשמה או התחבר לחשבון שיצרת כדי להתקין את מחירלי.';if(isAndroidInAppBrowser())$('#inAppBrowserNotice')?.classList.remove('hidden')}}
 $('#authForm').onsubmit=async e=>{e.preventDefault();$('#authNote').textContent='מתחבר…';const {data,error}=await db.auth.signInWithPassword({email:$('#authEmail').value.trim(),password:$('#authPassword').value});if(error){$('#authNote').textContent=authErrorMessage(error);return}state.user=data.user;await loadMe();$('#authNote').textContent='';if(paymentReturn())await handlePaymentReturn();else await routeAfterLogin()};
+$('#forgotPasswordBtn').onclick=async()=>{
+  const email=$('#authEmail').value.trim(),note=$('#authNote'),button=$('#forgotPasswordBtn');
+  if(!email){note.textContent='הזינו קודם את כתובת האימייל שלכם.';$('#authEmail').focus();return}
+  button.disabled=true;note.textContent='שולח קישור לאיפוס הסיסמה…';
+  const redirectTo=`${location.origin}${location.pathname}?reset=1`;
+  const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo});
+  button.disabled=false;
+  note.textContent=error?'לא ניתן לשלוח כרגע. נסו שוב בעוד מספר דקות.':'אם האימייל רשום במחירלי, נשלח אליו קישור לקביעת סיסמה חדשה.'
+};
+$('#passwordResetForm').onsubmit=async e=>{
+  e.preventDefault();
+  const password=$('#newPassword').value,confirmPassword=$('#confirmNewPassword').value,note=$('#passwordResetNote'),button=$('#saveNewPasswordBtn');
+  if(password.length<8){note.textContent='הסיסמה חייבת להכיל לפחות 8 תווים.';return}
+  if(password!==confirmPassword){note.textContent='הסיסמאות אינן זהות.';return}
+  button.disabled=true;note.textContent='שומר את הסיסמה החדשה…';
+  const {error}=await db.auth.updateUser({password});
+  if(error){button.disabled=false;note.textContent=authErrorMessage(error);return}
+  await db.auth.signOut({scope:'local'});state.user=null;
+  const url=new URL(location.href);url.searchParams.delete('reset');url.searchParams.delete('code');url.hash='';history.replaceState({},'',url.pathname+url.search);
+  $('#authPassword').value='';$('#newPassword').value='';$('#confirmNewPassword').value='';show('#authView');$('#authNote').textContent='הסיסמה שונתה בהצלחה. אפשר להתחבר עם הסיסמה החדשה.'
+};
 $('#signupBtn').onclick=async()=>{const name=$('#authName').value.trim();if($('#signupBtn').dataset.mode==='edit'){if(!name){toast('יש להזין שם בעל העסק');return}const {data,error}=await db.auth.updateUser({data:{...state.user.user_metadata,full_name:name}});if(error){toast('לא ניתן לשמור את השינוי כרגע');return}state.user=data.user;await db.from('profiles').update({full_name:name}).eq('id',state.user.id);resetPendingSignupEdit();showPostSignupInstall();toast('פרטי ההרשמה עודכנו');return}const email=$('#authEmail').value.trim(),password=$('#authPassword').value,role='professional';if(!email||password.length<6){toast('הזן אימייל וסיסמה של לפחות 6 תווים');return}if(!$('#signupLegalConsent').checked){toast('כדי להירשם יש לאשר את תנאי השימוש ומדיניות הפרטיות');return}trackAppEvent('signup_attempt');const {data,error}=await db.auth.signUp({email,password,options:{data:{role,full_name:name,legal_version:LEGAL_VERSION,legal_accepted_at:new Date().toISOString()}}});if(error){const message=authErrorMessage(error);toast(message);if(isExistingAccountError(error))showExistingAccountLogin();else $('#authNote').textContent=message;return}const isNewSignup=!!data.user&&(!Array.isArray(data.user.identities)||data.user.identities.length>0);if(isNewSignup)await trackAppEvent('trial_signup');if(data.session){state.user=data.user;await loadMe();const {error:consentError}=await db.rpc('accept_legal_terms_v40',{p_document_version:LEGAL_VERSION,p_accepted_via:'signup'});if(consentError){toast('ההרשמה נשמרה, אך אישור התנאים לא נשמר. נסה להתחבר מחדש.');return}await routeAfterLogin()}else{$('#authNote').textContent='נשלח אליך אימייל לאישור ההרשמה. לאחר האישור חזור והתחבר.'}};
 let legalReturnView='#authView';
 $$('[data-open-legal]').forEach(button=>button.onclick=()=>{const active=$('.view.active');legalReturnView=active?.id?`#${active.id}`:(state.user?'#homeView':'#authView');show('#legalInfoView')});

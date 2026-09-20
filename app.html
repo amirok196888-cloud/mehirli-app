@@ -78,6 +78,7 @@ fbq('track','PageView',{content_name:'Mehirli'});
     <button id="signupBtn" class="primary big auth-signup" type="button">📲 הרשמה והמשך להתקנת האפליקציה</button>
     <p class="auth-install-note">לאחר ההרשמה ייפתח כפתור ההתקנה. 14 ימי הניסיון יתחילו רק לאחר התקנת האפליקציה.</p>
     <button class="secondary big auth-login" type="submit">כבר יש לי חשבון — כניסה</button>
+    <button id="forgotPasswordBtn" class="text-link" type="button">שכחתי סיסמה</button>
     <p id="authNote" class="note"></p>
   </form>
   <a id="mehirliSupportLink" class="auth-support-link" href="https://wa.me/972552715782?text=%F0%9F%9F%A0%20%D7%9E%D7%97%D7%99%D7%A8%D7%9C%D7%99%20%7C%20%D7%A4%D7%A0%D7%99%D7%99%D7%94%20%D7%9C%D7%AA%D7%9E%D7%99%D7%9B%D7%94%0A%0A%D7%A9%D7%9C%D7%95%D7%9D%2C%20%D7%94%D7%92%D7%A2%D7%AA%D7%99%20%D7%9E%D7%90%D7%AA%D7%A8%20%D7%9E%D7%97%D7%99%D7%A8%D7%9C%D7%99%20%D7%95%D7%91%D7%A8%D7%A6%D7%95%D7%A0%D7%99%20%D7%9C%D7%A7%D7%91%D7%9C%20%D7%A2%D7%96%D7%A8%D7%94." target="_blank" rel="noopener">צריכים עזרה? מדברים איתנו ב־WhatsApp</a>
@@ -86,6 +87,17 @@ fbq('track','PageView',{content_name:'Mehirli'});
     <div class="auth-benefit"><span>⚡</span><b>לא מנחשים מחיר</b><small>זמן, חומרים ורווח במקום אחד</small></div>
     <div class="auth-benefit"><span>✓</span><b>נראים מקצועיים</b><small>הצעה מסודרת שהלקוח יכול לאשר</small></div>
   </div>
+</section>
+
+<section id="passwordResetView" class="view">
+  <div class="section-head"><div><span class="eyebrow">שחזור חשבון</span><h2>קביעת סיסמה חדשה</h2></div></div>
+  <form id="passwordResetForm" class="card form-card">
+    <p>בחרו סיסמה חדשה של 8 תווים לפחות.</p>
+    <label>סיסמה חדשה<input id="newPassword" type="password" required minlength="8" autocomplete="new-password" /></label>
+    <label>אימות הסיסמה<input id="confirmNewPassword" type="password" required minlength="8" autocomplete="new-password" /></label>
+    <button id="saveNewPasswordBtn" class="primary big" type="submit">שמירת הסיסמה החדשה</button>
+    <p id="passwordResetNote" class="note"></p>
+  </form>
 </section>
 
 <section id="legalConsentView" class="view">
@@ -403,5 +415,5 @@ fbq('track','PageView',{content_name:'Mehirli'});
 </section>
 </main><a id="developerSupportLink" class="developer-support-link hidden" href="#" target="_blank" rel="noopener" aria-label="דיווח תקלה או שיחה עם המפתח ב־WhatsApp">💬 דיווח תקלה / שיחה עם המפתח</a><div id="postSignupInstall" class="post-signup-install hidden" role="dialog" aria-modal="true" aria-labelledby="postSignupInstallTitle"><div class="post-signup-install-card"><span>📲</span><b>ההרשמה הסתיימה</b><h2 id="postSignupInstallTitle">כדי להתחיל את 14 ימי הניסיון, מתקינים עכשיו את מחירלי בטלפון</h2><p id="postSignupInstallText">לאחר ההתקנה פותחים את מחירלי מהסמל במסך הבית, ותקופת הניסיון מתחילה באותו רגע.</p><button id="postSignupInstallBtn" class="primary big" type="button">התקנת מחירלי והתחלת הניסיון</button><button id="postSignupEditBtn" class="secondary big install-edit-btn" type="button">חזרה לתיקון פרטי ההרשמה</button><small>אין חיוב ואין התחייבות. ללא התקנה תקופת הניסיון אינה מתחילה.</small></div></div><div id="toast" class="toast"></div></div>
 <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"></script>
-<script src="app.js?v=77"></script>
+<script src="app.js?v=78"></script>
 </body></html>
