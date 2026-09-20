@@ -192,8 +192,25 @@ function renderSubscriptionBanner(){
 }
 async function routeAfterLogin(){
   if(!state.isAdmin&&!(await ensureLegalConsent()))return;
+  if(!state.isAdmin&&state.subscription?.failure_reason==='installation_required'){
+    show('#homeView');
+    if(isStandaloneMode()){await activateTrialAfterInstall();return}
+    showPostSignupInstall();return
+  }
   if(!state.isAdmin&&!hasServiceAccess()){await openSubscription();return}
   show('#homeView')
+}
+function showPostSignupInstall(){
+  const overlay=$('#postSignupInstall'),button=$('#postSignupInstallBtn');if(!overlay)return;
+  if(button)button.textContent=isIosDevice()?' הצגת הוראות התקנה באייפון':'⬇ התקנת מחירלי והתחלת הניסיון';
+  overlay.classList.remove('hidden')
+}
+async function activateTrialAfterInstall(){
+  const {data,error}=await db.rpc('activate_my_trial_after_install_v70');
+  if(error){toast('לא ניתן להפעיל את הניסיון כרגע. נסה לפתוח שוב את מחירלי.');return false}
+  if(!data?.activated){toast('תקופת הניסיון לא הופעלה. פנה לתמיכה.');return false}
+  $('#postSignupInstall')?.classList.add('hidden');
+  await loadSubscription();trackAppEvent('trial_activated');show('#homeView');toast('14 ימי הניסיון התחילו עכשיו ✅');return true
 }
 async function ensureLegalConsent(){
   const {data,error}=await db.rpc('has_accepted_legal_terms_v40',{p_document_version:LEGAL_VERSION});
@@ -1030,6 +1047,22 @@ function updateInstallButton(){
   installBtn.classList.toggle('hidden',isStandalone());
   if(!isStandalone())installBtn.textContent=isIosDevice()?' התקנה באייפון':'⬇ התקן אפליקציה';
 }
+async function requestAppInstall(){
+  if(isStandalone()){
+    if(state.subscription?.failure_reason==='installation_required')await activateTrialAfterInstall();
+    else toast('מחירלי כבר מותקנת כאפליקציה');
+    return
+  }
+  if(isIosDevice()){showIosInstallHelp();return}
+  if(deferredInstallPrompt){
+    deferredInstallPrompt.prompt();
+    const choice=await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt=null;updateInstallButton();
+    if(choice?.outcome==='accepted'&&state.subscription?.failure_reason==='installation_required')await activateTrialAfterInstall();
+    return
+  }
+  toast('בתפריט הדפדפן בחר ״התקנת אפליקציה״ — לא ״הוסף קיצור דרך״.')
+}
 window.addEventListener('beforeinstallprompt',e=>{
   e.preventDefault();
   deferredInstallPrompt=e;
@@ -1039,20 +1072,11 @@ window.addEventListener('appinstalled',()=>{
   deferredInstallPrompt=null;
   trackAppEvent('app_installed');
   if(installBtn) installBtn.classList.add('hidden');
+  if(state.subscription?.failure_reason==='installation_required')activateTrialAfterInstall();
   toast('מחירלי הותקנה כאפליקציה ✅');
 });
-if(installBtn) installBtn.onclick=async()=>{
-  if(isStandalone()){toast('מחירלי כבר מותקנת כאפליקציה');return}
-  if(isIosDevice()){showIosInstallHelp();return}
-  if(deferredInstallPrompt){
-    deferredInstallPrompt.prompt();
-    await deferredInstallPrompt.userChoice;
-    deferredInstallPrompt=null;
-    updateInstallButton();
-    return;
-  }
-  toast('בתפריט הדפדפן בחר ״התקנת אפליקציה״ — לא ״הוסף קיצור דרך״.');
-};
+if(installBtn)installBtn.onclick=requestAppInstall;
+$('#postSignupInstallBtn').onclick=requestAppInstall;
 updateInstallButton();
 
 boot();
