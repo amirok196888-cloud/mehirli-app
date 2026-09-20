@@ -114,7 +114,7 @@
       function attribution(){var p=new URLSearchParams(location.search),campaign=p.get('utm_campaign')||'',raw=(p.get('utm_source')||p.get('source')||p.get('from')||'').toLowerCase();var source=raw||'direct';if(['fb','facebook','facebook.com','m.facebook.com','l.facebook.com'].includes(source))source=campaign?'meta_paid':'facebook_organic';if(['ig','instagram','instagram.com','l.instagram.com'].includes(source))source=campaign?'meta_paid':'instagram_organic';if(source.indexOf('tiktok')>=0)source=campaign?'tiktok_paid':'tiktok_organic';var value={source:source,campaign:campaign};if(raw){try{localStorage.setItem(attributionKey,JSON.stringify(value))}catch(e){}return value}try{return JSON.parse(localStorage.getItem(attributionKey)||'null')||value}catch(e){return value}}
       function track(name){var a=attribution();return analytics.rpc('track_app_event_v40',{p_visitor_id:visitorId(),p_event_name:name,p_source:a.source,p_campaign:a.campaign})}
       function isAndroidFacebookBrowser(){var ua=navigator.userAgent||'';return /Android/i.test(ua)&&/(FBAN|FBAV|Instagram)/i.test(ua)}
-      function chromeIntent(target){var url=new URL(target,location.href);return 'intent://'+url.host+url.pathname+url.search+'#Intent;scheme=https;package=com.android.chrome;end'}
+      function chromeIntent(target){var url=new URL(target,location.href);url.searchParams.set('view','app');url.hash='';return 'intent://'+url.host+url.pathname+url.search+'#Intent;scheme=https;package=com.android.chrome;end'}
       track('landing_page_view');
       var current=new URLSearchParams(location.search);
       document.querySelectorAll('.app-link').forEach(function(link){
