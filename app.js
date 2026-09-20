@@ -83,7 +83,7 @@ function updateGreeting(){
 }
 function isStandaloneMode(){return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true}
 function isAndroidInAppBrowser(){const ua=navigator.userAgent||'';return /Android/i.test(ua)&&/(FBAN|FBAV|Instagram)/i.test(ua)}
-function openInChrome(){const target=`intent://${location.host}${location.pathname}${location.search}#Intent;scheme=https;package=com.android.chrome;end`;location.href=target}
+function openInChrome(){const url=new URL(location.href);url.searchParams.set('view','app');url.hash='';const target=`intent://${url.host}${url.pathname}${url.search}#Intent;scheme=https;package=com.android.chrome;end`;location.href=target}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)updateGreeting()});
 const quotePdfCache=new Map();
 const catDb={'רכב':'vehicle','מיזוג':'air_conditioning','לבית':'home','הנדימן':'handyman','היינדמן':'handyman','חשמלאי':'electrician'}, catHe={vehicle:'רכב',air_conditioning:'מיזוג',home:'לבית',handyman:'הנדימן',electrician:'חשמלאי'};
@@ -193,6 +193,7 @@ function renderSubscriptionBanner(){
   button.dataset.status=s.status||''
 }
 async function routeAfterLogin(){
+  const url=new URL(location.href);if(url.searchParams.get('view')==='app'){url.searchParams.delete('view');history.replaceState({},'',url.pathname+url.search+url.hash)}
   if(!state.isAdmin&&!(await ensureLegalConsent()))return;
   if(!state.isAdmin&&state.subscription?.failure_reason==='installation_required'){
     show('#homeView');
