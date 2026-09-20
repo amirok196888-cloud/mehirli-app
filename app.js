@@ -82,6 +82,8 @@ function updateGreeting(){
   heading.textContent=`${greeting}, מתחילים מכאן`
 }
 function isStandaloneMode(){return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true}
+function isAndroidInAppBrowser(){const ua=navigator.userAgent||'';return /Android/i.test(ua)&&/(FBAN|FBAV|Instagram)/i.test(ua)}
+function openInChrome(){const target=`intent://${location.host}${location.pathname}${location.search}#Intent;scheme=https;package=com.android.chrome;end`;location.href=target}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)updateGreeting()});
 const quotePdfCache=new Map();
 const catDb={'רכב':'vehicle','מיזוג':'air_conditioning','לבית':'home','הנדימן':'handyman','היינדמן':'handyman','חשמלאי':'electrician'}, catHe={vehicle:'רכב',air_conditioning:'מיזוג',home:'לבית',handyman:'הנדימן',electrician:'חשמלאי'};
@@ -202,8 +204,22 @@ async function routeAfterLogin(){
 }
 function showPostSignupInstall(){
   const overlay=$('#postSignupInstall'),button=$('#postSignupInstallBtn');if(!overlay)return;
-  if(button)button.textContent=isIosDevice()?' הצגת הוראות התקנה באייפון':'⬇ התקנת מחירלי והתחלת הניסיון';
+  if(button)button.textContent=isAndroidInAppBrowser()?'פתיחת מחירלי ב־Chrome להתקנה':isIosDevice()?' הצגת הוראות התקנה באייפון':'⬇ התקנת מחירלי והתחלת הניסיון';
+  if($('#postSignupInstallText'))$('#postSignupInstallText').textContent=isAndroidInAppBrowser()?'פייסבוק אינו מאפשר התקנת אפליקציות. בלחיצה הבאה מחירלי תיפתח ב־Chrome, ושם ניתן יהיה להתקין ולהתחיל את הניסיון.':'לאחר ההתקנה פותחים את מחירלי מהסמל במסך הבית, ותקופת הניסיון מתחילה באותו רגע.';
   overlay.classList.remove('hidden')
+}
+function openPendingSignupEdit(){
+  $('#postSignupInstall')?.classList.add('hidden');
+  const button=$('#signupBtn');button.dataset.mode='edit';button.textContent='שמירת הפרטים וחזרה להתקנה';
+  $('#authEmail').value=state.user?.email||'';$('#authEmail').disabled=true;
+  $('#authPassword').value='';$('#authPassword').disabled=true;$('#authPassword').placeholder='הסיסמה כבר נשמרה';
+  $('#authName').value=state.user?.user_metadata?.full_name||state.profile?.full_name||'';
+  $('#signupLegalConsent').checked=true;$('#signupLegalConsent').disabled=true;
+  $('.auth-login')?.classList.add('hidden');show('#authView');$('#authForm').scrollIntoView({behavior:'smooth',block:'start'})
+}
+function resetPendingSignupEdit(){
+  const button=$('#signupBtn');delete button.dataset.mode;button.textContent='📲 הרשמה והמשך להתקנת האפליקציה';
+  $('#authEmail').disabled=false;$('#authPassword').disabled=false;$('#authPassword').placeholder='';$('#signupLegalConsent').disabled=false;$('.auth-login')?.classList.remove('hidden')
 }
 async function activateTrialAfterInstall(){
   const {data,error}=await db.rpc('activate_my_trial_after_install_v70');
@@ -298,9 +314,9 @@ async function loadMe(){
   const np=$('#enablePhoneNotificationsBtn');if(np&&'Notification' in window)np.classList.toggle('hidden',Notification.permission!=='default');
   startNotificationPolling()
 }
-async function boot(){updateGreeting();trackAppEvent('app_open');if(new URLSearchParams(location.search).get('from')==='landing')trackAppEvent('signup_form_open');if(isStandaloneMode())trackAppEvent('standalone_open');const quoteToken=currentPublicQuoteToken();if(quoteToken){await loadPublicQuote(quoteToken);return}const {data:{session}}=await db.auth.getSession();state.user=session?.user||null;if(state.user){await loadMe();trackAppEvent('account_active');if(paymentReturn())await handlePaymentReturn();else await routeAfterLogin()}else show('#authView')}
+async function boot(){updateGreeting();trackAppEvent('app_open');if(new URLSearchParams(location.search).get('from')==='landing')trackAppEvent('signup_form_open');if(isStandaloneMode())trackAppEvent('standalone_open');const quoteToken=currentPublicQuoteToken();if(quoteToken){await loadPublicQuote(quoteToken);return}const {data:{session}}=await db.auth.getSession();state.user=session?.user||null;if(state.user){await loadMe();trackAppEvent('account_active');if(paymentReturn())await handlePaymentReturn();else await routeAfterLogin()}else{show('#authView');if(isAndroidInAppBrowser())$('#inAppBrowserNotice')?.classList.remove('hidden')}}
 $('#authForm').onsubmit=async e=>{e.preventDefault();$('#authNote').textContent='מתחבר…';const {data,error}=await db.auth.signInWithPassword({email:$('#authEmail').value.trim(),password:$('#authPassword').value});if(error){$('#authNote').textContent=authErrorMessage(error);return}state.user=data.user;await loadMe();$('#authNote').textContent='';if(paymentReturn())await handlePaymentReturn();else await routeAfterLogin()};
-$('#signupBtn').onclick=async()=>{const email=$('#authEmail').value.trim(),password=$('#authPassword').value,name=$('#authName').value.trim(),role='professional';if(!email||password.length<6){toast('הזן אימייל וסיסמה של לפחות 6 תווים');return}if(!$('#signupLegalConsent').checked){toast('כדי להירשם יש לאשר את תנאי השימוש ומדיניות הפרטיות');return}trackAppEvent('signup_attempt');const {data,error}=await db.auth.signUp({email,password,options:{data:{role,full_name:name,legal_version:LEGAL_VERSION,legal_accepted_at:new Date().toISOString()}}});if(error){const message=authErrorMessage(error);toast(message);if(isExistingAccountError(error))showExistingAccountLogin();else $('#authNote').textContent=message;return}const isNewSignup=!!data.user&&(!Array.isArray(data.user.identities)||data.user.identities.length>0);if(isNewSignup)await trackAppEvent('trial_signup');if(data.session){state.user=data.user;await loadMe();const {error:consentError}=await db.rpc('accept_legal_terms_v40',{p_document_version:LEGAL_VERSION,p_accepted_via:'signup'});if(consentError){toast('ההרשמה נשמרה, אך אישור התנאים לא נשמר. נסה להתחבר מחדש.');return}await routeAfterLogin()}else{$('#authNote').textContent='נשלח אליך אימייל לאישור ההרשמה. לאחר האישור חזור והתחבר.'}};
+$('#signupBtn').onclick=async()=>{const name=$('#authName').value.trim();if($('#signupBtn').dataset.mode==='edit'){if(!name){toast('יש להזין שם בעל העסק');return}const {data,error}=await db.auth.updateUser({data:{...state.user.user_metadata,full_name:name}});if(error){toast('לא ניתן לשמור את השינוי כרגע');return}state.user=data.user;await db.from('profiles').update({full_name:name}).eq('id',state.user.id);resetPendingSignupEdit();showPostSignupInstall();toast('פרטי ההרשמה עודכנו');return}const email=$('#authEmail').value.trim(),password=$('#authPassword').value,role='professional';if(!email||password.length<6){toast('הזן אימייל וסיסמה של לפחות 6 תווים');return}if(!$('#signupLegalConsent').checked){toast('כדי להירשם יש לאשר את תנאי השימוש ומדיניות הפרטיות');return}trackAppEvent('signup_attempt');const {data,error}=await db.auth.signUp({email,password,options:{data:{role,full_name:name,legal_version:LEGAL_VERSION,legal_accepted_at:new Date().toISOString()}}});if(error){const message=authErrorMessage(error);toast(message);if(isExistingAccountError(error))showExistingAccountLogin();else $('#authNote').textContent=message;return}const isNewSignup=!!data.user&&(!Array.isArray(data.user.identities)||data.user.identities.length>0);if(isNewSignup)await trackAppEvent('trial_signup');if(data.session){state.user=data.user;await loadMe();const {error:consentError}=await db.rpc('accept_legal_terms_v40',{p_document_version:LEGAL_VERSION,p_accepted_via:'signup'});if(consentError){toast('ההרשמה נשמרה, אך אישור התנאים לא נשמר. נסה להתחבר מחדש.');return}await routeAfterLogin()}else{$('#authNote').textContent='נשלח אליך אימייל לאישור ההרשמה. לאחר האישור חזור והתחבר.'}};
 let legalReturnView='#authView';
 $$('[data-open-legal]').forEach(button=>button.onclick=()=>{const active=$('.view.active');legalReturnView=active?.id?`#${active.id}`:(state.user?'#homeView':'#authView');show('#legalInfoView')});
 $('#legalInfoBackBtn').onclick=()=>show(legalReturnView||'#authView');
@@ -1048,6 +1064,7 @@ function updateInstallButton(){
   if(!isStandalone())installBtn.textContent=isIosDevice()?' התקנה באייפון':'⬇ התקן אפליקציה';
 }
 async function requestAppInstall(){
+  if(isAndroidInAppBrowser()){openInChrome();return}
   if(isStandalone()){
     if(state.subscription?.failure_reason==='installation_required')await activateTrialAfterInstall();
     else toast('מחירלי כבר מותקנת כאפליקציה');
@@ -1076,7 +1093,9 @@ window.addEventListener('appinstalled',()=>{
   toast('מחירלי הותקנה כאפליקציה ✅');
 });
 if(installBtn)installBtn.onclick=requestAppInstall;
+$('#openChromeBtn').onclick=openInChrome;
 $('#postSignupInstallBtn').onclick=requestAppInstall;
+$('#postSignupEditBtn').onclick=openPendingSignupEdit;
 updateInstallButton();
 
 boot();
