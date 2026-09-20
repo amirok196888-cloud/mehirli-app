@@ -1,5 +1,6 @@
 const SUPABASE_URL='https://jgnbcrlvsudfqfofmvlx.supabase.co';
 const SUPABASE_KEY='sb_publishable_WnOhGZSlik7zqpO-cRYGvA_lOUz68Wp';
+const AUTH_RECOVERY_INTENT=new URLSearchParams(location.search).get('reset')==='1'||new URLSearchParams(location.hash.replace(/^#/,'')).get('type')==='recovery'||new URLSearchParams(location.search).has('code');
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const QUOTE_PDF_BUCKET='quote-pdfs';
 const QUOTE_LINK_SECONDS=30*24*60*60;
@@ -316,7 +317,7 @@ async function loadMe(){
 }
 function isPasswordRecovery(){
   const params=new URLSearchParams(location.search),hash=new URLSearchParams(location.hash.replace(/^#/,''));
-  return params.get('reset')==='1'||hash.get('type')==='recovery'
+  return AUTH_RECOVERY_INTENT||params.get('reset')==='1'||hash.get('type')==='recovery'||params.has('code')
 }
 function showPasswordReset(){show('#passwordResetView');setTimeout(()=>$('#newPassword')?.focus(),50)}
 db.auth.onAuthStateChange((event,session)=>{
@@ -325,13 +326,13 @@ db.auth.onAuthStateChange((event,session)=>{
     showPasswordReset()
   }
 });
-async function boot(){updateGreeting();trackAppEvent('app_open');const params=new URLSearchParams(location.search),signupHandoff=params.get('view')==='signup';if(params.get('from')==='landing')trackAppEvent('signup_form_open');if(isStandaloneMode())trackAppEvent('standalone_open');const quoteToken=currentPublicQuoteToken();if(quoteToken){await loadPublicQuote(quoteToken);return}const {data:{session}}=await db.auth.getSession();state.user=session?.user||null;if(isPasswordRecovery()&&state.user){showPasswordReset();return}if(signupHandoff&&state.user){await db.auth.signOut({scope:'local'});state.user=null;stopNotificationPolling()}if(signupHandoff){const url=new URL(location.href);url.searchParams.delete('view');history.replaceState({},'',url.pathname+url.search+url.hash)}if(state.user){await loadMe();trackAppEvent('account_active');if(paymentReturn())await handlePaymentReturn();else await routeAfterLogin()}else{show('#authView');if(isPasswordRecovery())$('#authNote').textContent='קישור האיפוס אינו תקף או שפג תוקפו. בקשו קישור חדש.';else if(signupHandoff)$('#authNote').textContent='המשך הרשמה או התחבר לחשבון שיצרת כדי להתקין את מחירלי.';if(isAndroidInAppBrowser())$('#inAppBrowserNotice')?.classList.remove('hidden')}}
+async function boot(){updateGreeting();trackAppEvent('app_open');const params=new URLSearchParams(location.search),signupHandoff=params.get('view')==='signup';if(params.get('from')==='landing')trackAppEvent('signup_form_open');if(isStandaloneMode())trackAppEvent('standalone_open');const quoteToken=currentPublicQuoteToken();if(quoteToken){await loadPublicQuote(quoteToken);return}const {data:{session}}=await db.auth.getSession();state.user=session?.user||null;if(isPasswordRecovery()&&state.user){showPasswordReset();return}if(signupHandoff&&state.user){await db.auth.signOut({scope:'local'});state.user=null;stopNotificationPolling()}if(signupHandoff){const url=new URL(location.href);url.searchParams.delete('view');history.replaceState({},'',url.pathname+url.search+url.hash)}if(state.user){await loadMe();trackAppEvent('account_active');if(paymentReturn())await handlePaymentReturn();else await routeAfterLogin()}else{show('#authView');if(params.get('password_reset')==='success')$('#authNote').textContent='הסיסמה שונתה בהצלחה. אפשר להתחבר עם הסיסמה החדשה.';else if(isPasswordRecovery())$('#authNote').textContent='קישור האיפוס אינו תקף או שפג תוקפו. בקשו קישור חדש.';else if(signupHandoff)$('#authNote').textContent='המשך הרשמה או התחבר לחשבון שיצרת כדי להתקין את מחירלי.';if(isAndroidInAppBrowser())$('#inAppBrowserNotice')?.classList.remove('hidden')}}
 $('#authForm').onsubmit=async e=>{e.preventDefault();$('#authNote').textContent='מתחבר…';const {data,error}=await db.auth.signInWithPassword({email:$('#authEmail').value.trim(),password:$('#authPassword').value});if(error){$('#authNote').textContent=authErrorMessage(error);return}state.user=data.user;await loadMe();$('#authNote').textContent='';if(paymentReturn())await handlePaymentReturn();else await routeAfterLogin()};
 $('#forgotPasswordBtn').onclick=async()=>{
   const email=$('#authEmail').value.trim(),note=$('#authNote'),button=$('#forgotPasswordBtn');
   if(!email){note.textContent='הזינו קודם את כתובת האימייל שלכם.';$('#authEmail').focus();return}
   button.disabled=true;note.textContent='שולח קישור לאיפוס הסיסמה…';
-  const redirectTo=`${location.origin}${location.pathname}?reset=1`;
+  const redirectTo=new URL('reset-password.html?reset=1',location.href).href;
   const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo});
   button.disabled=false;
   note.textContent=error?'לא ניתן לשלוח כרגע. נסו שוב בעוד מספר דקות.':'אם האימייל רשום במחירלי, נשלח אליו קישור לקביעת סיסמה חדשה.'
