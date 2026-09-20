@@ -113,16 +113,22 @@
       function visitorId(){var id='';try{id=localStorage.getItem(visitorKey)||''}catch(e){}if(!/^[0-9a-f-]{36}$/i.test(id)){id=crypto.randomUUID();try{localStorage.setItem(visitorKey,id)}catch(e){}}return id}
       function attribution(){var p=new URLSearchParams(location.search),campaign=p.get('utm_campaign')||'',raw=(p.get('utm_source')||p.get('source')||p.get('from')||'').toLowerCase();var source=raw||'direct';if(['fb','facebook','facebook.com','m.facebook.com','l.facebook.com'].includes(source))source=campaign?'meta_paid':'facebook_organic';if(['ig','instagram','instagram.com','l.instagram.com'].includes(source))source=campaign?'meta_paid':'instagram_organic';if(source.indexOf('tiktok')>=0)source=campaign?'tiktok_paid':'tiktok_organic';var value={source:source,campaign:campaign};if(raw){try{localStorage.setItem(attributionKey,JSON.stringify(value))}catch(e){}return value}try{return JSON.parse(localStorage.getItem(attributionKey)||'null')||value}catch(e){return value}}
       function track(name){var a=attribution();return analytics.rpc('track_app_event_v40',{p_visitor_id:visitorId(),p_event_name:name,p_source:a.source,p_campaign:a.campaign})}
+      function isAndroidFacebookBrowser(){var ua=navigator.userAgent||'';return /Android/i.test(ua)&&/(FBAN|FBAV|Instagram)/i.test(ua)}
+      function chromeIntent(target){var url=new URL(target,location.href);return 'intent://'+url.host+url.pathname+url.search+'#Intent;scheme=https;package=com.android.chrome;end'}
       track('landing_page_view');
       var current=new URLSearchParams(location.search);
       document.querySelectorAll('.app-link').forEach(function(link){
         var url=new URL(link.getAttribute('href'),location.href);
         current.forEach(function(value,key){if(!url.searchParams.has(key))url.searchParams.set(key,value)});
         link.href=url.pathname+url.search+url.hash;
+        if(isAndroidFacebookBrowser()){
+          link.dataset.chromeIntent=chromeIntent(url.href);
+          if(!link.hasAttribute('data-cta'))link.addEventListener('click',function(event){event.preventDefault();location.href=link.dataset.chromeIntent});
+        }
       });
       document.querySelectorAll('[data-cta]').forEach(function(link){
         link.addEventListener('click',async function(event){
-          event.preventDefault();var target=link.href;
+          event.preventDefault();var target=link.dataset.chromeIntent||link.href;
           if(typeof fbq==='function')fbq('trackCustom','MehirliTrialClick',{placement:link.dataset.cta});
           await Promise.race([track('landing_cta_click'),new Promise(function(resolve){setTimeout(resolve,700)})]);
           location.assign(target);
