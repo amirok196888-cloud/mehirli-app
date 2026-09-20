@@ -236,7 +236,18 @@ fbq('track','PageView',{content_name:'Mehirli'});
 
 <section id="calendarView" class="view">
   <div class="section-head"><button class="back" data-back-to="workspace">‹</button><div><span class="eyebrow">היום והשבוע הקרוב</span><h2>יומן ותזכורות</h2></div></div>
-  <button id="newAppointmentBtn" class="primary big calendar-add-btn" type="button">＋ פגישה חדשה</button>\n  <form id="appointmentForm" class="card form-card hidden">\n    <div class="form-step-title"><b>📅</b><div><h3>פגישה חדשה</h3><p>הפגישה תישמר ביומן שלך.</p></div></div>\n    <label>לקוח קיים — אופציונלי<select id="appointmentCustomerSelect"><option value="">לקוח חדש</option></select></label>\n    <div class="two-cols"><label>שם הלקוח<input id="appointmentCustomerName" required autocomplete="name" /></label><label>טלפון / WhatsApp<input id="appointmentCustomerPhone" inputmode="tel" autocomplete="tel" /></label></div>\n    <label>תאריך ושעה<input id="appointmentAt" type="datetime-local" required /></label>\n    <label>כתובת / מקום<input id="appointmentAddress" placeholder="לדוגמה: רחוב הרצל 10, חדרה" /></label>\n    <label>נושא הפגישה<input id="appointmentTitle" required placeholder="לדוגמה: ביקור והצעת מחיר" /></label>\n    <label>הערה — אופציונלי<textarea id="appointmentNotes" placeholder="מה חשוב לזכור לקראת הפגישה"></textarea></label>\n    <div class="form-actions"><button class="primary" type="submit">שמור פגישה</button><button id="cancelAppointmentBtn" class="ghost" type="button">ביטול</button></div>\n  </form>\n  <div id="calendarList" class="timeline-list"></div>
+  <button id="newAppointmentBtn" class="primary big calendar-add-btn" type="button">＋ פגישה חדשה</button>
+  <form id="appointmentForm" class="card form-card hidden">
+    <div class="form-step-title"><b>📅</b><div><h3>פגישה חדשה</h3><p>הפגישה תישמר ביומן שלך.</p></div></div>
+    <label>לקוח קיים — אופציונלי<select id="appointmentCustomerSelect"><option value="">לקוח חדש</option></select></label>
+    <div class="two-cols"><label>שם הלקוח<input id="appointmentCustomerName" required autocomplete="name" /></label><label>טלפון / WhatsApp<input id="appointmentCustomerPhone" inputmode="tel" autocomplete="tel" /></label></div>
+    <label>תאריך ושעה<input id="appointmentAt" type="datetime-local" required /></label>
+    <label>כתובת / מקום<input id="appointmentAddress" placeholder="לדוגמה: רחוב הרצל 10, חדרה" /></label>
+    <label>נושא הפגישה<input id="appointmentTitle" required placeholder="לדוגמה: ביקור והצעת מחיר" /></label>
+    <label>הערה — אופציונלי<textarea id="appointmentNotes" placeholder="מה חשוב לזכור לקראת הפגישה"></textarea></label>
+    <div class="form-actions"><button class="primary" type="submit">שמור פגישה</button><button id="cancelAppointmentBtn" class="ghost" type="button">ביטול</button></div>
+  </form>
+  <div id="calendarList" class="timeline-list"></div>
 </section>
 
 <section id="proJobDetailView" class="view">
