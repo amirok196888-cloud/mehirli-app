@@ -29,7 +29,7 @@
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="apple-touch-icon" sizes="180x180" href="icon-192.png" />
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
-<link rel="stylesheet" href="style.css?v=83" />
+<link rel="stylesheet" href="style.css?v=86" />
 <!-- Meta Pixel: shared Rokach Digital data source; Mehirli conversions are separated by event and content_name. -->
 <script>
 !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -69,15 +69,18 @@ fbq('track','PageView',{content_name:'Mehirli'});
   </div>
 
   <form id="authForm" class="card form-card auth-form-premium">
-    <div class="auth-form-head"><span>14 ימים עלינו</span><h3>פותחים חשבון ומתחילים לעבוד</h3><p>הקמה קצרה. בלי כרטיס אשראי ובלי התחייבות.</p></div>
+    <div class="auth-mode-switch" role="tablist" aria-label="כניסה או הרשמה"><button id="showLoginModeBtn" class="active" type="button">כניסה לחשבון קיים</button><button id="showSignupModeBtn" type="button">הרשמה חדשה</button></div>
+    <div class="auth-form-head"><span id="authFormBadge">ברוכים השבים</span><h3 id="authFormTitle">כניסה למחירלי</h3><p id="authFormSubtitle">מכניסים אימייל וסיסמה ונכנסים מיד.</p></div>
     <div id="inAppBrowserNotice" class="in-app-browser-notice hidden"><b>פתחת את מחירלי מתוך פייסבוק</b><span>כדי שההתקנה תעבוד, ממשיכים ב־Chrome לפני ההרשמה.</span><button id="openChromeBtn" class="secondary big" type="button">פתיחת מחירלי ב־Chrome</button></div>
     <label>אימייל<input id="authEmail" type="email" required autocomplete="email" /></label>
     <label>סיסמה<input id="authPassword" type="password" required minlength="6" autocomplete="current-password" /></label>
-    <label>שם בעל העסק<input id="authName" placeholder="השם שיופיע בהצעות המחיר" /></label>
-    <label class="legal-check"><input id="signupLegalConsent" type="checkbox" /><span>בהרשמה אני מאשר/ת שקראתי את <button class="text-link" type="button" data-open-legal>תנאי השימוש ומדיניות הפרטיות</button>.</span></label>
-    <button id="signupBtn" class="primary big auth-signup" type="button">📲 הרשמה והמשך להתקנת האפליקציה</button>
-    <p class="auth-install-note">לאחר ההרשמה ייפתח כפתור ההתקנה. 14 ימי הניסיון יתחילו רק לאחר התקנת האפליקציה.</p>
-    <button class="secondary big auth-login" type="submit">כבר יש לי חשבון — כניסה</button>
+    <div id="signupFields" class="hidden">
+      <label>שם בעל העסק<input id="authName" placeholder="השם שיופיע בהצעות המחיר" /></label>
+      <label class="legal-check"><input id="signupLegalConsent" type="checkbox" /><span>בהרשמה אני מאשר/ת שקראתי את <button class="text-link" type="button" data-open-legal>תנאי השימוש ומדיניות הפרטיות</button>.</span></label>
+      <button id="signupBtn" class="primary big auth-signup" type="button">📲 הרשמה והמשך להתקנת האפליקציה</button>
+      <p class="auth-install-note">לאחר ההרשמה ייפתח כפתור ההתקנה. 14 ימי הניסיון יתחילו רק לאחר התקנת האפליקציה.</p>
+    </div>
+    <button class="secondary big auth-login" type="submit">כניסה לחשבון שלי</button>
     <button id="forgotPasswordBtn" class="text-link" type="button">שכחתי סיסמה</button>
     <p id="authNote" class="note"></p>
   </form>
@@ -415,5 +418,5 @@ fbq('track','PageView',{content_name:'Mehirli'});
 </section>
 </main><a id="developerSupportLink" class="developer-support-link hidden" href="#" target="_blank" rel="noopener" aria-label="דיווח תקלה או שיחה עם המפתח ב־WhatsApp">💬 דיווח תקלה / שיחה עם המפתח</a><div id="postSignupInstall" class="post-signup-install hidden" role="dialog" aria-modal="true" aria-labelledby="postSignupInstallTitle"><div class="post-signup-install-card"><span>📲</span><b>ההרשמה הסתיימה</b><h2 id="postSignupInstallTitle">עכשיו מוסיפים את מחירלי לטלפון</h2><p id="postSignupInstallText">המערכת תציג את דרך ההתקנה המתאימה לטלפון שלך. לאחר ההתקנה פותחים את מחירלי מהסמל במסך הבית.</p><button id="postSignupInstallBtn" class="primary big" type="button">הוספת מחירלי לטלפון</button><button id="postSignupEditBtn" class="secondary big install-edit-btn" type="button">חזרה לתיקון פרטי ההרשמה</button><small>אם תצא לפני ההתקנה, המסך הזה יוצג שוב בכניסה הבאה.</small></div></div><div id="firstQuoteWelcome" class="post-signup-install hidden" role="dialog" aria-modal="true" aria-labelledby="firstQuoteWelcomeTitle"><div class="post-signup-install-card first-quote-welcome-card"><span>✅</span><b>מחירלי מותקנת ומוכנה</b><h2 id="firstQuoteWelcomeTitle">בוא נכין את הצעת המחיר הראשונה</h2><p>נכניס את פרטי הלקוח והעבודה, נחשב מחיר ונשלח הצעה מקצועית.</p><button id="firstQuoteWelcomeBtn" class="primary big" type="button">הכנת הצעת המחיר הראשונה</button></div></div><div id="toast" class="toast"></div></div>
 <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"></script>
-<script src="app.js?v=85"></script>
+<script src="app.js?v=86"></script>
 </body></html>
