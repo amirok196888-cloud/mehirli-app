@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 41113)
-Total output lines: 1177
-
 const SUPABASE_URL='https://jgnbcrlvsudfqfofmvlx.supabase.co';
 const SUPABASE_KEY='sb_publishable_WnOhGZSlik7zqpO-cRYGvA_lOUz68Wp';
 const AUTH_RECOVERY_INTENT=new URLSearchParams(location.search).get('reset')==='1'||new URLSearchParams(location.hash.replace(/^#/,'')).get('type')==='recovery'||new URLSearchParams(location.search).has('code');
