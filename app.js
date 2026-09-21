@@ -1,3 +1,6 @@
+Warning: truncated output (original token count: 41113)
+Total output lines: 1177
+
 const SUPABASE_URL='https://jgnbcrlvsudfqfofmvlx.supabase.co';
 const SUPABASE_KEY='sb_publishable_WnOhGZSlik7zqpO-cRYGvA_lOUz68Wp';
 const AUTH_RECOVERY_INTENT=new URLSearchParams(location.search).get('reset')==='1'||new URLSearchParams(location.hash.replace(/^#/,'')).get('type')==='recovery'||new URLSearchParams(location.search).has('code');
@@ -8,7 +11,7 @@ const ROKACH_DIGITAL_WHATSAPP='972552715782';
 const LEGAL_VERSION='2026-09-15-v2';
 const QUOTE_CONSENT_VERSION='quote-approval-2026-09-v1';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const state={user:null,profile:null,businessProfile:null,role:'pro',credits:0,requests:[],offers:[],jobs:[],selectedRequest:null,selectedJob:null,isAdmin:false,notifications:[],unreadNotifications:0,notificationTimer:null,timerInterval:null,lastNotificationSeenAt:null,proSettings:null,proJobs:[],selectedProJob:null,proJobMedia:[],proCustomers:[],proServices:[],proReminders:[],proAppointments:[],proTimeEntries:[],quoteItems:[],adminJobs:[],adminBusinesses:[],subscription:null,billingSettings:null};
+const state={user:null,profile:null,businessProfile:null,role:'pro',credits:0,requests:[],offers:[],jobs:[],selectedRequest:null,selectedJob:null,isAdmin:false,notifications:[],unreadNotifications:0,notificationTimer:null,timerInterval:null,lastNotificationSeenAt:null,proSettings:null,proJobs:[],selectedProJob:null,proJobMedia:[],proCustomers:[],proServices:[],proReminders:[],proAppointments:[],proTimeEntries:[],quoteItems:[],adminJobs:[],adminBusinesses:[],subscription:null,billingSettings:null,onboarding:null};
 const ANALYTICS_VISITOR_KEY='mehirli_visitor_v1';
 const ANALYTICS_ATTRIBUTION_KEY='mehirli_attribution_v2';
 function analyticsVisitorId(){
@@ -177,6 +180,18 @@ function clearPaymentReturn(){
   const url=new URL(location.href);url.searchParams.delete('payment');url.searchParams.delete('order');history.replaceState({},'',url.href)
 }
 function hasServiceAccess(){return state.isAdmin||state.subscription?.has_access===true}
+async function loadOnboardingProgress(){
+  if(!state.user||state.isAdmin){state.onboarding=null;return null}
+  const {data,error}=await db.rpc('get_my_onboarding_progress_v83');
+  if(error){state.onboarding=null;return null}
+  state.onboarding=data||null;return state.onboarding
+}
+async function markOnboardingStep(step){
+  if(!state.user||state.isAdmin)return state.onboarding;
+  const {data,error}=await db.rpc('mark_my_onboarding_step_v83',{p_step:step});
+  if(!error&&data)state.onboarding=data;
+  return state.onboarding
+}
 async function loadSubscription(){
   if(!state.user)return null;
   const {data,error}=await rpcWithFallback('get_my_subscription_v38','get_my_subscription_v33');
@@ -195,19 +210,25 @@ function renderSubscriptionBanner(){
 }
 async function routeAfterLogin(){
   if(!state.isAdmin&&!(await ensureLegalConsent()))return;
-  if(!state.isAdmin&&state.subscription?.failure_reason==='installation_required'){
+  if(!state.isAdmin&&isStandaloneMode()&&!state.onboarding?.installed_at)await markOnboardingStep('installed');
+  if(!state.isAdmin&&!state.onboarding?.installed_at){
     show('#homeView');
-    if(isStandaloneMode()){await activateTrialAfterInstall();return}
     showPostSignupInstall();return
   }
+  if(!state.isAdmin&&state.subscription?.failure_reason==='installation_required')await activateTrialAfterInstall();
   if(!state.isAdmin&&!hasServiceAccess()){await openSubscription();return}
-  show('#homeView')
+  show('#homeView');
+  if(!state.isAdmin&&!state.onboarding?.first_quote_created_at)showFirstQuoteWelcome()
 }
 function showPostSignupInstall(){
   const overlay=$('#postSignupInstall'),button=$('#postSignupInstallBtn');if(!overlay)return;
-  if(button)button.textContent=isAndroidInAppBrowser()?'פתיחת מחירלי ב־Chrome להתקנה':isIosDevice()?' הצגת הוראות התקנה באייפון':'⬇ התקנת מחירלי והתחלת הניסיון';
-  if($('#postSignupInstallText'))$('#postSignupInstallText').textContent=isAndroidInAppBrowser()?'פייסבוק אינו מאפשר התקנת אפליקציות. בלחיצה הבאה מחירלי תיפתח ב־Chrome, ושם ניתן יהיה להתקין ולהתחיל את הניסיון.':'לאחר ההתקנה פותחים את מחירלי מהסמל במסך הבית, ותקופת הניסיון מתחילה באותו רגע.';
+  if(button)button.textContent=isAndroidInAppBrowser()?'פתיחת מחירלי ב־Chrome להתקנה':isIosDevice()?' הוראות התקנה באייפון':'⬇ התקנת אפליקציה באנדרואיד';
+  if($('#postSignupInstallText'))$('#postSignupInstallText').textContent=isAndroidInAppBrowser()?'פייסבוק אינו מאפשר התקנת אפליקציות. בלחיצה הבאה מחירלי תיפתח ב־Chrome, ושם ניתן יהיה להתקין.':isIosDevice()?'באייפון מתקינים דרך Safari: שיתוף ← הוספה למסך הבית ← הוסף.':'באנדרואיד לוחצים על הכפתור ומאשרים התקנת אפליקציה.';
   overlay.classList.remove('hidden')
+}
+function showFirstQuoteWelcome(){
+  $('#postSignupInstall')?.classList.add('hidden');
+  $('#firstQuoteWelcome')?.classList.remove('hidden')
 }
 function openPendingSignupEdit(){
   $('#postSignupInstall')?.classList.add('hidden');
@@ -227,7 +248,7 @@ async function activateTrialAfterInstall(){
   if(error){toast('לא ניתן להפעיל את הניסיון כרגע. נסה לפתוח שוב את מחירלי.');return false}
   if(!data?.activated){toast('תקופת הניסיון לא הופעלה. פנה לתמיכה.');return false}
   $('#postSignupInstall')?.classList.add('hidden');
-  await loadSubscription();trackAppEvent('trial_activated');show('#homeView');toast('14 ימי הניסיון התחילו עכשיו ✅');return true
+  await loadSubscription();trackAppEvent('trial_activated');show('#homeView');showFirstQuoteWelcome();toast('14 ימי הניסיון התחילו עכשיו ✅');return true
 }
 async function ensureLegalConsent(){
   const {data,error}=await db.rpc('has_accepted_legal_terms_v40',{p_document_version:LEGAL_VERSION});
@@ -310,6 +331,7 @@ async function loadMe(){
   const {data:bp}=await db.from('business_profiles').select('*').eq('user_id',state.user.id).maybeSingle();state.businessProfile=bp||null;
   refreshDeveloperSupportLink();
   await loadSubscription();
+  await loadOnboardingProgress();
   const ab=$('#adminBtn');if(ab)ab.classList.toggle('hidden',!state.isAdmin);
   const wn=$('#whatsappSetupNotice');if(wn)wn.classList.toggle('hidden',!!String(bp?.business_phone||'').trim());
   const np=$('#enablePhoneNotificationsBtn');if(np&&'Notification' in window)np.classList.toggle('hidden',Notification.permission!=='default');
@@ -546,20 +568,7 @@ $$('.trade-choice').forEach(b=>b.onclick=()=>{setTrade(b.dataset.trade);analyzeP
 $('#proPricingMode').onchange=e=>setPricingMode(e.target.value,true);
 $('#proDiscountType').onchange=e=>{$('#proDiscountValue').disabled=e.target.value==='none';if(e.target.value==='none')$('#proDiscountValue').value=0;calculateProPrice(true)};
 $('#proDiscountValue').oninput=()=>calculateProPrice(true);
-$('#priceFloor').oninput=()=>{$('#priceFloor').dataset.manualOverride='true';calculateProPrice(true)};
-$('#resetPriceFloorBtn').onclick=()=>{$('#priceFloor').dataset.manualOverride='false';calculateProPrice(true);toast('מחיר המינימום חזר לחישוב האוטומטי')};
-$('#proQuotedPrice').oninput=()=>{$('#proQuotedPrice').dataset.manualOverride='true';calculateProPrice(false)};
-$('#resetQuotedPriceBtn').onclick=()=>{$('#proQuotedPrice').dataset.manualOverride='false';calculateProPrice(true);toast('המחיר חזר למחיר המחושב')};
-$('#addQuoteItemBtn').onclick=()=>addQuoteItem();
-$('#proCustomerSelect').onchange=e=>{const c=state.proCustomers.find(x=>x.id===e.target.value);if(!c)return;$('#proCustomerName').value=c.name;$('#proCustomerPhone').value=c.phone;$('#proCustomerCity').value=c.city||''};
-$('#proServiceTemplate').onchange=e=>{const t=serviceTemplatesForTrade($('#proJobTrade').value).find(x=>x.id===e.target.value);if(!t)return;$('#priceFloor').dataset.manualOverride='false';$('#proQuotedPrice').dataset.manualOverride='false';renderJobTypeOptions(t.trade,t.job_type);$('#proJobDescription').value=t.name;$('#proLaborHours').value=t.default_hours||1;$('#proMaterialsCost').value=t.default_materials_cost||0;$('#proQuoteScope').value=t.quote_scope||t.name;setPricingMode(t.pricing_mode||'fixed',false);$('#proBasePrice').value=Number(t.base_price)||0;state.quoteItems=[];renderQuoteItemsEditor();calculateProPrice(true)};
-$('#analyzeJobBtn').onclick=()=>{if(!$('#proJobDescription').value.trim()){toast('כתוב קודם מה הלקוח ביקש');return}analyzeProfessionalJob(true);calculateProPrice(true)};
-if(SpeechRecognition){const proRec=new SpeechRecognition();proRec.lang='he-IL';$('#proVoiceBtn').onclick=()=>{try{proRec.start();$('#proVoiceStatus').textContent='מקשיב…'}catch{}};proRec.onresult=e=>{$('#proJobDescription').value=e.results[0][0].transcript||'';$('#proVoiceStatus').textContent='הטקסט נקלט. עכשיו אפשר לנתח את העבודה.'}}else{$('#proVoiceBtn').disabled=true;$('#proVoiceStatus').textContent='הכתבה קולית אינה נתמכת בדפדפן הזה.'}
-$('#proJobForm').onsubmit=async e=>{
-  e.preventDefault();if(!requireServiceAccess())return;const analysis=analyzeProfessionalJob(false),pricing=calculateProPrice(false),scheduled=$('#proScheduledAt').value;
-  const customerName=$('#proCustomerName').value.trim(),customerPhone=$('#proCustomerPhone').value.trim(),city=$('#proCustomerCity').value.trim(),phoneKey=normalizedPhone(customerPhone);if(phoneKey.length<7){toast('מספר הטלפון של הלקוח אינו תקין');return}const {data:customer,error:customerError}=await db.from('pro_customers').upsert({professional_id:state.user.id,name:customerName,phone:customerPhone,normalized_phone:phoneKey,city:city||null},{onConflict:'professional_id,normalized_phone'}).select('*').single();if(customerError){toast('הלקוח לא נשמר: '+customerError.message);return}
-  const row={professional_id:state.user.id,customer_id:customer.id,trade:$('#proJobTrade').value,customer_name:customerName,customer_phone:customerPhone,city,job_type:$('#proJobType').value,description:$('#proJobDescription').value.trim(),scheduled_at:scheduled?new Date(scheduled).toISOString():null,pricing_mode:$('#proPricingMode').value,base_price:numberValue('#proBasePrice'),subtotal:pricing.subtotal,discount_type:$('#proDiscountType').value,discount_value:numberValue('#proDiscountValue'),discount_amount:pricing.discountAmount,quote_valid_until:$('#proQuoteValidUntil').value||null,warranty_text:$('#proWarrantyText').value.trim()||null,labor_hours:numberValue('#proLaborHours'),hourly_rate:Number(state.proSettings?.default_hourly_rate)||0,materials_cost:numberValue('#proMaterialsCost'),travel_cost:numberValue('#proTravelCost'),assistant_cost:numberValue('#proAssistantCost'),overhead_percent:Number(state.proSettings?.overhead_percent)||0,risk_percent:Number(state.proSettings?.risk_percent)||0,price_floor:pricing.floor,recommended_price:pricing.recommended,quoted_price:pricing.total,deposit_amount:numberValue('#proDepositAmount'),quote_scope:$('#proQuoteScope').value.trim(),quote_terms:state.proSettings?.quote_terms||'',customer_questions:analysis.questions,tools_needed:analysis.tools,warnings:analysis.warnings,status:'quoted',payment_status:'unpaid'};
-  const {data,error}=await db.from('pro_jobs').insert(row).select('*').single();if(error){toast('לא נשמר: '+error.message);return}const cleanItems=state.quoteItems.filter(i=>String(i.description||'').trim()).map((i,index)=>({job_id:data.id,professional_id:state.user.id,description:String(i.description).trim(),quantity:Number(i.quantity)||1,unit_price:Number(i.unit_price)||0,estimated_cost:Number(i.estimated_cost)||0,sort_order:index}));if(!cleanItems.length)cleanItems.push({job_id:data.id,professional_id:state.user.id,description:row.description,quantity:1,unit_price:pricing.discountAmount>0?pricing.subtotal:pricing.total,estimated_cost:row.materials_cost,sort_order:0});const {error:itemsError}=await db.from('pro_job_items').insert(cleanItems);if(itemsError){await db.from('pro_jobs').delete().eq('id',data.id);toast('סעיפי ההצעה לא נשמרו: '+itemsError.message);return}const reminder=$('#proReminderAt').value;if(reminder)await db.from('pro_reminders').insert({job_id:data.id,professional_id:state.user.id,remind_at:new Date(reminder).toISOString(),kind:'quote_followup',message:`מעקב הצעה מול ${customerName}`});clearProJobDraft();trackAppEvent('first_job_created');state.selectedProJob={...data,items:cleanItems};await loadProJobs();await renderProJobDetail();show('#proJobDetailView');toast('ההצעה נשמרה. עכשיו לחץ על הכפתור הירוק לשליחה')
+$('#priceFloor').oninput=()=>{$('#priceFlo…1113 tokens truncated…ror.message);return}const cleanItems=state.quoteItems.filter(i=>String(i.description||'').trim()).map((i,index)=>({job_id:data.id,professional_id:state.user.id,description:String(i.description).trim(),quantity:Number(i.quantity)||1,unit_price:Number(i.unit_price)||0,estimated_cost:Number(i.estimated_cost)||0,sort_order:index}));if(!cleanItems.length)cleanItems.push({job_id:data.id,professional_id:state.user.id,description:row.description,quantity:1,unit_price:pricing.discountAmount>0?pricing.subtotal:pricing.total,estimated_cost:row.materials_cost,sort_order:0});const {error:itemsError}=await db.from('pro_job_items').insert(cleanItems);if(itemsError){await db.from('pro_jobs').delete().eq('id',data.id);toast('סעיפי ההצעה לא נשמרו: '+itemsError.message);return}const reminder=$('#proReminderAt').value;if(reminder)await db.from('pro_reminders').insert({job_id:data.id,professional_id:state.user.id,remind_at:new Date(reminder).toISOString(),kind:'quote_followup',message:`מעקב הצעה מול ${customerName}`});clearProJobDraft();trackAppEvent('first_job_created');if(state.onboarding)state.onboarding.first_quote_created_at=data.created_at||new Date().toISOString();state.selectedProJob={...data,items:cleanItems};await loadProJobs();await renderProJobDetail();show('#proJobDetailView');toast('ההצעה נשמרה. עכשיו לחץ על הכפתור הירוק לשליחה')
 };
 function quoteUrl(job){const url=new URL('./quote.html',location.href);url.searchParams.set('quote',job.public_token);return url.href}
 function whatsappUrl(phone,message){const number=waNumber(phone);return number?`https://wa.me/${number}?text=${encodeURIComponent(message)}`:''}
@@ -762,10 +771,11 @@ async function sendStoredQuoteToWhatsapp(job,button){
     downloadQuotePdfAndOpenWhatsapp(job,file)
   }finally{button.disabled=false;button.textContent=oldText}
 }
-function sendDigitalQuoteToWhatsapp(job){
+async function sendDigitalQuoteToWhatsapp(job){
   if(!requireServiceAccess())return;
   if(!waNumber(job.customer_phone)){toast('חסר מספר טלפון ללקוח');return}
   trackAppEvent('quote_send_opened');
+  await markOnboardingStep('first_quote_sent');
   openWhatsapp(job.customer_phone,quoteMessage(job));
 }
 async function openStoredQuotePdf(job,button){
@@ -951,7 +961,7 @@ async function loadPublicQuote(token){
 async function loadAdmin(){
   if(!state.isAdmin){toast('אין הרשאת מנהל');return false}
   const [{data:summary,error:se},{data:jobs,error:je},{data:businesses,error:be},{data:billing,error:bse},{data:marketing,error:me}]=await Promise.all([
-    db.rpc('admin_professional_summary_v33'),db.rpc('admin_list_pro_jobs'),db.rpc('admin_list_businesses_v33'),rpcWithFallback('admin_get_billing_settings_v38','admin_get_billing_settings_v33'),rpcWithFallback('admin_marketing_summary_v63','admin_marketing_summary_v49')
+    db.rpc('admin_professional_summary_v33'),db.rpc('admin_list_pro_jobs'),rpcWithFallback('admin_list_businesses_v83','admin_list_businesses_v33'),rpcWithFallback('admin_get_billing_settings_v38','admin_get_billing_settings_v33'),rpcWithFallback('admin_marketing_summary_v63','admin_marketing_summary_v49')
   ]);
   if(se||je||be||bse||me){toast((se||je||be||bse||me).message||'לא ניתן לטעון את אזור המנהל');return false}
   const sum=summary||{};state.adminJobs=jobs||[];state.adminBusinesses=businesses||[];state.billingSettings=billing||{};
@@ -977,7 +987,9 @@ function renderAdminBusinesses(){
     const status=b.subscription_status||'not_started',end=status==='trial'?b.trial_ends_at:status==='past_due'?b.grace_ends_at:b.current_period_ends_at;
     const paymentPending=Number(b.pending_payment_count||0)>0;
     const controls=b.is_admin?'':`<div class="subscription-admin-actions"><button type="button" class="approve-btn" data-sub-action="record_payment" data-professional="${b.professional_id}">✓ אשר תשלום ל־30 יום</button>${status==='suspended'||status==='cancelled'?`<button type="button" class="secondary" data-sub-action="activate" data-professional="${b.professional_id}">הפעל שירות</button>`:`<button type="button" class="suspend-action" data-sub-action="suspend" data-professional="${b.professional_id}">השהה שירות</button>`}<button type="button" class="secondary" data-sub-action="extend_trial" data-professional="${b.professional_id}">＋ 7 ימי ניסיון</button>${paymentPending?`<button type="button" class="reject-action" data-sub-action="reject_payment" data-professional="${b.professional_id}">דחה דיווח תשלום</button>`:''}</div>`;
-    return `<div class="item admin-business"><div class="job-card-top"><h3>${esc(b.business_name||b.email||'בעל עסק')}</h3><span class="subscription-status status-${status}">${subscriptionStatusHe[status]||status}</span></div><p>${esc(b.email||'')}</p><div class="admin-user-meta"><span class="trade-badge ${b.trade}">${tradeIcon(b.trade)} ${tradeHe[b.trade]||'טרם הוגדר'}</span><span class="badge">${Number(b.job_count||0)} עבודות</span><span class="badge">הכנסות מעבודות ${money(b.revenue||0)}</span>${end?`<span class="badge">עד ${formatDate(end)}</span>`:''}${paymentPending?'<span class="badge payment-pending-badge">💳 תשלום ממתין לאישור</span>':''}</div>${controls}<div class="admin-record-actions"><button type="button" class="delete-action" data-admin-delete-business="${b.professional_id}" data-business-name="${esc(b.business_name||b.email||'בעל העסק')}">🗑️ מחק בעל עסק לצמיתות</button></div></div>`
+    const steps=[['registered_at','📝','נרשם'],['install_clicked_at','👆','לחץ התקנה'],['installed_at','📲','פתח מהאייקון'],['first_quote_created_at','🧾','יצר הצעה'],['first_quote_sent_at','💬','שלח הצעה']];
+    const progress=`<div class="onboarding-progress" aria-label="התקדמות הפעלת מחירלי">${steps.map(([key,icon,label])=>`<div class="onboarding-step ${b[key]?'done':''}"><span>${b[key]?'✓':icon}</span>${label}</div>`).join('')}</div>`;
+    return `<div class="item admin-business"><div class="job-card-top"><h3>${esc(b.business_name||b.email||'בעל עסק')}</h3><span class="subscription-status status-${status}">${subscriptionStatusHe[status]||status}</span></div><p>${esc(b.email||'')}</p><div class="admin-user-meta"><span class="trade-badge ${b.trade}">${tradeIcon(b.trade)} ${tradeHe[b.trade]||'טרם הוגדר'}</span><span class="badge">${Number(b.job_count||0)} עבודות</span><span class="badge">הכנסות מעבודות ${money(b.revenue||0)}</span>${end?`<span class="badge">עד ${formatDate(end)}</span>`:''}${paymentPending?'<span class="badge payment-pending-badge">💳 תשלום ממתין לאישור</span>':''}</div>${progress}${controls}<div class="admin-record-actions"><button type="button" class="delete-action" data-admin-delete-business="${b.professional_id}" data-business-name="${esc(b.business_name||b.email||'בעל העסק')}">🗑️ מחק בעל עסק לצמיתות</button></div></div>`
   }).join(''):'<div class="card"><h3>עדיין אין בעלי עסקים</h3></div>';
   box.querySelectorAll('[data-sub-action]').forEach(button=>button.onclick=()=>adminSubscriptionAction(button.dataset.professional,button.dataset.subAction,button));
   box.querySelectorAll('[data-admin-delete-business]').forEach(button=>button.onclick=()=>deleteAdminBusiness(button.dataset.adminDeleteBusiness,button.dataset.businessName,button))
@@ -1105,6 +1117,7 @@ function updateInstallButton(){
   if(!isStandalone())installBtn.textContent=isIosDevice()?' התקנה באייפון':'⬇ התקן אפליקציה';
 }
 async function requestAppInstall(){
+  await markOnboardingStep('install_clicked');
   if(isAndroidInAppBrowser()){openInChrome();return}
   if(isStandalone()){
     if(state.subscription?.failure_reason==='installation_required')await activateTrialAfterInstall();
@@ -1126,17 +1139,19 @@ window.addEventListener('beforeinstallprompt',e=>{
   deferredInstallPrompt=e;
   if(installBtn) installBtn.classList.remove('hidden');
 });
-window.addEventListener('appinstalled',()=>{
+window.addEventListener('appinstalled',async()=>{
   deferredInstallPrompt=null;
   trackAppEvent('app_installed');
   if(installBtn) installBtn.classList.add('hidden');
-  if(state.subscription?.failure_reason==='installation_required')activateTrialAfterInstall();
+  if(state.subscription?.failure_reason==='installation_required')await activateTrialAfterInstall();
+  else if(!state.onboarding?.first_quote_created_at)showFirstQuoteWelcome();
   toast('מחירלי הותקנה כאפליקציה ✅');
 });
 if(installBtn)installBtn.onclick=requestAppInstall;
 $('#openChromeBtn').onclick=openInChrome;
 $('#postSignupInstallBtn').onclick=requestAppInstall;
 $('#postSignupEditBtn').onclick=openPendingSignupEdit;
+$('#firstQuoteWelcomeBtn').onclick=async()=>{$('#firstQuoteWelcome')?.classList.add('hidden');await openNewProJob()};
 updateInstallButton();
 
 boot();
