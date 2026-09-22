@@ -111,8 +111,24 @@
       var analytics=window.supabase.createClient('https://jgnbcrlvsudfqfofmvlx.supabase.co','sb_publishable_WnOhGZSlik7zqpO-cRYGvA_lOUz68Wp');
       var visitorKey='mehirli_visitor_v1',attributionKey='mehirli_attribution_v2';
       function visitorId(){var id='';try{id=localStorage.getItem(visitorKey)||''}catch(e){}if(!/^[0-9a-f-]{36}$/i.test(id)){id=crypto.randomUUID();try{localStorage.setItem(visitorKey,id)}catch(e){}}return id}
-      function attribution(){var p=new URLSearchParams(location.search),campaign=p.get('utm_campaign')||'',raw=(p.get('utm_source')||p.get('source')||p.get('from')||'').toLowerCase();var source=raw||'direct';if(['fb','facebook','facebook.com','m.facebook.com','l.facebook.com'].includes(source))source=campaign?'meta_paid':'facebook_organic';if(['ig','instagram','instagram.com','l.instagram.com'].includes(source))source=campaign?'meta_paid':'instagram_organic';if(source.indexOf('tiktok')>=0)source=campaign?'tiktok_paid':'tiktok_organic';var value={source:source,campaign:campaign};if(raw){try{localStorage.setItem(attributionKey,JSON.stringify(value))}catch(e){}return value}try{return JSON.parse(localStorage.getItem(attributionKey)||'null')||value}catch(e){return value}}
-      function track(name){var a=attribution();return analytics.rpc('track_app_event_v40',{p_visitor_id:visitorId(),p_event_name:name,p_source:a.source,p_campaign:a.campaign})}
+      function attribution(){
+        var p=new URLSearchParams(location.search),campaign=p.get('utm_campaign')||'',raw=(p.get('utm_source')||p.get('source')||'').toLowerCase(),ref='';
+        try{ref=document.referrer?new URL(document.referrer).hostname.toLowerCase().replace(/^www\./,''):''}catch(e){}
+        if(!raw&&p.has('fbclid'))raw='facebook';
+        if(!raw&&p.has('ttclid'))raw='tiktok';
+        if(!raw&&ref&&ref!==location.hostname)raw=ref;
+        var source=raw||'direct';
+        if(['fb','facebook','facebook.com','m.facebook.com','l.facebook.com','lm.facebook.com'].includes(source))source=campaign?'meta_paid':'facebook_organic';
+        if(['ig','instagram','instagram.com','l.instagram.com'].includes(source))source=campaign?'meta_paid':'instagram_organic';
+        if(source.indexOf('tiktok')>=0)source=campaign?'tiktok_paid':'tiktok_organic';
+        var value={source:source,campaign:campaign,capturedAt:Date.now()};
+        if(raw){try{localStorage.setItem(attributionKey,JSON.stringify(value))}catch(e){}return value}
+        try{return JSON.parse(localStorage.getItem(attributionKey)||'null')||value}catch(e){return value}
+      }
+      function track(name){
+        var a=attribution(),body=JSON.stringify({p_visitor_id:visitorId(),p_event_name:name,p_source:a.source,p_campaign:a.campaign});
+        return fetch('https://jgnbcrlvsudfqfofmvlx.supabase.co/rest/v1/rpc/track_app_event_v40',{method:'POST',headers:{apikey:'sb_publishable_WnOhGZSlik7zqpO-cRYGvA_lOUz68Wp',Authorization:'Bearer sb_publishable_WnOhGZSlik7zqpO-cRYGvA_lOUz68Wp','Content-Type':'application/json'},body:body,keepalive:true,cache:'no-store'}).then(function(response){if(!response.ok)throw new Error('analytics_http_'+response.status);return response}).catch(function(){return analytics.rpc('track_app_event_v40',JSON.parse(body))})
+      }
       function isAndroidFacebookBrowser(){var ua=navigator.userAgent||'';return /Android/i.test(ua)&&/(FBAN|FBAV|Instagram)/i.test(ua)}
       function chromeIntent(target){var url=new URL(target,location.href);url.searchParams.set('view','signup');url.hash='';return 'intent://'+url.host+url.pathname+url.search+'#Intent;scheme=https;package=com.android.chrome;end'}
       track('landing_page_view');
