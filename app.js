@@ -9,6 +9,7 @@ const LEGAL_VERSION='2026-09-15-v2';
 const QUOTE_CONSENT_VERSION='quote-approval-2026-09-v1';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const state={user:null,profile:null,businessProfile:null,role:'pro',credits:0,requests:[],offers:[],jobs:[],selectedRequest:null,selectedJob:null,isAdmin:false,notifications:[],unreadNotifications:0,notificationTimer:null,timerInterval:null,lastNotificationSeenAt:null,proSettings:null,proJobs:[],selectedProJob:null,proJobMedia:[],proCustomers:[],proServices:[],proReminders:[],proAppointments:[],proTimeEntries:[],quoteItems:[],adminJobs:[],adminBusinesses:[],subscription:null,billingSettings:null,onboarding:null};
+let adminAnalyticsRange='today',adminAnalyticsTimer=null;
 const ANALYTICS_VISITOR_KEY='mehirli_visitor_v1';
 const ANALYTICS_ATTRIBUTION_KEY='mehirli_attribution_v2';
 function analyticsVisitorId(){
@@ -19,8 +20,8 @@ function analyticsVisitorId(){
   return id
 }
 function analyticsAttribution(){
-  const params=new URLSearchParams(location.search),campaign=params.get('utm_campaign')||'',medium=params.get('utm_medium')||'',from=params.get('from')||'';
-  let raw=params.get('utm_source')||params.get('source')||from||'';
+  const params=new URLSearchParams(location.search),campaign=params.get('utm_campaign')||'',from=params.get('from')||'';
+  let raw=params.get('utm_source')||params.get('source')||'';
   const normalize=value=>{
     const source=String(value||'').toLowerCase().replace(/^www\./,'');
     if((['fb','facebook','facebook.com','m.facebook.com','l.facebook.com','lm.facebook.com'].includes(source)||source==='ig'||source==='instagram')&&campaign)return 'meta_paid';
@@ -32,6 +33,9 @@ function analyticsAttribution(){
     return source
   };
   let saved=null;try{saved=JSON.parse(localStorage.getItem(ANALYTICS_ATTRIBUTION_KEY)||'null')}catch{}
+  if(!raw&&params.has('fbclid'))raw='facebook';
+  if(!raw&&params.has('ttclid'))raw='tiktok';
+  if(!raw&&from&&from!=='landing')raw=from;
   if(raw){
     const value={source:normalize(raw)||'direct',campaign};
     try{localStorage.setItem(ANALYTICS_ATTRIBUTION_KEY,JSON.stringify(value))}catch{}
@@ -52,7 +56,11 @@ function analyticsAttribution(){
   return value
 }
 async function trackAppEvent(eventName){
-  try{const a=analyticsAttribution();await db.rpc('track_app_event_v40',{p_visitor_id:analyticsVisitorId(),p_event_name:eventName,p_source:a.source,p_campaign:a.campaign})}catch{}
+  const a=analyticsAttribution(),payload={p_visitor_id:analyticsVisitorId(),p_event_name:eventName,p_source:a.source,p_campaign:a.campaign};
+  try{
+    const response=await fetch(`${SUPABASE_URL}/rest/v1/rpc/track_app_event_v40`,{method:'POST',headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json'},body:JSON.stringify(payload),keepalive:true,cache:'no-store'});
+    if(!response.ok)throw new Error(`analytics_http_${response.status}`)
+  }catch{try{await db.rpc('track_app_event_v40',payload)}catch{}}
 }
 function authErrorMessage(error){
   const message=String(error?.message||'').toLowerCase();
@@ -981,15 +989,31 @@ async function loadPublicQuote(token){
   const btn=$('#approvePublicQuoteBtn'),consent=$('#publicQuoteConsent');if(btn&&consent){consent.onchange=()=>btn.disabled=!consent.checked;btn.onclick=async()=>{if(!consent.checked)return;btn.disabled=true;btn.textContent='מאשר…';const {error}=await db.rpc('approve_public_job_quote_v40',{p_token:token,p_consent_version:QUOTE_CONSENT_VERSION});if(error){toast('לא ניתן לאשר: '+error.message);btn.disabled=false;btn.textContent='אישור הצעת המחיר';return}toast('ההצעה אושרה בהצלחה');await loadPublicQuote(token)}}
 }
 
+function renderAdminMarketing(funnel={}){
+  $('#adminUniqueVisitors').textContent=funnel.unique_visitors_30d??funnel.unique_visitors??0;
+  $('#adminVisitors30d').textContent=adminAnalyticsRange==='today'?'היום':'30 הימים האחרונים';
+  $('#adminTrialClicks').textContent=funnel.trial_clicks||0;$('#adminFormOpens').textContent=funnel.form_opens||0;$('#adminSignupAttempts').textContent=funnel.signup_attempts||0;$('#adminTrialSignups').textContent=funnel.trial_signups||0;$('#adminFirstJobs').textContent=funnel.first_jobs||0;$('#adminQuoteSends').textContent=funnel.quote_sends||0;$('#adminAppInstalls').textContent=funnel.installs||0;$('#adminPayingCustomers').textContent=funnel.paying_customers||0;
+  $('#adminVisitClickConversion').textContent=`${Number(funnel.visitor_to_click_percent||0).toLocaleString('he-IL')}%`;$('#adminClickTrialConversion').textContent=`${Number(funnel.click_to_trial_percent||0).toLocaleString('he-IL')}%`;$('#adminTrialJobConversion').textContent=`${Number(funnel.trial_to_job_percent||0).toLocaleString('he-IL')}%`;$('#adminTrialPaidConversion').textContent=`${Number(funnel.trial_to_paid_percent||0).toLocaleString('he-IL')}%`;
+  const sources=Array.isArray(funnel.source_breakdown)?funnel.source_breakdown:Array.isArray(funnel.top_sources)?funnel.top_sources:[];
+  $('#adminTrafficSources').innerHTML=sources.length?`<b>ביצועים לפי מקור</b><div class="traffic-table"><div class="traffic-head"><span>מקור</span><span>כניסות</span><span>לחצו</span><span>טופס</span><span>ניסו</span><span>נרשמו</span></div>${sources.map(row=>`<div><span>${esc(row.source||'ישיר')}</span><strong>${Number(row.visitors||0)}</strong><strong>${Number(row.trial_clicks||0)}</strong><strong>${Number(row.form_opens||0)}</strong><strong>${Number(row.signup_attempts||0)}</strong><strong>${Number(row.trial_signups||0)}</strong></div>`).join('')}</div>`:'<small>אין עדיין כניסות בטווח שנבחר.</small>';
+  $$('[data-admin-analytics-range]').forEach(button=>button.classList.toggle('active',button.dataset.adminAnalyticsRange===adminAnalyticsRange));
+  const updated=funnel.generated_at?new Date(funnel.generated_at):new Date();
+  $('#adminAnalyticsNote').textContent=`עודכן ${updated.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'})} · כניסות מפייסבוק ללא קמפיין מוצגות כאורגניות/ויראליות.`
+}
+async function loadAdminMarketing(range=adminAnalyticsRange){
+  adminAnalyticsRange=range==='30d'?'30d':'today';
+  const {data,error}=await rpcWithFallback('admin_marketing_summary_v87','admin_marketing_summary_v63',{p_range:adminAnalyticsRange});
+  if(error){toast(error.message||'לא ניתן לרענן את נתוני הכניסות');return false}
+  renderAdminMarketing(data||{});return true
+}
 async function loadAdmin(){
   if(!state.isAdmin){toast('אין הרשאת מנהל');return false}
   const [{data:summary,error:se},{data:jobs,error:je},{data:businesses,error:be},{data:billing,error:bse},{data:marketing,error:me}]=await Promise.all([
-    db.rpc('admin_professional_summary_v33'),db.rpc('admin_list_pro_jobs'),rpcWithFallback('admin_list_businesses_v83','admin_list_businesses_v33'),rpcWithFallback('admin_get_billing_settings_v38','admin_get_billing_settings_v33'),rpcWithFallback('admin_marketing_summary_v63','admin_marketing_summary_v49')
+    db.rpc('admin_professional_summary_v33'),db.rpc('admin_list_pro_jobs'),rpcWithFallback('admin_list_businesses_v83','admin_list_businesses_v33'),rpcWithFallback('admin_get_billing_settings_v38','admin_get_billing_settings_v33'),rpcWithFallback('admin_marketing_summary_v87','admin_marketing_summary_v63',{p_range:adminAnalyticsRange})
   ]);
   if(se||je||be||bse||me){toast((se||je||be||bse||me).message||'לא ניתן לטעון את אזור המנהל');return false}
   const sum=summary||{};state.adminJobs=jobs||[];state.adminBusinesses=businesses||[];state.billingSettings=billing||{};
-  const funnel=marketing||{};$('#adminUniqueVisitors').textContent=funnel.unique_visitors_30d??funnel.unique_visitors??0;$('#adminVisitors30d').textContent='30 הימים האחרונים';$('#adminTrialClicks').textContent=funnel.trial_clicks||0;$('#adminFormOpens').textContent=funnel.form_opens||0;$('#adminSignupAttempts').textContent=funnel.signup_attempts||0;$('#adminTrialSignups').textContent=funnel.trial_signups||0;$('#adminFirstJobs').textContent=funnel.first_jobs||0;$('#adminQuoteSends').textContent=funnel.quote_sends||0;$('#adminAppInstalls').textContent=funnel.installs||0;$('#adminPayingCustomers').textContent=funnel.paying_customers||0;$('#adminVisitClickConversion').textContent=`${Number(funnel.visitor_to_click_percent||0).toLocaleString('he-IL')}%`;$('#adminClickTrialConversion').textContent=`${Number(funnel.click_to_trial_percent||0).toLocaleString('he-IL')}%`;$('#adminTrialJobConversion').textContent=`${Number(funnel.trial_to_job_percent||0).toLocaleString('he-IL')}%`;$('#adminTrialPaidConversion').textContent=`${Number(funnel.trial_to_paid_percent||0).toLocaleString('he-IL')}%`;
-  const sources=Array.isArray(funnel.source_breakdown)?funnel.source_breakdown:Array.isArray(funnel.top_sources)?funnel.top_sources:[];$('#adminTrafficSources').innerHTML=sources.length?`<b>ביצועים לפי מקור</b><div class="traffic-table"><div class="traffic-head"><span>מקור</span><span>כניסות</span><span>לחצו</span><span>נרשמו</span><span>שילמו</span></div>${sources.map(row=>`<div><span>${esc(row.source||'ישיר')}</span><strong>${Number(row.visitors||0)}</strong><strong>${Number(row.trial_clicks||0)}</strong><strong>${Number(row.trial_signups||0)}</strong><strong>${Number(row.paying_customers||0)}</strong></div>`).join('')}</div>`:'<small>מקורות כניסה יופיעו לאחר תחילת המדידה.</small>';
+  renderAdminMarketing(marketing||{});
   $('#adminBusinessesCount').textContent=sum.businesses||0;$('#adminJobsCount').textContent=sum.jobs||0;
   $('#adminActiveSubscriptionsCount').textContent=sum.active_subscriptions||0;$('#adminSuspendedCount').textContent=sum.suspended_subscriptions||0;
   $('#adminPendingPaymentsCount').textContent=sum.pending_payments||0;$('#adminSubscriptionRevenue').textContent=money(sum.subscription_revenue||0);
@@ -1051,9 +1075,12 @@ async function openAdmin(){
   show('#adminView');loading.classList.remove('hidden');button.disabled=true;
   const loaded=await loadAdmin();
   loading.classList.add('hidden');button.disabled=false;
-  if(!loaded)show('#homeView')
+  if(!loaded)show('#homeView');
+  else{clearInterval(adminAnalyticsTimer);adminAnalyticsTimer=setInterval(()=>{if(!$('#adminView')?.classList.contains('hidden')&&document.visibilityState==='visible')loadAdminMarketing()},30000)}
 }
 const adminBtn=$('#adminBtn');if(adminBtn)adminBtn.addEventListener('click',openAdmin);
+$$('[data-admin-analytics-range]').forEach(button=>button.onclick=()=>loadAdminMarketing(button.dataset.adminAnalyticsRange));
+$('#adminAnalyticsRefresh').onclick=()=>loadAdminMarketing();
 $('#adminTradeFilter').onchange=renderAdminJobs;
 $$('.admin-tab').forEach(b=>b.onclick=()=>{$$('.admin-tab').forEach(x=>x.classList.toggle('active',x===b));['jobs','businesses'].forEach(k=>$(`#admin${k[0].toUpperCase()+k.slice(1)}Panel`).classList.toggle('hidden',b.dataset.adminTab!==k))});
 
