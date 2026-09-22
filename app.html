@@ -29,7 +29,7 @@
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="apple-touch-icon" sizes="180x180" href="icon-192.png" />
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
-<link rel="stylesheet" href="style.css?v=86" />
+<link rel="stylesheet" href="style.css?v=87" />
 <!-- Meta Pixel: shared Rokach Digital data source; Mehirli conversions are separated by event and content_name. -->
 <script>
 !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -357,7 +357,8 @@ fbq('track','PageView',{content_name:'Mehirli'});
 <section id="adminView" class="view"><div class="section-head"><button class="back">‹</button><div><span class="eyebrow">גישה מלאה</span><h2>ניהול מחירלי</h2></div></div>
   <div id="adminLoading" class="admin-loading hidden">טוען את נתוני הניהול…</div>
   <section class="admin-funnel card" aria-labelledby="adminFunnelTitle">
-    <div class="admin-section-title"><div><span class="eyebrow">מהפרסום ועד לתשלום</span><h3 id="adminFunnelTitle">כניסות והמרות</h3></div><span id="adminVisitors30d" class="funnel-period">30 יום: 0</span></div>
+    <div class="admin-section-title"><div><span class="eyebrow">מהפרסום ועד לתשלום</span><h3 id="adminFunnelTitle">כניסות והמרות</h3></div><span id="adminVisitors30d" class="funnel-period">היום</span></div>
+    <div class="admin-analytics-ranges"><button type="button" class="active" data-admin-analytics-range="today">היום</button><button type="button" data-admin-analytics-range="30d">30 יום</button><button type="button" id="adminAnalyticsRefresh">רענון</button></div>
     <div class="admin-funnel-grid">
       <div class="funnel-stat"><span>👀</span><small>מבקרים ייחודיים</small><strong id="adminUniqueVisitors">0</strong></div>
       <div class="funnel-stat intent"><span>👆</span><small>לחצו התחלת ניסיון</small><strong id="adminTrialClicks">0</strong></div>
@@ -371,7 +372,7 @@ fbq('track','PageView',{content_name:'Mehirli'});
     </div>
     <div class="conversion-row"><span>כניסה ← לחיצה <b id="adminVisitClickConversion">0%</b></span><span>לחיצה ← הרשמה <b id="adminClickTrialConversion">0%</b></span><span>הרשמה ← עבודה ראשונה <b id="adminTrialJobConversion">0%</b></span><span>הרשמה ← תשלום <b id="adminTrialPaidConversion">0%</b></span></div>
     <div id="adminTrafficSources" class="traffic-sources"><small>מקורות כניסה יופיעו לאחר תחילת המדידה.</small></div>
-    <p class="analytics-note">המדידה מציגה 30 יום ומפרידה בין צפייה, לחיצה, הרשמה ותשלום. הרשמה ישנה שלא נשמר לה מקור תופיע כ״ללא שיוך״.</p>
+    <p class="analytics-note" id="adminAnalyticsNote">המדידה מציגה את הפעילות של היום ומתעדכנת אוטומטית. כניסות משיתוף בפייסבוק ללא קמפיין מוצגות כאורגניות.</p>
   </section>
   <h3 class="admin-subheading">פעילות ותפעול</h3>
   <div class="admin-grid">
@@ -418,5 +419,5 @@ fbq('track','PageView',{content_name:'Mehirli'});
 </section>
 </main><a id="developerSupportLink" class="developer-support-link hidden" href="#" target="_blank" rel="noopener" aria-label="דיווח תקלה או שיחה עם המפתח ב־WhatsApp">💬 דיווח תקלה / שיחה עם המפתח</a><div id="postSignupInstall" class="post-signup-install hidden" role="dialog" aria-modal="true" aria-labelledby="postSignupInstallTitle"><div class="post-signup-install-card"><span>📲</span><b>ההרשמה הסתיימה</b><h2 id="postSignupInstallTitle">עכשיו מוסיפים את מחירלי לטלפון</h2><p id="postSignupInstallText">המערכת תציג את דרך ההתקנה המתאימה לטלפון שלך. לאחר ההתקנה פותחים את מחירלי מהסמל במסך הבית.</p><button id="postSignupInstallBtn" class="primary big" type="button">הוספת מחירלי לטלפון</button><button id="postSignupEditBtn" class="secondary big install-edit-btn" type="button">חזרה לתיקון פרטי ההרשמה</button><small>אם תצא לפני ההתקנה, המסך הזה יוצג שוב בכניסה הבאה.</small></div></div><div id="firstQuoteWelcome" class="post-signup-install hidden" role="dialog" aria-modal="true" aria-labelledby="firstQuoteWelcomeTitle"><div class="post-signup-install-card first-quote-welcome-card"><span>✅</span><b>מחירלי מותקנת ומוכנה</b><h2 id="firstQuoteWelcomeTitle">בוא נכין את הצעת המחיר הראשונה</h2><p>נכניס את פרטי הלקוח והעבודה, נחשב מחיר ונשלח הצעה מקצועית.</p><button id="firstQuoteWelcomeBtn" class="primary big" type="button">הכנת הצעת המחיר הראשונה</button></div></div><div id="toast" class="toast"></div></div>
 <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"></script>
-<script src="app.js?v=86"></script>
+<script src="app.js?v=87"></script>
 </body></html>
