@@ -74,8 +74,8 @@ begin
       case
         when campaign <> '' and raw_source in ('fb','ig','meta_paid','facebook','instagram') then 'Meta ממומן · ' || campaign
         when raw_source='meta_paid' then 'Meta ממומן'
-        when raw_source='facebook_organic' then 'פייסבוק אורגני / ויראלי'
-        when raw_source='instagram_organic' then 'אינסטגרם אורגני'
+        when raw_source in ('fb','facebook','facebook_organic','facebook.com','m.facebook.com','l.facebook.com','lm.facebook.com') then 'פייסבוק אורגני / ויראלי'
+        when raw_source in ('ig','instagram','instagram_organic','instagram.com','l.instagram.com') then 'אינסטגרם אורגני'
         when raw_source='facebook_groups' then 'פייסבוק — קבוצות'
         when raw_source='tiktok_paid' then 'TikTok ממומן'
         when raw_source='tiktok_organic' then 'TikTok אורגני'
