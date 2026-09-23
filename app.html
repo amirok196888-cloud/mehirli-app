@@ -29,7 +29,7 @@
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="apple-touch-icon" sizes="180x180" href="icon-192.png" />
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
-<link rel="stylesheet" href="style.css?v=88" />
+<link rel="stylesheet" href="style.css?v=95" />
 <!-- Meta Pixel: shared Rokach Digital data source; Mehirli conversions are separated by event and content_name. -->
 <script>
 !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -75,10 +75,10 @@ fbq('track','PageView',{content_name:'Mehirli'});
     <label>אימייל<input id="authEmail" type="email" required autocomplete="email" /></label>
     <label>סיסמה<input id="authPassword" type="password" required minlength="6" autocomplete="current-password" /></label>
     <div id="signupFields" class="hidden">
-      <label>שם בעל העסק<input id="authName" placeholder="השם שיופיע בהצעות המחיר" /></label>
+      <label>השם שלך<input id="authName" autocomplete="name" placeholder="למשל: ישראל ישראלי" /></label>
       <label class="legal-check"><input id="signupLegalConsent" type="checkbox" /><span>בהרשמה אני מאשר/ת שקראתי את <button class="text-link" type="button" data-open-legal>תנאי השימוש ומדיניות הפרטיות</button>.</span></label>
       <button id="signupBtn" class="primary big auth-signup" type="button">📲 הרשמה והמשך להתקנת האפליקציה</button>
-      <p class="auth-install-note">לאחר ההרשמה ייפתח כפתור ההתקנה. 14 ימי הניסיון יתחילו רק לאחר התקנת האפליקציה.</p>
+      <p class="auth-install-note">אחרי ההרשמה מתקינים את מחירלי. <strong>14 ימי הניסיון מתחילים רק אחרי ההתקנה.</strong></p>
     </div>
     <button class="secondary big auth-login" type="submit">כניסה לחשבון שלי</button>
     <button id="forgotPasswordBtn" class="text-link" type="button">שכחתי סיסמה</button>
@@ -158,7 +158,7 @@ fbq('track','PageView',{content_name:'Mehirli'});
   </div>
   <div class="workspace-actions">
     <button id="newProJobBtn" class="primary big">＋ פנייה חדשה ותמחור</button>
-    <button id="proSettingsBtn" class="secondary big">⚙️ הגדרות תמחור ותשלום</button>
+    <button id="proSettingsBtn" class="secondary big">⚙️ פרופיל העסק וקישור לתשלום</button>
   </div>
   <div class="workspace-tools" aria-label="כלי ניהול">
     <button id="priceBookBtn" type="button"><span>🏷️</span><b>מחירון</b><small>שירותים ותבניות</small></button>
@@ -172,14 +172,21 @@ fbq('track','PageView',{content_name:'Mehirli'});
 
 <section id="proJobFormView" class="view">
   <div class="section-head"><button class="back" data-back-to="workspace">‹</button><div><span class="eyebrow">פנייה חדשה</span><h2>תמחור עבודה</h2></div></div>
-  <form id="proJobForm" class="card form-card">
-    <div class="form-step">
+  <form id="proJobForm" class="card form-card" novalidate>
+    <div class="job-step-menu" aria-label="שלבי הכנת ההצעה">
+      <button type="button" class="job-step-button" data-job-step="0">1. הכנסת פרטי לקוח <span>⌄</span></button>
+      <button type="button" class="job-step-button" data-job-step="1">2. הכנסת פרטי עבודה <span>⌄</span></button>
+      <button type="button" class="job-step-button" data-job-step="2">3. פרטי תמחור והצעה <span>⌄</span></button>
+      <button type="button" class="job-step-button" data-job-step="3">4. בדיקה ושמירת ההצעה <span>⌄</span></button>
+    </div>
+    <div class="form-step" data-job-panel="0">
       <div class="form-step-title"><b>1</b><div><h3>מי הלקוח?</h3><p>הפרטים נשמרים רק בתיק העבודה.</p></div></div>
       <label>לקוח קיים — אופציונלי<select id="proCustomerSelect"><option value="">לקוח חדש</option></select></label>
       <div class="two-cols"><label>שם הלקוח<input id="proCustomerName" required autocomplete="name" /></label><label>טלפון / WhatsApp<input id="proCustomerPhone" required inputmode="tel" autocomplete="tel" /></label></div>
       <label>עיר / אזור<input id="proCustomerCity" placeholder="לדוגמה: כפר סבא" /></label>
+      <button type="button" class="primary job-step-next" data-next-step="1">המשך לפרטי העבודה ‹</button>
     </div>
-    <div class="form-step">
+    <div class="form-step" data-job-panel="1" hidden>
       <div class="form-step-title"><b>2</b><div><h3>מה העבודה?</h3><p>בחר תחום ותאר בקצרה מה הלקוח ביקש.</p></div></div>
       <div class="trade-picker" role="group" aria-label="בחירת מקצוע">
         <button type="button" class="trade-choice active" data-trade="handyman">🔨 הנדימן</button>
@@ -188,13 +195,14 @@ fbq('track','PageView',{content_name:'Mehirli'});
         <button type="button" class="trade-choice" data-trade="air_conditioning">❄️ מיזוג</button>
       </div>
       <input id="proJobTrade" type="hidden" value="handyman" />
-      <label>סוג העבודה<select id="proJobType"></select></label>
+      <label>סוג העבודה<input id="proJobType" required placeholder="לדוגמה: ייעוץ, תיקון, צילום או כל שירות אחר" /></label>
       <label>תבנית מהמחירון — אופציונלי<select id="proServiceTemplate"><option value="">ללא תבנית</option></select></label>
       <label>מה הלקוח ביקש?<textarea id="proJobDescription" required placeholder="אפשר לכתוב או להקליט את הודעת הלקוח"></textarea></label>
       <button id="proVoiceBtn" type="button" class="voice">🎤 הקלט את פרטי הפנייה</button><p id="proVoiceStatus" class="note"></p>
       <label>מועד מתוכנן<input id="proScheduledAt" type="datetime-local" /></label>
+      <button type="button" class="primary job-step-next" data-next-step="2">המשך לתמחור ‹</button>
     </div>
-    <div class="form-step form-step-pricing">
+    <div class="form-step form-step-pricing" data-job-panel="2" hidden>
       <div class="form-step-title"><b>3</b><div><h3>כמה לגבות?</h3><p>מחירלי מחשבת אם העבודה משתלמת לך.</p></div></div>
       <div class="quick-pricing-card">
         <div><b>התחלה מהירה</b><small>בחר אפשרות והמחירים הרגילים שלך ימולאו אוטומטית.</small></div>
@@ -204,15 +212,15 @@ fbq('track','PageView',{content_name:'Mehirli'});
       <label>אופן תמחור<select id="proPricingMode"><option value="hourly">לפי שעה</option><option value="fixed">מחיר קבוע</option><option value="half_day">חצי יום</option><option value="full_day">יום עבודה</option></select></label>
       <div class="two-cols"><label>שעות מתוכננות<input id="proLaborHours" type="number" min="0.25" step="0.25" value="1" /></label><label>מחיר בסיס<input id="proBasePrice" type="number" min="0" step="10" /></label></div>
       <p id="pricingModeHint" class="field-hint"></p>
-      <details class="pricing-extras"><summary>הוצאות נוספות ומחיר מינימום <span>אופציונלי</span></summary>
+      <details class="pricing-extras"><summary>הוצאות נוספות <span>אופציונלי</span></summary>
       <div class="two-cols"><label>חומרים<input id="proMaterialsCost" type="number" min="0" step="10" value="0" /></label><label>נסיעה וחניה<input id="proTravelCost" type="number" min="0" step="10" /></label></div>
       <label>עלות עוזר / קבלן משנה<input id="proAssistantCost" type="number" min="0" step="10" value="0" /></label>
       <div id="smartAnalysis" class="smart-analysis hidden"></div>
-      <div class="price-result">
-        <div><small>מחיר מינימום ₪ — ניתן לשינוי</small><input id="priceFloor" type="number" min="0" step="1" /><button id="resetPriceFloorBtn" class="ghost tiny" type="button">↺ חזרה לחישוב האוטומטי</button></div>
-        <div class="recommended"><small>הסכום שנקבע</small><strong id="recommendedPrice">0 ₪</strong></div>
-      </div>
       </details>
+      <div class="price-result">
+        <div><small>מחיר מינימום ₪ — אפשר לשנות</small><input id="priceFloor" type="number" min="0" step="1" /><button id="resetPriceFloorBtn" class="ghost tiny" type="button">↺ חזרה לחישוב האוטומטי</button></div>
+      </div>
+      <strong id="recommendedPrice" hidden>0 ₪</strong>
       <details class="quote-items-panel"><summary>פירוט סעיפים ללקוח <span>אופציונלי</span></summary><div id="quoteItemsEditor"></div><button id="addQuoteItemBtn" class="ghost tiny" type="button">＋ הוסף סעיף</button></details>
       <div class="two-cols"><label>הנחה<select id="proDiscountType"><option value="none">ללא הנחה</option><option value="percent">אחוזים</option><option value="fixed">סכום קבוע</option></select></label><label>גובה ההנחה<input id="proDiscountValue" type="number" min="0" step="1" value="0" disabled /></label></div>
       <div class="discount-summary"><span>מחיר לפני הנחה <b id="proSubtotal">0 ₪</b></span><span>הנחה <b id="proDiscountAmount">0 ₪</b></span></div>
@@ -224,9 +232,14 @@ fbq('track','PageView',{content_name:'Mehirli'});
       <label>מה כלול בהצעה?<textarea id="proQuoteScope" placeholder="עבודה, חומרים, פינוי, אחריות ומה לא כלול"></textarea></label>
       <div class="two-cols"><label>ההצעה בתוקף עד<input id="proQuoteValidUntil" type="date" /></label><label>תזכורת לטיפול<input id="proReminderAt" type="datetime-local" /></label></div>
       <label>אחריות — אופציונלי<input id="proWarrantyText" placeholder="לדוגמה: 3 חודשי אחריות על העבודה" /></label>
+      <button type="button" class="primary job-step-next" data-next-step="3">המשך לבדיקה ‹</button>
     </div>
-    <p class="privacy-note">🔒 פרטי הלקוח משמשים לטיפול בעבודה בלבד ולא לשיווק ללא הסכמתו.</p>
-    <button class="primary big flow-submit" type="submit">שמור ועבור לשליחה ב־WhatsApp</button>
+    <div class="form-step" data-job-panel="3" hidden>
+      <div class="form-step-title"><b>4</b><div><h3>בדיקה לפני שמירה</h3><p>כל הפרטים מהשלבים הקודמים ירוכזו כאן.</p></div></div>
+      <div id="proJobReview" class="job-review"></div>
+      <p class="privacy-note">🔒 פרטי הלקוח משמשים לטיפול בעבודה בלבד ולא לשיווק ללא הסכמתו.</p>
+      <button class="primary big flow-submit" type="submit">שמור ועבור לשליחה ב־WhatsApp</button>
+    </div>
   </form>
 </section>
 
@@ -283,14 +296,9 @@ fbq('track','PageView',{content_name:'Mehirli'});
 </section>
 
 <section id="proSettingsView" class="view">
-  <div class="section-head"><button class="back" data-back-to="workspace">‹</button><div><span class="eyebrow">התאמה אישית</span><h2>תמחור ותשלום</h2></div></div>
-  <div class="settings-path card"><div><b>הדרך המלאה לקבלת תשלום</b><small>פרטי העסק מופיעים בהצעה; כאן מגדירים מחירים וקישור גבייה.</small></div><button id="settingsOpenProfileBtn" class="secondary" type="button">לפרופיל העסק</button></div>
+  <div class="section-head"><button class="back" data-back-to="workspace">‹</button><div><span class="eyebrow">התאמה אישית</span><h2>פרופיל ותשלום</h2></div></div>
+  <div class="settings-path card"><div><b>פרטי העסק בהצעה</b><small>שם העסק, הלוגו ופרטי הקשר מופיעים בהצעת המחיר.</small></div><button id="settingsOpenProfileBtn" class="secondary" type="button">לפרופיל העסק</button></div>
   <form id="proSettingsForm" class="card form-card">
-    <label>מקצוע עיקרי<select id="settingsTrade"><option value="handyman">הנדימן</option><option value="electrician">חשמלאי</option><option value="home">שירותי בית</option><option value="air_conditioning">מיזוג</option></select></label>
-    <div class="two-cols"><label>מחיר שעה רצוי<input id="settingsHourlyRate" type="number" min="0" step="10" /></label><label>עלות נסיעה רגילה<input id="settingsTravelCost" type="number" min="0" step="10" /></label></div>
-    <div class="two-cols"><label>מחיר חצי יום<input id="settingsHalfDayPrice" type="number" min="0" step="10" /></label><label>מחיר יום עבודה<input id="settingsFullDayPrice" type="number" min="0" step="10" /></label></div>
-    <div class="two-cols"><label>שעות בחצי יום<input id="settingsHalfDayHours" type="number" min="1" max="8" step="0.5" /></label><label>שעות ביום מלא<input id="settingsFullDayHours" type="number" min="2" max="16" step="0.5" /></label></div>
-    <div class="two-cols"><label>שעה נוספת<input id="settingsOvertimeRate" type="number" min="0" step="10" /></label><label>עיגול זמן<select id="settingsTimeRounding"><option value="15">15 דקות</option><option value="30">30 דקות</option><option value="60">שעה</option></select></label></div>
     <fieldset class="payment-connect-card">
       <legend>קבלת תשלומים מהלקוחות</legend>
       <p class="payment-connect-intro">בחר את חברת הסליקה והדבק את קישור התשלום האישי שקיבלת ממנה.</p>
@@ -315,7 +323,7 @@ fbq('track','PageView',{content_name:'Mehirli'});
       <div id="settingsPaymentStatus" class="payment-connect-status not-connected">לא חובר עדיין קישור לתשלום</div>
       <p class="payment-security-note">🔒 מחירלי שומרת רק את הקישור. אין להזין שם משתמש, סיסמה, מספר אשראי או מפתח סודי.</p>
     </fieldset>
-    <div id="electricianSettings" class="electrician-only hidden"><div class="two-cols"><label>מספר רישיון חשמלאי<input id="settingsLicenseNumber" /></label><label>תוקף הרישיון<input id="settingsLicenseExpiry" type="date" /></label></div></div>
+    <details class="pricing-extras"><summary>רישיון חשמלאי <span>אם רלוונטי</span></summary><div class="two-cols"><label>מספר רישיון<input id="settingsLicenseNumber" /></label><label>תוקף הרישיון<input id="settingsLicenseExpiry" type="date" /></label></div></details>
     <label>תנאים שיופיעו בהצעה<textarea id="settingsQuoteTerms" placeholder="תוקף ההצעה, אחריות, מה אינו כלול"></textarea></label>
     <p class="note">הלקוח משלם באתר של חברת הסליקה שבחרת, והכסף מתקבל ישירות בחשבון שלך. מחירלי אינה מחזיקה בכספי הלקוח.</p>
     <button class="primary big" type="submit">שמור הגדרות</button>
@@ -352,7 +360,7 @@ fbq('track','PageView',{content_name:'Mehirli'});
 <label>פירוט ההצעה<textarea id="offerText" placeholder="מה כולל המחיר, תנאים, אחריות וכו'"></textarea></label><label>תאריך הגעה<input id="offerDate" type="date" required /></label><label>שעת הגעה<input id="offerTime" type="time" required /></label><button class="primary big" type="submit">שלח הצעה (הצעה אחת)</button></form></section>
 <section id="profileView" class="view"><div class="section-head"><button class="back">‹</button><h2>פרופיל העסק</h2></div><form id="profileForm" class="card form-card">
 <div class="business-logo-editor"><img id="bizLogoPreview" class="business-logo-preview hidden" alt="לוגו העסק" /><label class="upload-btn">העלאת לוגו<input id="bizLogoInput" type="file" accept="image/png,image/jpeg,image/webp" /></label><button id="removeBizLogoBtn" class="ghost hidden" type="button">הסר לוגו</button></div>
-<label>שם העסק<input id="bizName" required /></label><div class="two-cols"><label>שם משפטי / סוג העוסק <span class="optional-label">אופציונלי</span><input id="bizLegalName" placeholder="לדוגמה: ישראל ישראלי — עוסק מורשה" /></label><label>מספר עוסק / ח.פ. <span class="optional-label">אופציונלי</span><input id="bizNumber" inputmode="numeric" /></label></div><div class="two-cols"><label>אימייל עסקי <span class="optional-label">אופציונלי</span><input id="bizEmail" type="email" /></label><label>כתובת העסק <span class="optional-label">אופציונלי</span><input id="bizAddress" /></label></div><label>תחום עיקרי<select id="bizCategory"><option>הנדימן</option><option>חשמלאי</option><option>לבית</option><option>מיזוג</option></select></label><label>על העסק <span class="optional-label">אופציונלי</span><textarea id="bizAbout"></textarea></label><label>אזורי שירות <span class="optional-label">אופציונלי</span><input id="bizArea" placeholder="נתניה, חדרה והשרון" /></label><label>מספר WhatsApp של העסק <span class="optional-label">אופציונלי</span><input id="bizPhone" inputmode="tel" placeholder="לדוגמה: 0501234567" /></label><p class="field-hint whatsapp-optional-note">אפשר לשלוח הצעת מחיר גם בלי WhatsApp עסקי. המספר משמש רק כדי שהלקוח יוכל לחזור אליך ישירות מתוך ההצעה.</p><p class="note">רק הפרטים שמילאת יופיעו בהצעת המחיר וב־PDF. חשבוניות מס וקבלות חייבות להיות מופקות במערכת החשבוניות או הסליקה המורשית של העסק.</p><div class="profile-save-actions"><button class="primary big" type="submit">שמור פרופיל</button><button id="profileOpenSettingsBtn" class="secondary big" type="button">המשך לתמחור ותשלום</button></div></form></section>
+<label>שם העסק<input id="bizName" required /></label><div class="two-cols"><label>שם משפטי / סוג העוסק <span class="optional-label">אופציונלי</span><input id="bizLegalName" placeholder="לדוגמה: ישראל ישראלי — עוסק מורשה" /></label><label>מספר עוסק / ח.פ. <span class="optional-label">אופציונלי</span><input id="bizNumber" inputmode="numeric" /></label></div><div class="two-cols"><label>אימייל עסקי <span class="optional-label">אופציונלי</span><input id="bizEmail" type="email" /></label><label>כתובת העסק <span class="optional-label">אופציונלי</span><input id="bizAddress" /></label></div><label>תחום העיסוק שלך <span class="optional-label">אופציונלי</span><input id="bizProfession" placeholder="למשל: עיצוב פנים, ייעוץ, חשמל או כל תחום אחר" /></label><p class="field-hint">אפשר לכתוב כל תחום. הוא לא יופיע אוטומטית בהצעת המחיר.</p><label>על העסק <span class="optional-label">אופציונלי</span><textarea id="bizAbout"></textarea></label><label>אזורי שירות <span class="optional-label">אופציונלי</span><input id="bizArea" placeholder="נתניה, חדרה והשרון" /></label><label>מספר WhatsApp של העסק <span class="optional-label">אופציונלי</span><input id="bizPhone" inputmode="tel" placeholder="לדוגמה: 0501234567" /></label><p class="field-hint whatsapp-optional-note">אפשר לשלוח הצעת מחיר גם בלי WhatsApp עסקי. המספר משמש רק כדי שהלקוח יוכל לחזור אליך ישירות מתוך ההצעה.</p><p class="note">פרטי העסק שמילאת יופיעו בהצעת המחיר וב־PDF, מלבד תחום העיסוק. חשבוניות מס וקבלות חייבות להיות מופקות במערכת החשבוניות או הסליקה המורשית של העסק.</p><div class="profile-save-actions"><button class="primary big" type="submit">שמור פרופיל</button><button id="profileOpenSettingsBtn" class="secondary big" type="button">המשך להגדרות תשלום</button></div></form></section>
 
 <section id="adminView" class="view"><div class="section-head"><button class="back">‹</button><div><span class="eyebrow">גישה מלאה</span><h2>ניהול מחירלי</h2></div></div>
   <div id="adminLoading" class="admin-loading hidden">טוען את נתוני הניהול…</div>
@@ -419,5 +427,5 @@ fbq('track','PageView',{content_name:'Mehirli'});
 </section>
 </main><a id="developerSupportLink" class="developer-support-link hidden" href="#" target="_blank" rel="noopener" aria-label="דיווח תקלה או שיחה עם המפתח ב־WhatsApp">💬 דיווח תקלה / שיחה עם המפתח</a><div id="postSignupInstall" class="post-signup-install hidden" role="dialog" aria-modal="true" aria-labelledby="postSignupInstallTitle"><div class="post-signup-install-card"><span>📲</span><b>ההרשמה הסתיימה</b><h2 id="postSignupInstallTitle">עכשיו מוסיפים את מחירלי לטלפון</h2><p id="postSignupInstallText">המערכת תציג את דרך ההתקנה המתאימה לטלפון שלך. לאחר ההתקנה פותחים את מחירלי מהסמל במסך הבית.</p><button id="postSignupInstallBtn" class="primary big" type="button">הוספת מחירלי לטלפון</button><button id="postSignupEditBtn" class="secondary big install-edit-btn" type="button">חזרה לתיקון פרטי ההרשמה</button><small>אם תצא לפני ההתקנה, המסך הזה יוצג שוב בכניסה הבאה.</small></div></div><div id="firstQuoteWelcome" class="post-signup-install hidden" role="dialog" aria-modal="true" aria-labelledby="firstQuoteWelcomeTitle"><div class="post-signup-install-card first-quote-welcome-card"><span>✅</span><b>מחירלי מותקנת ומוכנה</b><h2 id="firstQuoteWelcomeTitle">בוא נכין את הצעת המחיר הראשונה</h2><p>נכניס את פרטי הלקוח והעבודה, נחשב מחיר ונשלח הצעה מקצועית.</p><button id="firstQuoteWelcomeBtn" class="primary big" type="button">הכנת הצעת המחיר הראשונה</button></div></div><div id="toast" class="toast"></div></div>
 <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"></script>
-<script src="app.js?v=88"></script>
+<script src="app.js?v=97"></script>
 </body></html>
