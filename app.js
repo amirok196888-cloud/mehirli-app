@@ -363,8 +363,28 @@ db.auth.onAuthStateChange((event,session)=>{
   if(event==='PASSWORD_RECOVERY'){
     state.user=session?.user||null;
     showPasswordReset()
+  }else if(event==='SIGNED_OUT'){
+    state.user=null;
+    state.profile=null;
+    state.subscription=null;
+    state.proJobs=[];
+    state.proAppointments=[];
+    stopNotificationPolling();
+    setAuthMode('login');
+    show('#authView');
+    $('#authNote').textContent='החיבור פג. יש להתחבר מחדש כדי לשמור עבודות ופגישות.'
   }
 });
+async function promptLoginIfSessionExpired(){
+  const {data,error}=await db.auth.getUser();
+  if(data?.user&&!error)return false;
+  state.user=null;
+  stopNotificationPolling();
+  setAuthMode('login');
+  show('#authView');
+  $('#authNote').textContent='החיבור פג. יש להתחבר מחדש כדי לשמור עבודות ופגישות.';
+  return true
+}
 async function boot(){updateGreeting();trackAppEvent('app_open');const params=new URLSearchParams(location.search),signupHandoff=params.get('view')==='signup';if(signupHandoff)trackAppEvent('signup_form_open');if(isStandaloneMode())trackAppEvent('standalone_open');const quoteToken=currentPublicQuoteToken();if(quoteToken){await loadPublicQuote(quoteToken);return}const {data:{session}}=await db.auth.getSession();state.user=session?.user||null;if(isPasswordRecovery()&&state.user){showPasswordReset();return}if(signupHandoff&&state.user){await db.auth.signOut({scope:'local'});state.user=null;stopNotificationPolling()}if(signupHandoff){const url=new URL(location.href);url.searchParams.delete('view');history.replaceState({},'',url.pathname+url.search+url.hash)}if(state.user){await loadMe();trackAppEvent('account_active');if(paymentReturn())await handlePaymentReturn();else await routeAfterLogin()}else{setAuthMode(signupHandoff?'signup':'login');show('#authView');if(params.get('password_reset')==='success')$('#authNote').textContent='הסיסמה שונתה בהצלחה. אפשר להתחבר עם הסיסמה החדשה.';else if(isPasswordRecovery())$('#authNote').textContent='קישור האיפוס אינו תקף או שפג תוקפו. בקשו קישור חדש.';else if(signupHandoff)$('#authNote').textContent='המשך הרשמה או התחבר לחשבון שיצרת כדי להתקין את מחירלי.';if(isAndroidInAppBrowser())$('#inAppBrowserNotice')?.classList.remove('hidden')}}
 $('#showLoginModeBtn').onclick=()=>setAuthMode('login');
 $('#showSignupModeBtn').onclick=()=>setAuthMode('signup');
@@ -556,7 +576,7 @@ function clearProJobDraft(){const key=proJobDraftKey();if(key)try{localStorage.r
 let proJobDraftTimer=null;$('#proJobForm').addEventListener('input',()=>{clearTimeout(proJobDraftTimer);proJobDraftTimer=setTimeout(saveProJobDraft,350)});$('#proJobForm').addEventListener('change',saveProJobDraft);
 async function loadProJobs(){
   const {data,error}=await db.from('pro_jobs').select('*').eq('professional_id',state.user.id).order('created_at',{ascending:false});
-  if(error){toast('מרכז העבודה עדיין אינו מוכן: '+error.message);state.proJobs=[];return []}
+  if(error){if(await promptLoginIfSessionExpired())return [];toast('מרכז העבודה עדיין אינו מוכן: '+error.message);state.proJobs=[];return []}
   state.proJobs=data||[];return state.proJobs
 }
 function proJobMatchesFilter(job,filter){if(filter==='open')return !['paid','cancelled'].includes(job.status);if(filter==='unpaid')return job.payment_status!=='paid'&&!['lead','cancelled'].includes(job.status);if(filter==='paid')return job.payment_status==='paid';return true}
@@ -588,7 +608,7 @@ function openAppointmentForm(){renderAppointmentCustomers();$('#appointmentForm'
 async function openCalendar(){if(!requireServiceAccess())return;await Promise.all([loadProJobs(),loadProReminders(),loadProCustomers(),loadProAppointments()]);closeAppointmentForm();renderCalendar();show('#calendarView')}
 $('#newAppointmentBtn').onclick=openAppointmentForm;$('#cancelAppointmentBtn').onclick=closeAppointmentForm;
 $('#appointmentCustomerSelect').onchange=e=>{const c=state.proCustomers.find(x=>x.id===e.target.value);if(!c)return;$('#appointmentCustomerName').value=c.name;$('#appointmentCustomerPhone').value=c.phone||'';$('#appointmentAddress').value=c.city||''};
-$('#appointmentForm').onsubmit=async e=>{e.preventDefault();if(!requireServiceAccess())return;const customerName=$('#appointmentCustomerName').value.trim(),phone=$('#appointmentCustomerPhone').value.trim(),appointmentAt=$('#appointmentAt').value,title=$('#appointmentTitle').value.trim();if(!customerName||!appointmentAt||!title){toast('יש למלא שם לקוח, מועד ונושא הפגישה');return}const row={professional_id:state.user.id,customer_id:$('#appointmentCustomerSelect').value||null,customer_name:customerName,customer_phone:phone||null,appointment_at:new Date(appointmentAt).toISOString(),address:$('#appointmentAddress').value.trim()||null,title,notes:$('#appointmentNotes').value.trim()||null};const {error}=await db.from('pro_appointments').insert(row);if(error){toast('הפגישה לא נשמרה: '+error.message);return}await loadProAppointments();closeAppointmentForm();renderCalendar();toast('הפגישה נשמרה ביומן')};
+$('#appointmentForm').onsubmit=async e=>{e.preventDefault();if(!requireServiceAccess())return;const customerName=$('#appointmentCustomerName').value.trim(),phone=$('#appointmentCustomerPhone').value.trim(),appointmentAt=$('#appointmentAt').value,title=$('#appointmentTitle').value.trim();if(!customerName||!appointmentAt||!title){toast('יש למלא שם לקוח, מועד ונושא הפגישה');return}const row={professional_id:state.user.id,customer_id:$('#appointmentCustomerSelect').value||null,customer_name:customerName,customer_phone:phone||null,appointment_at:new Date(appointmentAt).toISOString(),address:$('#appointmentAddress').value.trim()||null,title,notes:$('#appointmentNotes').value.trim()||null};const {error}=await db.from('pro_appointments').insert(row);if(error){if(await promptLoginIfSessionExpired())return;toast('הפגישה לא נשמרה: '+error.message);return}await loadProAppointments();closeAppointmentForm();renderCalendar();toast('הפגישה נשמרה ביומן')};
 $('#priceBookBtn').onclick=openPriceBook;$('#customersBtn').onclick=openCustomers;$('#calendarBtn').onclick=openCalendar;
 $('#proWorkspaceBtn').onclick=openProWorkspace;$('#homeNewJobBtn').onclick=openNewProJob;$('#newProJobBtn').onclick=openNewProJob;$('#sampleQuoteBtn').onclick=()=>window.open('./sample-quote.html','_blank','noopener');$('#proJobStatusFilter').onchange=renderProJobCards;
 ['#proLaborHours','#proBasePrice','#proMaterialsCost','#proTravelCost','#proAssistantCost'].forEach(id=>$(id).addEventListener('input',()=>calculateProPrice(true)));
