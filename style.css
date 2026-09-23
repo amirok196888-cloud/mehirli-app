@@ -321,3 +321,61 @@ body{background:radial-gradient(circle at 13% 2%,rgba(20,110,255,.48),transparen
 @media(max-width:470px){.topbar{min-height:78px}.brand h1{font-size:25px}.brand p{font-size:10px}.logo-img{width:52px;height:52px}.install-app-btn{font-size:11px;padding:8px 9px}.auth-showcase{min-height:590px;margin-top:5px}.auth-product-visual{object-position:29% center}.auth-showcase-copy{padding:29px 20px 25px}.auth-kicker{font-size:10px;margin-bottom:11px}.auth-showcase h2{font-size:38px;letter-spacing:-1.4px}.auth-showcase p{line-height:1.52}.auth-proof-row span{font-size:9px;padding:6px 7px}.auth-hero-cta{min-height:54px;font-size:15px}.auth-no-card{font-size:9.5px}.auth-workflow div{border-radius:16px}.auth-workflow b{min-width:34px;height:34px}#authView .auth-benefits{grid-template-columns:1fr!important}.auth-benefit{min-height:92px;display:grid;grid-template-columns:42px 1fr;grid-template-rows:auto auto;text-align:right;align-items:center}.auth-benefit span{grid-row:1/3}.auth-benefit b,.auth-benefit small{align-self:end}.auth-benefit small{align-self:start}}
 @media(prefers-reduced-motion:reduce){.auth-product-visual,.view{animation:none}.auth-hero-cta{transition:none}}
 .admin-analytics-ranges{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 16px}.admin-analytics-ranges button{border:1px solid #cbd5e1;background:#fff;color:#17324d;border-radius:999px;padding:8px 16px;font:inherit;font-weight:800}.admin-analytics-ranges button.active{background:#0b66c3;color:#fff;border-color:#0b66c3}
+
+/* V88 — carry the landing page's light palette through the whole application. */
+html{background:#fbfcff}
+body{background:linear-gradient(180deg,#fbfcff 0%,#f3f7fd 100%);color:#13243b}
+.topbar{border-bottom-color:#dce5f0}
+.brand h1{color:#13243b}.brand p{color:#617087}
+.section-head,.section-head h2{color:#13243b}
+.section-head .eyebrow{color:#1455ad}
+.section-head .back{background:#fff;color:#164b91;border-color:#cbd9ed}
+.ghost{color:#164b91;border-color:#cbd9ed;background:#fff}
+.home-hero{background:linear-gradient(145deg,#fff,#eef5ff);border-color:#dce5f0;box-shadow:0 18px 42px rgba(7,27,69,.1)}
+.home-hero:before{background:rgba(17,107,233,.06)}
+.home-kicker{background:#e8f1ff;border-color:#d1e3fb;color:#1455ad}
+.home-hero h2{color:#13243b}.home-hero p{color:#4f6077}
+.home-hero .role-switch,.role-switch{background:#eaf1fb;border-color:#d7e3f4}
+.role{color:#52647e}.role.active{background:#fff;color:#1455ad;box-shadow:0 5px 15px rgba(7,27,69,.1)}
+.logout-link{color:#52647e}
+#homeView .category,.category,#homeView .category:nth-child(n){background:linear-gradient(145deg,#fff,#f1f6ff);border-color:#dce5f0;color:#13243b;box-shadow:0 10px 24px rgba(7,27,69,.07)}
+#homeView .category span{background:#e8f1ff}
+.category small{color:#617087}
+#proHome .credits,.payment-card,.pro-command{background:linear-gradient(145deg,#fff,#edf4ff);border-color:#dce5f0;color:#13243b}
+.payment-card p,.pro-command p{color:#617087}
+.payment-badge{background:#e8f1ff;border-color:#d1e3fb;color:#1455ad}
+.payment-status{background:#edf8f1;border-color:#c3e2cf}
+.payment-status b{color:#216743}.payment-status span{color:#526b5d}
+.notification-btn,.notification-permission{background:#fff;border-color:#dce5f0;color:#164b91}
+.notification-item.unread{background:#edf5ff;border-color:#b9d4f5}
+.notification-time{color:#617087}
+.public-quote-brand{color:#13243b}
+.public-price span{color:#617087}
+.quote-description{background:#f5f8fc;border-color:#dce5f0}
+.price-warning{background:#fff1ef;border-color:#e9c5c1;color:#953f3b}
+.auth-showcase{background:#fff;border-color:#dce5f0;box-shadow:0 18px 50px rgba(7,27,69,.11)}
+.auth-product-visual{width:53%;right:auto;left:0;object-position:26% center}
+.auth-showcase-shade{background:linear-gradient(90deg,transparent 25%,rgba(255,255,255,.78) 48%,#fff 58%)}
+.auth-showcase:after{display:none}
+.auth-showcase-copy,.auth-showcase h2{color:#13243b}
+.auth-showcase h2{text-shadow:none}.auth-showcase h2 em{color:#116be9}
+.auth-showcase p{color:#4f6077}
+.auth-kicker{background:#e8f1ff;border-color:#d1e3fb;color:#1455ad}
+.auth-proof-row span{background:#f5f8fc;border-color:#dce5f0;color:#3f526c}
+.auth-hero-cta{background:linear-gradient(135deg,#116be9,#0349a9);color:#fff;box-shadow:0 15px 35px rgba(17,107,233,.23)}
+.auth-no-card{color:#617087}
+.auth-workflow div{background:#fff;border-color:#dce5f0;color:#264267;box-shadow:0 8px 24px rgba(7,27,69,.06)}
+.auth-workflow b{background:#e8f1ff;color:#1455ad;box-shadow:none}
+.auth-support-link{color:#1455ad}
+.auth-benefit{background:#fff;border-color:#dce5f0;color:#264267}
+.auth-benefit small{color:#617087}
+@media(max-width:720px){
+  .auth-showcase{min-height:0}
+  .auth-product-visual{position:relative;display:block;width:100%;height:245px;object-position:25% 42%;animation:none;transform:none}
+  .auth-showcase-shade{display:none}
+  .auth-showcase-copy{position:relative;inset:auto;width:100%;padding:25px 24px 28px}
+}
+@media(max-width:470px){
+  .auth-product-visual{height:195px}
+  .auth-showcase-copy{padding:23px 20px 25px}
+}
