@@ -29,7 +29,7 @@
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="apple-touch-icon" sizes="180x180" href="icon-192.png" />
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
-<link rel="stylesheet" href="style.css?v=90" />
+<link rel="stylesheet" href="style.css?v=91" />
 <!-- Meta Pixel: shared Rokach Digital data source; Mehirli conversions are separated by event and content_name. -->
 <script>
 !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -212,15 +212,15 @@ fbq('track','PageView',{content_name:'Mehirli'});
       <label>אופן תמחור<select id="proPricingMode"><option value="hourly">לפי שעה</option><option value="fixed">מחיר קבוע</option><option value="half_day">חצי יום</option><option value="full_day">יום עבודה</option></select></label>
       <div class="two-cols"><label>שעות מתוכננות<input id="proLaborHours" type="number" min="0.25" step="0.25" value="1" /></label><label>מחיר בסיס<input id="proBasePrice" type="number" min="0" step="10" /></label></div>
       <p id="pricingModeHint" class="field-hint"></p>
-      <details class="pricing-extras"><summary>הוצאות נוספות ומחיר מינימום <span>אופציונלי</span></summary>
+      <details class="pricing-extras"><summary>הוצאות נוספות <span>אופציונלי</span></summary>
       <div class="two-cols"><label>חומרים<input id="proMaterialsCost" type="number" min="0" step="10" value="0" /></label><label>נסיעה וחניה<input id="proTravelCost" type="number" min="0" step="10" /></label></div>
       <label>עלות עוזר / קבלן משנה<input id="proAssistantCost" type="number" min="0" step="10" value="0" /></label>
       <div id="smartAnalysis" class="smart-analysis hidden"></div>
-      <div class="price-result">
-        <div><small>מחיר מינימום ₪ — ניתן לשינוי</small><input id="priceFloor" type="number" min="0" step="1" /><button id="resetPriceFloorBtn" class="ghost tiny" type="button">↺ חזרה לחישוב האוטומטי</button></div>
-        <div class="recommended"><small>הסכום שנקבע</small><strong id="recommendedPrice">0 ₪</strong></div>
-      </div>
       </details>
+      <div class="price-result">
+        <div><small>מחיר מינימום ₪ — אפשר לשנות</small><input id="priceFloor" type="number" min="0" step="1" /><button id="resetPriceFloorBtn" class="ghost tiny" type="button">↺ חזרה לחישוב האוטומטי</button></div>
+      </div>
+      <strong id="recommendedPrice" hidden>0 ₪</strong>
       <details class="quote-items-panel"><summary>פירוט סעיפים ללקוח <span>אופציונלי</span></summary><div id="quoteItemsEditor"></div><button id="addQuoteItemBtn" class="ghost tiny" type="button">＋ הוסף סעיף</button></details>
       <div class="two-cols"><label>הנחה<select id="proDiscountType"><option value="none">ללא הנחה</option><option value="percent">אחוזים</option><option value="fixed">סכום קבוע</option></select></label><label>גובה ההנחה<input id="proDiscountValue" type="number" min="0" step="1" value="0" disabled /></label></div>
       <div class="discount-summary"><span>מחיר לפני הנחה <b id="proSubtotal">0 ₪</b></span><span>הנחה <b id="proDiscountAmount">0 ₪</b></span></div>
@@ -432,5 +432,5 @@ fbq('track','PageView',{content_name:'Mehirli'});
 </section>
 </main><a id="developerSupportLink" class="developer-support-link hidden" href="#" target="_blank" rel="noopener" aria-label="דיווח תקלה או שיחה עם המפתח ב־WhatsApp">💬 דיווח תקלה / שיחה עם המפתח</a><div id="postSignupInstall" class="post-signup-install hidden" role="dialog" aria-modal="true" aria-labelledby="postSignupInstallTitle"><div class="post-signup-install-card"><span>📲</span><b>ההרשמה הסתיימה</b><h2 id="postSignupInstallTitle">עכשיו מוסיפים את מחירלי לטלפון</h2><p id="postSignupInstallText">המערכת תציג את דרך ההתקנה המתאימה לטלפון שלך. לאחר ההתקנה פותחים את מחירלי מהסמל במסך הבית.</p><button id="postSignupInstallBtn" class="primary big" type="button">הוספת מחירלי לטלפון</button><button id="postSignupEditBtn" class="secondary big install-edit-btn" type="button">חזרה לתיקון פרטי ההרשמה</button><small>אם תצא לפני ההתקנה, המסך הזה יוצג שוב בכניסה הבאה.</small></div></div><div id="firstQuoteWelcome" class="post-signup-install hidden" role="dialog" aria-modal="true" aria-labelledby="firstQuoteWelcomeTitle"><div class="post-signup-install-card first-quote-welcome-card"><span>✅</span><b>מחירלי מותקנת ומוכנה</b><h2 id="firstQuoteWelcomeTitle">בוא נכין את הצעת המחיר הראשונה</h2><p>נכניס את פרטי הלקוח והעבודה, נחשב מחיר ונשלח הצעה מקצועית.</p><button id="firstQuoteWelcomeBtn" class="primary big" type="button">הכנת הצעת המחיר הראשונה</button></div></div><div id="toast" class="toast"></div></div>
 <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"></script>
-<script src="app.js?v=89"></script>
+<script src="app.js?v=90"></script>
 </body></html>
