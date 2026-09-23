@@ -595,7 +595,7 @@ $('#appointmentForm').onsubmit=async e=>{e.preventDefault();if(!requireServiceAc
 $('#priceBookBtn').onclick=openPriceBook;$('#customersBtn').onclick=openCustomers;$('#calendarBtn').onclick=openCalendar;
 $('#proWorkspaceBtn').onclick=openProWorkspace;$('#homeNewJobBtn').onclick=openNewProJob;$('#newProJobBtn').onclick=openNewProJob;$('#sampleQuoteBtn').onclick=()=>window.open('./sample-quote.html','_blank','noopener');$('#proJobStatusFilter').onchange=renderProJobCards;
 $$('.trade-choice').forEach(b=>b.onclick=()=>{setTrade(b.dataset.trade);analyzeProfessionalJob(false)});
-['#proLaborHours','#proBasePrice','#proMaterialsCost','#proTravelCost','#proAssistantCost'].forEach(id=>$(id).addEventListener('input',()=>{$('#priceFloor').dataset.manualOverride='false';$('#proQuotedPrice').dataset.manualOverride='false';calculateProPrice(true)}));
+['#proLaborHours','#proBasePrice','#proMaterialsCost','#proTravelCost','#proAssistantCost'].forEach(id=>$(id).addEventListener('input',()=>calculateProPrice(true)));
 $('#proPricingMode').onchange=e=>setPricingMode(e.target.value,true);
 $('#proDiscountType').onchange=e=>{$('#proDiscountValue').disabled=e.target.value==='none';if(e.target.value==='none')$('#proDiscountValue').value=0;calculateProPrice(true)};
 $('#proDiscountValue').oninput=()=>calculateProPrice(true);
