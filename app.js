@@ -544,13 +544,13 @@ function setJobStep(step){
   $$('#proJobForm [data-job-panel]').forEach(panel=>{panel.hidden=Number(panel.dataset.jobPanel)!==step});
   $$('#proJobForm [data-job-step]').forEach(button=>{const active=Number(button.dataset.jobStep)===step;button.classList.toggle('active',active);button.setAttribute('aria-expanded',String(active))});
   if(step===3)renderJobReview();
-  if($('#proJobFormView').classList.contains('active'))$('#proJobFormView .section-head').scrollIntoView({block:'start',behavior:'smooth'});
+  if($('#proJobFormView').classList.contains('active')&&step>=0)$(`#proJobForm [data-job-step="${step}"]`).scrollIntoView({block:'start',behavior:'smooth'});
 }
 function renderJobReview(){
   const name=$('#proCustomerName').value.trim()||'טרם הוזן',phone=$('#proCustomerPhone').value.trim()||'טרם הוזן',description=$('#proJobDescription').value.trim()||'טרם הוזן';
   $('#proJobReview').innerHTML=`<div><small>לקוח</small><strong>${esc(name)}</strong><span>${esc(phone)}</span></div><div><small>עבודה</small><strong>${esc(description)}</strong></div><div><small>מחיר ההצעה</small><strong>${money(numberValue('#proQuotedPrice'))}</strong></div>`;
 }
-$$('#proJobForm [data-job-step]').forEach(button=>button.onclick=()=>{const target=Number(button.dataset.jobStep);for(let step=0;step<target;step++){const panel=$(`#proJobForm [data-job-panel="${step}"]`),invalid=[...panel.querySelectorAll('input,textarea,select')].find(input=>input.willValidate&&!input.checkValidity());if(invalid){setJobStep(step);invalid.reportValidity();return}}setJobStep(target)});
+$$('#proJobForm [data-job-step]').forEach(button=>button.onclick=()=>{const target=Number(button.dataset.jobStep);if(button.getAttribute('aria-expanded')==='true'){setJobStep(-1);return}for(let step=0;step<target;step++){const panel=$(`#proJobForm [data-job-panel="${step}"]`),invalid=[...panel.querySelectorAll('input,textarea,select')].find(input=>input.willValidate&&!input.checkValidity());if(invalid){setJobStep(step);toast('יש להשלים את הפרטים בשלב הזה');invalid.reportValidity();return}}setJobStep(target)});
 $$('#proJobForm [data-next-step]').forEach(button=>button.onclick=()=>{const panel=button.closest('[data-job-panel]'),invalid=[...panel.querySelectorAll('input,textarea,select')].find(input=>input.willValidate&&!input.checkValidity());if(invalid){invalid.reportValidity();return}setJobStep(Number(button.dataset.nextStep))});
 function proJobDraftKey(){return state.user?.id?`mehirli_pro_job_draft_v1:${state.user.id}`:''}
 function saveProJobDraft(){const key=proJobDraftKey(),form=$('#proJobForm');if(!key||!form)return;const fields={};[...form.elements].forEach(el=>{if(el.id&&['INPUT','TEXTAREA','SELECT'].includes(el.tagName)&&el.type!=='file')fields[el.id]=el.type==='checkbox'?el.checked:el.value});try{localStorage.setItem(key,JSON.stringify({fields,quoteItems:state.quoteItems,manualFloor:$('#priceFloor').dataset.manualOverride==='true',manualPrice:$('#proQuotedPrice').dataset.manualOverride==='true',savedAt:new Date().toISOString()}))}catch{}}
