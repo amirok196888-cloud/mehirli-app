@@ -29,7 +29,7 @@
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="apple-touch-icon" sizes="180x180" href="icon-192.png" />
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
-<link rel="stylesheet" href="style.css?v=91" />
+<link rel="stylesheet" href="style.css?v=92" />
 <!-- Meta Pixel: shared Rokach Digital data source; Mehirli conversions are separated by event and content_name. -->
 <script>
 !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -158,7 +158,7 @@ fbq('track','PageView',{content_name:'Mehirli'});
   </div>
   <div class="workspace-actions">
     <button id="newProJobBtn" class="primary big">＋ פנייה חדשה ותמחור</button>
-    <button id="proSettingsBtn" class="secondary big">⚙️ הגדרות תמחור ותשלום</button>
+    <button id="proSettingsBtn" class="secondary big">⚙️ פרופיל העסק וקישור לתשלום</button>
   </div>
   <div class="workspace-tools" aria-label="כלי ניהול">
     <button id="priceBookBtn" type="button"><span>🏷️</span><b>מחירון</b><small>שירותים ותבניות</small></button>
@@ -296,14 +296,9 @@ fbq('track','PageView',{content_name:'Mehirli'});
 </section>
 
 <section id="proSettingsView" class="view">
-  <div class="section-head"><button class="back" data-back-to="workspace">‹</button><div><span class="eyebrow">התאמה אישית</span><h2>תמחור ותשלום</h2></div></div>
-  <div class="settings-path card"><div><b>הדרך המלאה לקבלת תשלום</b><small>פרטי העסק מופיעים בהצעה; כאן מגדירים מחירים וקישור גבייה.</small></div><button id="settingsOpenProfileBtn" class="secondary" type="button">לפרופיל העסק</button></div>
+  <div class="section-head"><button class="back" data-back-to="workspace">‹</button><div><span class="eyebrow">התאמה אישית</span><h2>פרופיל ותשלום</h2></div></div>
+  <div class="settings-path card"><div><b>פרטי העסק בהצעה</b><small>שם העסק, הלוגו ופרטי הקשר מופיעים בהצעת המחיר.</small></div><button id="settingsOpenProfileBtn" class="secondary" type="button">לפרופיל העסק</button></div>
   <form id="proSettingsForm" class="card form-card">
-    <label>מקצוע עיקרי<select id="settingsTrade"><option value="handyman">הנדימן</option><option value="electrician">חשמלאי</option><option value="home">שירותי בית</option><option value="air_conditioning">מיזוג</option></select></label>
-    <div class="two-cols"><label>מחיר שעה רצוי<input id="settingsHourlyRate" type="number" min="0" step="10" /></label><label>עלות נסיעה רגילה<input id="settingsTravelCost" type="number" min="0" step="10" /></label></div>
-    <div class="two-cols"><label>מחיר חצי יום<input id="settingsHalfDayPrice" type="number" min="0" step="10" /></label><label>מחיר יום עבודה<input id="settingsFullDayPrice" type="number" min="0" step="10" /></label></div>
-    <div class="two-cols"><label>שעות בחצי יום<input id="settingsHalfDayHours" type="number" min="1" max="8" step="0.5" /></label><label>שעות ביום מלא<input id="settingsFullDayHours" type="number" min="2" max="16" step="0.5" /></label></div>
-    <div class="two-cols"><label>שעה נוספת<input id="settingsOvertimeRate" type="number" min="0" step="10" /></label><label>עיגול זמן<select id="settingsTimeRounding"><option value="15">15 דקות</option><option value="30">30 דקות</option><option value="60">שעה</option></select></label></div>
     <fieldset class="payment-connect-card">
       <legend>קבלת תשלומים מהלקוחות</legend>
       <p class="payment-connect-intro">בחר את חברת הסליקה והדבק את קישור התשלום האישי שקיבלת ממנה.</p>
@@ -328,7 +323,7 @@ fbq('track','PageView',{content_name:'Mehirli'});
       <div id="settingsPaymentStatus" class="payment-connect-status not-connected">לא חובר עדיין קישור לתשלום</div>
       <p class="payment-security-note">🔒 מחירלי שומרת רק את הקישור. אין להזין שם משתמש, סיסמה, מספר אשראי או מפתח סודי.</p>
     </fieldset>
-    <div id="electricianSettings" class="electrician-only hidden"><div class="two-cols"><label>מספר רישיון חשמלאי<input id="settingsLicenseNumber" /></label><label>תוקף הרישיון<input id="settingsLicenseExpiry" type="date" /></label></div></div>
+    <details class="pricing-extras"><summary>רישיון חשמלאי <span>אם רלוונטי</span></summary><div class="two-cols"><label>מספר רישיון<input id="settingsLicenseNumber" /></label><label>תוקף הרישיון<input id="settingsLicenseExpiry" type="date" /></label></div></details>
     <label>תנאים שיופיעו בהצעה<textarea id="settingsQuoteTerms" placeholder="תוקף ההצעה, אחריות, מה אינו כלול"></textarea></label>
     <p class="note">הלקוח משלם באתר של חברת הסליקה שבחרת, והכסף מתקבל ישירות בחשבון שלך. מחירלי אינה מחזיקה בכספי הלקוח.</p>
     <button class="primary big" type="submit">שמור הגדרות</button>
@@ -432,5 +427,5 @@ fbq('track','PageView',{content_name:'Mehirli'});
 </section>
 </main><a id="developerSupportLink" class="developer-support-link hidden" href="#" target="_blank" rel="noopener" aria-label="דיווח תקלה או שיחה עם המפתח ב־WhatsApp">💬 דיווח תקלה / שיחה עם המפתח</a><div id="postSignupInstall" class="post-signup-install hidden" role="dialog" aria-modal="true" aria-labelledby="postSignupInstallTitle"><div class="post-signup-install-card"><span>📲</span><b>ההרשמה הסתיימה</b><h2 id="postSignupInstallTitle">עכשיו מוסיפים את מחירלי לטלפון</h2><p id="postSignupInstallText">המערכת תציג את דרך ההתקנה המתאימה לטלפון שלך. לאחר ההתקנה פותחים את מחירלי מהסמל במסך הבית.</p><button id="postSignupInstallBtn" class="primary big" type="button">הוספת מחירלי לטלפון</button><button id="postSignupEditBtn" class="secondary big install-edit-btn" type="button">חזרה לתיקון פרטי ההרשמה</button><small>אם תצא לפני ההתקנה, המסך הזה יוצג שוב בכניסה הבאה.</small></div></div><div id="firstQuoteWelcome" class="post-signup-install hidden" role="dialog" aria-modal="true" aria-labelledby="firstQuoteWelcomeTitle"><div class="post-signup-install-card first-quote-welcome-card"><span>✅</span><b>מחירלי מותקנת ומוכנה</b><h2 id="firstQuoteWelcomeTitle">בוא נכין את הצעת המחיר הראשונה</h2><p>נכניס את פרטי הלקוח והעבודה, נחשב מחיר ונשלח הצעה מקצועית.</p><button id="firstQuoteWelcomeBtn" class="primary big" type="button">הכנת הצעת המחיר הראשונה</button></div></div><div id="toast" class="toast"></div></div>
 <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"></script>
-<script src="app.js?v=90"></script>
+<script src="app.js?v=91"></script>
 </body></html>
