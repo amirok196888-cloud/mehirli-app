@@ -17,7 +17,8 @@
   <meta name="twitter:card" content="summary_large_image" />
   <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="icon-192.png" />
-  <link rel="stylesheet" href="landing.css?v=66" />
+  <link rel="stylesheet" href="landing.css?v=67" />
+  <link rel="preload" as="image" href="mehirli-explainer-poster-v62.jpg" fetchpriority="high" />
   <script>
     (function(){
       var p=new URLSearchParams(location.search);
@@ -35,7 +36,6 @@
   fbq('init','1944984039489234');
   fbq('track','PageView',{content_name:'Mehirli Landing'});
   </script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
   <header class="site-header">
@@ -59,7 +59,7 @@
           <span aria-hidden="true">▶</span>
           <div><b>כך מחירלי עובדת</b><small>28 שניות מהפנייה ועד ניהול העבודה</small></div>
         </div>
-        <video class="landing-video" controls playsinline preload="metadata" poster="mehirli-explainer-poster-v62.jpg" aria-label="סרטון הסבר קצר על מחירלי">
+        <video class="landing-video" controls playsinline preload="none" poster="mehirli-explainer-poster-v62.jpg" aria-label="סרטון הסבר קצר על מחירלי">
           <source src="mehirli-explainer-v62.mp4" type="video/mp4" />
           הדפדפן שלך אינו תומך בהצגת הסרטון.
         </video>
@@ -108,7 +108,6 @@
   <a class="support" href="https://wa.me/972552715782?text=%F0%9F%9F%A0%20%D7%9E%D7%97%D7%99%D7%A8%D7%9C%D7%99%20%7C%20%D7%A4%D7%A0%D7%99%D7%99%D7%94%20%D7%9E%D7%94%D7%90%D7%AA%D7%A8%0A%0A%D7%A9%D7%9C%D7%95%D7%9D%2C%20%D7%90%D7%A0%D7%99%20%D7%91%D7%A2%D7%9C%2F%D7%AA%20%D7%A2%D7%A1%D7%A7%20%D7%95%D7%A8%D7%95%D7%A6%D7%94%20%D7%9C%D7%91%D7%A8%D7%A8%20%D7%A2%D7%9C%20%D7%9E%D7%97%D7%99%D7%A8%D7%9C%D7%99." target="_blank" rel="noopener" aria-label="שיחה עם מפתח מחירלי ב־WhatsApp">💬 <span>דברו איתנו</span></a>
   <script>
     (function(){
-      var analytics=window.supabase.createClient('https://jgnbcrlvsudfqfofmvlx.supabase.co','sb_publishable_WnOhGZSlik7zqpO-cRYGvA_lOUz68Wp');
       var visitorKey='mehirli_visitor_v1',attributionKey='mehirli_attribution_v2';
       function visitorId(){var id='';try{id=localStorage.getItem(visitorKey)||''}catch(e){}if(!/^[0-9a-f-]{36}$/i.test(id)){id=crypto.randomUUID();try{localStorage.setItem(visitorKey,id)}catch(e){}}return id}
       function attribution(){
@@ -127,7 +126,7 @@
       }
       function track(name){
         var a=attribution(),body=JSON.stringify({p_visitor_id:visitorId(),p_event_name:name,p_source:a.source,p_campaign:a.campaign});
-        return fetch('https://jgnbcrlvsudfqfofmvlx.supabase.co/rest/v1/rpc/track_app_event_v40',{method:'POST',headers:{apikey:'sb_publishable_WnOhGZSlik7zqpO-cRYGvA_lOUz68Wp',Authorization:'Bearer sb_publishable_WnOhGZSlik7zqpO-cRYGvA_lOUz68Wp','Content-Type':'application/json'},body:body,keepalive:true,cache:'no-store'}).then(function(response){if(!response.ok)throw new Error('analytics_http_'+response.status);return response}).catch(function(){return analytics.rpc('track_app_event_v40',JSON.parse(body))})
+        return fetch('https://jgnbcrlvsudfqfofmvlx.supabase.co/rest/v1/rpc/track_app_event_v40',{method:'POST',headers:{apikey:'sb_publishable_WnOhGZSlik7zqpO-cRYGvA_lOUz68Wp',Authorization:'Bearer sb_publishable_WnOhGZSlik7zqpO-cRYGvA_lOUz68Wp','Content-Type':'application/json'},body:body,keepalive:true,cache:'no-store'}).then(function(response){if(!response.ok)throw new Error('analytics_http_'+response.status);return response}).catch(function(){})
       }
       function isAndroidFacebookBrowser(){var ua=navigator.userAgent||'';return /Android/i.test(ua)&&/(FBAN|FBAV|Instagram)/i.test(ua)}
       function chromeIntent(target){var url=new URL(target,location.href);url.searchParams.set('view','signup');url.hash='';return 'intent://'+url.host+url.pathname+url.search+'#Intent;scheme=https;package=com.android.chrome;end'}
