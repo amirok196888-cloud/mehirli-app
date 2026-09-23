@@ -1194,7 +1194,7 @@ async function requestAppInstall(){
     deferredInstallPrompt.prompt();
     const choice=await deferredInstallPrompt.userChoice;
     deferredInstallPrompt=null;updateInstallButton();
-    if(choice?.outcome==='accepted'&&state.subscription?.failure_reason==='installation_required')await activateTrialAfterInstall();
+    // Installation completes at appinstalled or on a later standalone launch.
     return
   }
   toast('בתפריט הדפדפן בחר ״התקנת אפליקציה״ — לא ״הוסף קיצור דרך״.')
