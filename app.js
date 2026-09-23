@@ -107,7 +107,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)updateGree
 const quotePdfCache=new Map();
 const catDb={'רכב':'vehicle','מיזוג':'air_conditioning','לבית':'home','הנדימן':'handyman','היינדמן':'handyman','חשמלאי':'electrician'}, catHe={vehicle:'רכב',air_conditioning:'מיזוג',home:'לבית',handyman:'הנדימן',electrician:'חשמלאי'};
 const tradeHe={general:'עבודה',handyman:'הנדימן',electrician:'חשמלאי',home:'שירותי בית',air_conditioning:'מיזוג'};
-const jobStatusHe={lead:'פנייה חדשה',quoted:'הצעה נשלחה',approved:'ההצעה אושרה',scheduled:'נקבע מועד',in_progress:'בביצוע',completed:'העבודה הסתיימה',paid:'שולם',cancelled:'בוטל'};
+const jobStatusHe={lead:'פנייה חדשה',quoted:'הצעה מוכנה לשליחה',approved:'ההצעה אושרה',scheduled:'נקבע מועד',in_progress:'בביצוע',completed:'העבודה הסתיימה',paid:'שולם',cancelled:'בוטל'};
 const subscriptionStatusHe={admin:'מנהל — ללא חיוב',trial:'תקופת ניסיון',active:'מנוי פעיל',past_due:'נדרש להסדיר תשלום',suspended:'השירות מושהה',cancelled:'המנוי בוטל',not_started:'טרם הופעל'};
 const PAYMENT_PROVIDERS={cardcom:'קארדקום',grow:'Grow',meshulam:'משולם',bit:'bit לעסקים',paybox:'PayBox',other:'חברת סליקה אחרת'};
 const PRICING_MODE_HE={fixed:'מחיר קבוע',hourly:'לפי שעה',half_day:'חצי יום',full_day:'יום עבודה'};
