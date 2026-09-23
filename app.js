@@ -471,12 +471,11 @@ $('#priceType').onchange=()=>{$('#rangePriceWrap').classList.toggle('hidden',$('
 $('#offerForm').onsubmit=async e=>{e.preventDefault();toast('מסלול ההצעות הישן אינו פעיל. מחירלי מיועדת כעת לניהול העסק שלך.');await openProWorkspace()};
 function businessLogoUrl(path=state.businessProfile?.logo_path){return path?db.storage.from('business-logos').getPublicUrl(path).data?.publicUrl||'':''}
 function renderBusinessLogoEditor(){const img=$('#bizLogoPreview'),remove=$('#removeBizLogoBtn'),url=businessLogoUrl();if(!img)return;img.src=url;img.classList.toggle('hidden',!url);remove.classList.toggle('hidden',!url)}
-async function fillProfile(){const {data}=await db.from('business_profiles').select('*').eq('user_id',state.user.id).maybeSingle();state.businessProfile=data||null;$('#bizName').value=data?.business_name||'';$('#bizLegalName').value=data?.legal_name||'';$('#bizNumber').value=data?.business_number||'';$('#bizEmail').value=data?.business_email||'';$('#bizAddress').value=data?.business_address||'';const savedCategory=data?.specialties?.[0]||'הנדימן';$('#bizCategory').value=savedCategory==='היינדמן'?'הנדימן':savedCategory;$('#bizAbout').value=data?.description||'';$('#bizArea').value=(data?.service_areas||[]).join(', ');$('#bizPhone').value=data?.business_phone||'';renderBusinessLogoEditor()}
+async function fillProfile(){const {data}=await db.from('business_profiles').select('*').eq('user_id',state.user.id).maybeSingle();state.businessProfile=data||null;$('#bizName').value=data?.business_name||'';$('#bizLegalName').value=data?.legal_name||'';$('#bizNumber').value=data?.business_number||'';$('#bizEmail').value=data?.business_email||'';$('#bizAddress').value=data?.business_address||'';$('#bizAbout').value=data?.description||'';$('#bizArea').value=(data?.service_areas||[]).join(', ');$('#bizPhone').value=data?.business_phone||'';renderBusinessLogoEditor()}
 $('#profileForm').onsubmit=async e=>{
-  e.preventDefault();if(!requireServiceAccess())return;const category=$('#bizCategory').value,trade=catDb[category]||'handyman';
-  const row={user_id:state.user.id,business_name:$('#bizName').value.trim(),legal_name:$('#bizLegalName').value.trim()||null,business_number:$('#bizNumber').value.trim()||null,business_email:$('#bizEmail').value.trim()||null,business_address:$('#bizAddress').value.trim()||null,description:$('#bizAbout').value.trim(),specialties:[category],service_areas:$('#bizArea').value.split(',').map(x=>x.trim()).filter(Boolean),business_phone:$('#bizPhone').value.trim(),logo_path:state.businessProfile?.logo_path||null};
+  e.preventDefault();if(!requireServiceAccess())return;
+  const row={user_id:state.user.id,business_name:$('#bizName').value.trim(),legal_name:$('#bizLegalName').value.trim()||null,business_number:$('#bizNumber').value.trim()||null,business_email:$('#bizEmail').value.trim()||null,business_address:$('#bizAddress').value.trim()||null,description:$('#bizAbout').value.trim(),service_areas:$('#bizArea').value.split(',').map(x=>x.trim()).filter(Boolean),business_phone:$('#bizPhone').value.trim(),logo_path:state.businessProfile?.logo_path||null};
   const {error}=await db.from('business_profiles').upsert(row);if(error){toast(error.message);return}
-  const {error:settingsError}=await db.from('professional_settings').upsert({professional_id:state.user.id,trade},{onConflict:'professional_id'});if(settingsError){toast(settingsError.message);return}
   if(!state.isAdmin)await db.from('profiles').update({role:'professional'}).eq('id',state.user.id);
   await loadMe();toast('פרופיל העסק נשמר בענן');if(openSettingsAfterProfileSave){openSettingsAfterProfileSave=false;await loadProSettingsForm()}else show('#homeView')
 };
@@ -594,7 +593,13 @@ $('#appointmentCustomerSelect').onchange=e=>{const c=state.proCustomers.find(x=>
 $('#appointmentForm').onsubmit=async e=>{e.preventDefault();if(!requireServiceAccess())return;const customerName=$('#appointmentCustomerName').value.trim(),phone=$('#appointmentCustomerPhone').value.trim(),appointmentAt=$('#appointmentAt').value,title=$('#appointmentTitle').value.trim();if(!customerName||!appointmentAt||!title){toast('יש למלא שם לקוח, מועד ונושא הפגישה');return}const row={professional_id:state.user.id,customer_id:$('#appointmentCustomerSelect').value||null,customer_name:customerName,customer_phone:phone||null,appointment_at:new Date(appointmentAt).toISOString(),address:$('#appointmentAddress').value.trim()||null,title,notes:$('#appointmentNotes').value.trim()||null};const {error}=await db.from('pro_appointments').insert(row);if(error){toast('הפגישה לא נשמרה: '+error.message);return}await loadProAppointments();closeAppointmentForm();renderCalendar();toast('הפגישה נשמרה ביומן')};
 $('#priceBookBtn').onclick=openPriceBook;$('#customersBtn').onclick=openCustomers;$('#calendarBtn').onclick=openCalendar;
 $('#proWorkspaceBtn').onclick=openProWorkspace;$('#homeNewJobBtn').onclick=openNewProJob;$('#newProJobBtn').onclick=openNewProJob;$('#sampleQuoteBtn').onclick=()=>window.open('./sample-quote.html','_blank','noopener');$('#proJobStatusFilter').onchange=renderProJobCards;
-$$('.trade-choice').forEach(b=>b.onclick=()=>{setTrade(b.dataset.trade);analyzeProfessionalJob(false)});
+$$('.trade-choice').forEach(b=>b.onclick=async()=>{
+  const trade=b.dataset.trade;setTrade(trade);analyzeProfessionalJob(false);
+  if(!state.user||state.proSettings?.trade===trade)return;
+  const {error}=await db.from('professional_settings').upsert({professional_id:state.user.id,trade},{onConflict:'professional_id'});
+  if(error){toast('בחירת המקצוע לא נשמרה לעבודה הבאה');return}
+  state.proSettings={...(state.proSettings||defaultProSettings()),trade};
+});
 ['#proLaborHours','#proBasePrice','#proMaterialsCost','#proTravelCost','#proAssistantCost'].forEach(id=>$(id).addEventListener('input',()=>calculateProPrice(true)));
 $('#proPricingMode').onchange=e=>setPricingMode(e.target.value,true);
 $('#proDiscountType').onchange=e=>{$('#proDiscountValue').disabled=e.target.value==='none';if(e.target.value==='none')$('#proDiscountValue').value=0;calculateProPrice(true)};
