@@ -183,13 +183,7 @@ fbq('track','PageView',{content_name:'Mehirli'});
     </div>
     <button type="button" class="job-step-button" data-job-step="1" aria-controls="jobPanel1">2. הכנסת פרטי עבודה <span>⌄</span></button>
     <div id="jobPanel1" class="form-step" data-job-panel="1" hidden>
-      <div class="form-step-title"><b>2</b><div><h3>מה העבודה?</h3><p>בחר תחום ותאר בקצרה מה הלקוח ביקש.</p></div></div>
-      <div class="trade-picker" role="group" aria-label="בחירת מקצוע">
-        <button type="button" class="trade-choice active" data-trade="handyman">🔨 הנדימן</button>
-        <button type="button" class="trade-choice" data-trade="electrician">⚡ חשמלאי</button>
-        <button type="button" class="trade-choice" data-trade="home">🏠 שירותי בית</button>
-        <button type="button" class="trade-choice" data-trade="air_conditioning">❄️ מיזוג</button>
-      </div>
+      <div class="form-step-title"><b>2</b><div><h3>מה העבודה?</h3><p>תאר בקצרה מה הלקוח ביקש.</p></div></div>
       <input id="proJobTrade" type="hidden" value="handyman" />
       <label>סוג העבודה<input id="proJobType" required placeholder="לדוגמה: ייעוץ, תיקון, צילום או כל שירות אחר" /></label>
       <label>תבנית מהמחירון — אופציונלי<select id="proServiceTemplate"><option value="">ללא תבנית</option></select></label>
@@ -200,10 +194,6 @@ fbq('track','PageView',{content_name:'Mehirli'});
     <button type="button" class="job-step-button" data-job-step="2" aria-controls="jobPanel2">3. פרטי תמחור והצעה <span>⌄</span></button>
     <div id="jobPanel2" class="form-step form-step-pricing" data-job-panel="2" hidden>
       <div class="form-step-title"><b>3</b><div><h3>כמה לגבות?</h3><p>מחירלי מחשבת אם העבודה משתלמת לך.</p></div></div>
-      <div class="quick-pricing-card">
-        <div><b>התחלה מהירה</b><small>בחר אפשרות והמחירים הרגילים שלך ימולאו אוטומטית.</small></div>
-        <div class="quick-pricing-actions"><button type="button" data-quick-pricing="hourly">שעה אחת</button><button type="button" data-quick-pricing="half_day">חצי יום</button><button type="button" data-quick-pricing="full_day">יום עבודה</button><button type="button" data-quick-pricing="fixed">מחיר קבוע</button></div>
-      </div>
       <div class="pricing-title"><div><span class="eyebrow">מחשבון אישי</span><h3>עלויות העבודה</h3></div><button id="analyzeJobBtn" type="button" class="secondary tiny">נתח את העבודה</button></div>
       <label>אופן תמחור<select id="proPricingMode"><option value="hourly">לפי שעה</option><option value="fixed">מחיר קבוע</option><option value="half_day">חצי יום</option><option value="full_day">יום עבודה</option></select></label>
       <div class="two-cols"><label>שעות מתוכננות<input id="proLaborHours" type="number" min="0.25" step="0.25" value="1" /></label><label>מחיר בסיס<input id="proBasePrice" type="number" min="0" step="10" /></label></div>
@@ -423,5 +413,5 @@ fbq('track','PageView',{content_name:'Mehirli'});
 </section>
 </main><a id="developerSupportLink" class="developer-support-link hidden" href="#" target="_blank" rel="noopener" aria-label="דיווח תקלה או שיחה עם המפתח ב־WhatsApp">💬 דיווח תקלה / שיחה עם המפתח</a><div id="postSignupInstall" class="post-signup-install hidden" role="dialog" aria-modal="true" aria-labelledby="postSignupInstallTitle"><div class="post-signup-install-card"><span>📲</span><b>ההרשמה הסתיימה</b><h2 id="postSignupInstallTitle">עכשיו מוסיפים את מחירלי לטלפון</h2><p id="postSignupInstallText">המערכת תציג את דרך ההתקנה המתאימה לטלפון שלך. לאחר ההתקנה פותחים את מחירלי מהסמל במסך הבית.</p><button id="postSignupInstallBtn" class="primary big" type="button">הוספת מחירלי לטלפון</button><button id="postSignupEditBtn" class="secondary big install-edit-btn" type="button">חזרה לתיקון פרטי ההרשמה</button><small>אם תצא לפני ההתקנה, המסך הזה יוצג שוב בכניסה הבאה.</small></div></div><div id="firstQuoteWelcome" class="post-signup-install hidden" role="dialog" aria-modal="true" aria-labelledby="firstQuoteWelcomeTitle"><div class="post-signup-install-card first-quote-welcome-card"><span>✅</span><b>מחירלי מותקנת ומוכנה</b><h2 id="firstQuoteWelcomeTitle">בוא נכין את הצעת המחיר הראשונה</h2><p>נכניס את פרטי הלקוח והעבודה, נחשב מחיר ונשלח הצעה מקצועית.</p><button id="firstQuoteWelcomeBtn" class="primary big" type="button">הכנת הצעת המחיר הראשונה</button></div></div><div id="toast" class="toast"></div></div>
 <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"></script>
-<script src="app.js?v=100"></script>
+<script src="app.js?v=101"></script>
 </body></html>
