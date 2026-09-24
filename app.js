@@ -56,12 +56,12 @@ function analyticsAttribution(){
   return value
 }
 async function trackAppEvent(eventName){
+  // Use the authenticated client so the server can exclude this admin's visitor ID.
+  if(state.isAdmin&&eventName!=='account_active')return;
   const a=analyticsAttribution(),payload={p_visitor_id:analyticsVisitorId(),p_event_name:eventName,p_source:a.source,p_campaign:a.campaign};
-  try{
-    const response=await fetch(`${SUPABASE_URL}/rest/v1/rpc/track_app_event_v40`,{method:'POST',headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json'},body:JSON.stringify(payload),keepalive:true,cache:'no-store'});
-    if(!response.ok)throw new Error(`analytics_http_${response.status}`)
-  }catch{try{await db.rpc('track_app_event_v40',payload)}catch{}}
+  try{await db.rpc('track_app_event_v40',payload)}catch{}
 }
+
 function authErrorMessage(error){
   const message=String(error?.message||'').toLowerCase();
   if(message.includes('already registered')||message.includes('already been registered'))return 'כתובת האימייל כבר רשומה במערכת. אפשר להתחבר לחשבון הקיים.';
@@ -339,6 +339,8 @@ function stopNotificationPolling(){
 async function loadMe(){
   if(!state.user)return;
   const {data:a}=await db.from('admin_users').select('user_id').eq('user_id',state.user.id).maybeSingle();state.isAdmin=!!a;
+  try{if(state.isAdmin)localStorage.setItem('mehirli_admin_device_v1','1');else localStorage.removeItem('mehirli_admin_device_v1')}catch{}
+  await trackAppEvent('account_active');
   let {data:p}=await db.from('profiles').select('*').eq('id',state.user.id).maybeSingle();
   if(!state.isAdmin&&p&&p.role!=='professional'){
     const {data:updated}=await db.from('profiles').update({role:'professional'}).eq('id',state.user.id).select('*').maybeSingle();
@@ -385,9 +387,9 @@ async function promptLoginIfSessionExpired(){
   $('#authNote').textContent='החיבור פג. יש להתחבר מחדש כדי לשמור עבודות ופגישות.';
   return true
 }
-async function boot(){updateGreeting();trackAppEvent('app_open');const params=new URLSearchParams(location.search),signupHandoff=params.get('view')==='signup';if(signupHandoff)trackAppEvent('signup_form_open');if(isStandaloneMode())trackAppEvent('standalone_open');const quoteToken=currentPublicQuoteToken();if(quoteToken){await loadPublicQuote(quoteToken);return}const {data:{session}}=await db.auth.getSession();state.user=session?.user||null;if(isPasswordRecovery()&&state.user){showPasswordReset();return}if(signupHandoff&&state.user){await db.auth.signOut({scope:'local'});state.user=null;stopNotificationPolling()}if(signupHandoff){const url=new URL(location.href);url.searchParams.delete('view');history.replaceState({},'',url.pathname+url.search+url.hash)}if(state.user){await loadMe();trackAppEvent('account_active');if(paymentReturn())await handlePaymentReturn();else await routeAfterLogin()}else{setAuthMode(signupHandoff?'signup':'login');show('#authView');if(params.get('password_reset')==='success')$('#authNote').textContent='הסיסמה שונתה בהצלחה. אפשר להתחבר עם הסיסמה החדשה.';else if(isPasswordRecovery())$('#authNote').textContent='קישור האיפוס אינו תקף או שפג תוקפו. בקשו קישור חדש.';else if(signupHandoff)$('#authNote').textContent='המשך הרשמה או התחבר לחשבון שיצרת כדי להתקין את מחירלי.';if(isAndroidInAppBrowser())$('#inAppBrowserNotice')?.classList.remove('hidden')}}
+async function boot(){updateGreeting();const params=new URLSearchParams(location.search),signupHandoff=params.get('view')==='signup';const quoteToken=currentPublicQuoteToken();if(quoteToken){await loadPublicQuote(quoteToken);return}const {data:{session}}=await db.auth.getSession();state.user=session?.user||null;if(isPasswordRecovery()&&state.user){showPasswordReset();return}if(signupHandoff){const url=new URL(location.href);url.searchParams.delete('view');history.replaceState({},'',url.pathname+url.search+url.hash)}if(state.user){await loadMe();if(!state.isAdmin){trackAppEvent('app_open');if(isStandaloneMode())trackAppEvent('standalone_open')}if(paymentReturn())await handlePaymentReturn();else await routeAfterLogin()}else{trackAppEvent('app_open');if(signupHandoff)trackAppEvent('signup_form_open');setAuthMode(signupHandoff?'signup':'login');show('#authView');if(params.get('password_reset')==='success')$('#authNote').textContent='הסיסמה שונתה בהצלחה. אפשר להתחבר עם הסיסמה החדשה.';else if(isPasswordRecovery())$('#authNote').textContent='קישור האיפוס אינו תקף או שפג תוקפו. בקשו קישור חדש.';else if(signupHandoff)$('#authNote').textContent='המשך הרשמה או התחבר לחשבון שיצרת כדי להתקין את מחירלי.';if(isAndroidInAppBrowser())$('#inAppBrowserNotice')?.classList.remove('hidden')}}
 $('#showLoginModeBtn').onclick=()=>setAuthMode('login');
-$('#showSignupModeBtn').onclick=()=>setAuthMode('signup');
+$('#showSignupModeBtn').onclick=()=>{setAuthMode('signup');trackAppEvent('signup_form_open')};
 $('#authForm').onsubmit=async e=>{e.preventDefault();$('#authNote').textContent='מתחבר…';const {data,error}=await db.auth.signInWithPassword({email:$('#authEmail').value.trim(),password:$('#authPassword').value});if(error){$('#authNote').textContent=authErrorMessage(error);return}state.user=data.user;await loadMe();$('#authNote').textContent='';if(paymentReturn())await handlePaymentReturn();else await routeAfterLogin()};
 $('#forgotPasswordBtn').onclick=async()=>{
   const email=$('#authEmail').value.trim(),note=$('#authNote'),button=$('#forgotPasswordBtn');
@@ -1030,18 +1032,20 @@ function renderAdminMarketing(funnel={}){
   $('#adminTrafficSources').innerHTML=sources.length?`<b>ביצועים לפי מקור</b><div class="traffic-table"><div class="traffic-head"><span>מקור</span><span>כניסות</span><span>לחצו</span><span>טופס</span><span>ניסו</span><span>נרשמו</span></div>${sources.map(row=>`<div><span>${esc(row.source||'ישיר')}</span><strong>${Number(row.visitors||0)}</strong><strong>${Number(row.trial_clicks||0)}</strong><strong>${Number(row.form_opens||0)}</strong><strong>${Number(row.signup_attempts||0)}</strong><strong>${Number(row.trial_signups||0)}</strong></div>`).join('')}</div>`:'<small>אין עדיין כניסות בטווח שנבחר.</small>';
   $$('[data-admin-analytics-range]').forEach(button=>button.classList.toggle('active',button.dataset.adminAnalyticsRange===adminAnalyticsRange));
   const updated=funnel.generated_at?new Date(funnel.generated_at):new Date();
-  $('#adminAnalyticsNote').textContent=`עודכן ${updated.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'})} · כניסות מפייסבוק ללא קמפיין מוצגות כאורגניות/ויראליות.`
+  const reportDate=updated.toLocaleDateString('he-IL',{timeZone:'Asia/Jerusalem'});
+  $('#adminVisitors30d').textContent=adminAnalyticsRange==='today'?`היום · ${reportDate}`:'30 הימים האחרונים';
+  $('#adminAnalyticsNote').textContent=`עודכן ${reportDate} ${updated.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Jerusalem'})} · לפי שעון ישראל. לחיצה או פתיחת טופס אינן הרשמה. ביקורי מנהל מזוהים מוחרגים.`
 }
 async function loadAdminMarketing(range=adminAnalyticsRange){
   adminAnalyticsRange=range==='30d'?'30d':'today';
-  const {data,error}=await rpcWithFallback('admin_marketing_summary_v87','admin_marketing_summary_v63',{p_range:adminAnalyticsRange});
-  if(error){toast(error.message||'לא ניתן לרענן את נתוני הכניסות');return false}
+  const {data,error}=await db.rpc('admin_marketing_summary_v87',{p_range:adminAnalyticsRange});
+  if(error){$('#adminAnalyticsNote').textContent='הרענון נכשל — הנתונים המוצגים הם מהעדכון הקודם.';toast('לא ניתן לרענן את נתוני הכניסות');return false}
   renderAdminMarketing(data||{});return true
 }
 async function loadAdmin(){
   if(!state.isAdmin){toast('אין הרשאת מנהל');return false}
   const [{data:summary,error:se},{data:jobs,error:je},{data:businesses,error:be},{data:billing,error:bse},{data:marketing,error:me}]=await Promise.all([
-    db.rpc('admin_professional_summary_v33'),db.rpc('admin_list_pro_jobs'),rpcWithFallback('admin_list_businesses_v83','admin_list_businesses_v33'),rpcWithFallback('admin_get_billing_settings_v38','admin_get_billing_settings_v33'),rpcWithFallback('admin_marketing_summary_v87','admin_marketing_summary_v63',{p_range:adminAnalyticsRange})
+    db.rpc('admin_professional_summary_v33'),db.rpc('admin_list_pro_jobs'),rpcWithFallback('admin_list_businesses_v83','admin_list_businesses_v33'),rpcWithFallback('admin_get_billing_settings_v38','admin_get_billing_settings_v33'),db.rpc('admin_marketing_summary_v87',{p_range:adminAnalyticsRange})
   ]);
   if(se||je||be||bse||me){toast((se||je||be||bse||me).message||'לא ניתן לטעון את אזור המנהל');return false}
   const sum=summary||{};state.adminJobs=jobs||[];state.adminBusinesses=businesses||[];state.billingSettings=billing||{};

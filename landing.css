@@ -10,3 +10,14 @@
 @media(max-width:850px){.hero{gap:38px}.hero-video-card{width:min(100%,390px)}}
 @media(max-width:600px){.hero{padding-bottom:36px;gap:18px}.hero h1{font-size:35px;line-height:1.12;margin:12px auto}.hero-copy>p{font-size:15px;line-height:1.55}.hero-photo img{height:300px}.thought{font-size:10px;padding:6px 8px;max-width:40%}.thought-price{bottom:48px}.hero-video-card{width:100%;padding:10px;border-radius:25px}.landing-video{max-height:590px;border-radius:18px}.section{padding-top:50px;padding-bottom:50px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+/* Readable problem/solution pairs, visible without animation. */
+.hero-photo{background:#fff;border:1px solid #dce5f0;box-shadow:0 12px 35px rgba(7,27,69,.1)}
+.hero-photo img{height:300px;object-position:center 38%}
+.hero-photo figcaption{position:static;padding:15px 16px 6px;background:none;color:#17314d;font-size:17px}
+.problem-solutions{display:grid;gap:12px;padding:16px}
+.solution-pair{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:stretch}
+.problem-bubble,.solution-bubble{display:flex;align-items:center;justify-content:center;padding:12px 10px;border-radius:16px;font-size:15px;line-height:1.5;text-align:center}
+.problem-bubble{background:#f4f0ef;color:#684943;border:1px solid #e4d8d5;border-bottom-right-radius:4px}
+.solution-bubble{background:#e8f7ed;color:#146336;border:1px solid #aad4b8;border-bottom-left-radius:4px;font-weight:800}
+@media(max-width:380px){.problem-solutions{padding:10px;gap:10px}.solution-pair{gap:7px}.problem-bubble,.solution-bubble{font-size:14px;padding:10px 7px}}
