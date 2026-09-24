@@ -29,7 +29,7 @@
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="apple-touch-icon" sizes="180x180" href="icon-192.png" />
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
-<link rel="stylesheet" href="style.css?v=111" />
+<link rel="stylesheet" href="style.css?v=112" />
 <link rel="preload" as="image" href="mehirli-hero-v43.jpg" fetchpriority="high" />
 <!-- Meta Pixel: shared Rokach Digital data source; Mehirli conversions are separated by event and content_name. -->
 <script>
@@ -268,18 +268,20 @@ fbq('track','PageView',{content_name:'Mehirli'});
 <section id="proJobDetailView" class="view">
   <div class="section-head"><button class="back" data-back-to="workspace">‹</button><div><span class="eyebrow">תיק עבודה</span><h2 id="jobDetailTitle">פרטי העבודה</h2></div></div>
   <div id="jobDetailContent"></div>
-  <div class="card">
+  <details class="job-tool-fold"><summary>📷 תמונות ותיעוד</summary><div class="card">
     <h3>תמונות ותיעוד</h3><p class="muted">צלם לפני ואחרי. התמונות נשמרות בתיק העבודה הפרטי שלך.</p>
     <div class="media-upload-row"><label class="upload-btn">📷 לפני העבודה<input id="beforePhotoInput" type="file" accept="image/*" capture="environment" /></label><label class="upload-btn">✅ אחרי העבודה<input id="afterPhotoInput" type="file" accept="image/*" capture="environment" /></label></div>
     <div id="jobMediaGrid" class="media-grid"></div>
   </div>
+  </details>
+  <details class="job-tool-fold"><summary>💰 רישום תשלום וסיום עבודה</summary>
   <form id="actualProfitForm" class="card form-card">
     <h3>סיום ורווח בפועל</h3>
     <div class="two-cols"><label>סה״כ זמן כולל נסיעה<input id="actualHours" type="number" min="0.25" step="0.25" /></label><label>עלות חומרים בפועל<input id="actualMaterials" type="number" min="0" step="10" /></label></div>
     <label>סכום שהתקבל בפועל<input id="actualPaid" type="number" min="0" step="10" /></label>
     <button class="primary big" type="submit">שמור וסמן כעבודה ששולמה</button>
     <div id="actualProfitResult" class="profit-result hidden"></div>
-  </form>
+  </form></details>
 </section>
 
 <section id="proSettingsView" class="view">
@@ -288,7 +290,7 @@ fbq('track','PageView',{content_name:'Mehirli'});
   <form id="proSettingsForm" class="card form-card">
     <fieldset class="payment-connect-card">
       <legend>קבלת תשלומים מהלקוחות</legend>
-      <p class="payment-connect-intro">בחר את חברת הסליקה והדבק את קישור התשלום האישי שקיבלת ממנה.</p>
+      <p class="payment-connect-intro">בחר את חברת הסליקה והדבק את קישור התשלום האישי שקיבלת ממנה. הקישור יצורף להודעת ההצעה ב־WhatsApp ויופיע ללקוח לאחר אישור ההצעה. את הסכום ואפשרויות התשלומים מגדירים אצל חברת הסליקה שלך.</p>
       <label>חברת הסליקה שלך
         <select id="settingsPaymentProvider">
           <option value="">בחר חברת סליקה</option>
@@ -414,5 +416,5 @@ fbq('track','PageView',{content_name:'Mehirli'});
 </section>
 </main><a id="developerSupportLink" class="developer-support-link hidden" href="#" target="_blank" rel="noopener" aria-label="דיווח תקלה או שיחה עם המפתח ב־WhatsApp">💬 דיווח תקלה / שיחה עם המפתח</a><div id="postSignupInstall" class="post-signup-install hidden" role="dialog" aria-modal="true" aria-labelledby="postSignupInstallTitle"><div class="post-signup-install-card"><span>📲</span><b>ההרשמה הסתיימה</b><h2 id="postSignupInstallTitle">עכשיו מוסיפים את מחירלי לטלפון</h2><p id="postSignupInstallText">המערכת תציג את דרך ההתקנה המתאימה לטלפון שלך. לאחר ההתקנה פותחים את מחירלי מהסמל במסך הבית.</p><button id="postSignupInstallBtn" class="primary big" type="button">הוספת מחירלי לטלפון</button><button id="postSignupEditBtn" class="secondary big install-edit-btn" type="button">חזרה לתיקון פרטי ההרשמה</button><small>אם תצא לפני ההתקנה, המסך הזה יוצג שוב בכניסה הבאה.</small></div></div><div id="firstQuoteWelcome" class="post-signup-install hidden" role="dialog" aria-modal="true" aria-labelledby="firstQuoteWelcomeTitle"><div class="post-signup-install-card first-quote-welcome-card"><span>✅</span><b>מחירלי מותקנת ומוכנה</b><h2 id="firstQuoteWelcomeTitle">בוא נכין את הצעת המחיר הראשונה</h2><p>נכניס את פרטי הלקוח והעבודה, נחשב מחיר ונשלח הצעה מקצועית.</p><button id="firstQuoteWelcomeBtn" class="primary big" type="button">הכנת הצעת המחיר הראשונה</button></div></div><div id="toast" class="toast"></div></div>
 <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"></script>
-<script src="app.js?v=111"></script>
+<script src="app.js?v=112"></script>
 </body></html>
