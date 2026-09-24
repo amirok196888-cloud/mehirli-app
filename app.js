@@ -87,11 +87,17 @@ function showExistingAccountLogin(){
   note.innerHTML='כתובת האימייל כבר רשומה במערכת. <button id="existingAccountLoginBtn" class="text-link" type="button">כבר יש לך חשבון? לחץ כאן להתחברות</button>';
   $('#existingAccountLoginBtn').onclick=()=>{$('#authPassword').focus();$('.auth-login')?.scrollIntoView({behavior:'smooth',block:'center'});toast('הזן את הסיסמה ולחץ על כניסה')}
 }
-function trackMetaTrialSignup(user){
-  const userId=String(user?.id||'').trim();if(!userId||typeof window.fbq!=='function')return false;
-  const key=`mehirli_meta_start_trial_v1:${userId}`;
+const metaLifecycleSent=new Set();
+function trackMetaLifecycle(eventName,user){
+  const userId=String(user?.id||'').trim();
+  if(!userId||typeof window.fbq!=='function')return false;
+  const key=eventName==='StartTrial'?`mehirli_meta_start_trial_v1:${userId}`:`mehirli_meta_registration_v1:${userId}`;
+  if(metaLifecycleSent.has(key))return false;
   try{if(localStorage.getItem(key)==='sent')return false}catch{}
-  window.fbq('track','StartTrial',{content_name:'Mehirli',content_category:'business_management',value:0,currency:'ILS'});
+  try{
+    window.fbq('track',eventName,{content_name:'Mehirli',content_category:'business_management',value:0,currency:'ILS'});
+  }catch{return false}
+  metaLifecycleSent.add(key);
   try{localStorage.setItem(key,'sent')}catch{}
   return true
 }
@@ -265,7 +271,7 @@ async function activateTrialAfterInstall(){
   if(error){toast('לא ניתן להפעיל את הניסיון כרגע. נסה לפתוח שוב את מחירלי.');return false}
   if(!data?.activated){toast('תקופת הניסיון לא הופעלה. פנה לתמיכה.');return false}
   $('#postSignupInstall')?.classList.add('hidden');
-  await loadSubscription();trackAppEvent('trial_activated');show('#homeView');showFirstQuoteWelcome();toast('14 ימי הניסיון התחילו עכשיו ✅');return true
+  trackMetaLifecycle('StartTrial',state.user);await loadSubscription();trackAppEvent('trial_activated');show('#homeView');showFirstQuoteWelcome();toast('14 ימי הניסיון התחילו עכשיו ✅');return true
 }
 async function ensureLegalConsent(){
   const {data,error}=await db.rpc('has_accepted_legal_terms_v40',{p_document_version:LEGAL_VERSION});
@@ -416,7 +422,7 @@ $('#passwordResetForm').onsubmit=async e=>{
   const url=new URL(location.href);url.searchParams.delete('reset');url.searchParams.delete('code');url.hash='';history.replaceState({},'',url.pathname+url.search);
   $('#authPassword').value='';$('#newPassword').value='';$('#confirmNewPassword').value='';show('#authView');$('#authNote').textContent='הסיסמה שונתה בהצלחה. אפשר להתחבר עם הסיסמה החדשה.'
 };
-$('#signupBtn').onclick=async()=>{const name=$('#authName').value.trim();if($('#signupBtn').dataset.mode==='edit'){if(!name){toast('יש להזין את השם שלך');return}const {data,error}=await db.auth.updateUser({data:{...state.user.user_metadata,full_name:name}});if(error){toast('לא ניתן לשמור את השינוי כרגע');return}state.user=data.user;await db.from('profiles').update({full_name:name}).eq('id',state.user.id);resetPendingSignupEdit();showPostSignupInstall();toast('פרטי ההרשמה עודכנו');return}const email=$('#authEmail').value.trim(),password=$('#authPassword').value,role='professional';if(!name){toast('יש להזין את השם שלך');return}if(!email||password.length<6){toast('הזן אימייל וסיסמה של לפחות 6 תווים');return}if(!$('#signupLegalConsent').checked){toast('כדי להירשם יש לאשר את תנאי השימוש ומדיניות הפרטיות');return}trackAppEvent('signup_attempt');const {data,error}=await db.auth.signUp({email,password,options:{data:{role,full_name:name,legal_version:LEGAL_VERSION,legal_accepted_at:new Date().toISOString()}}});if(error){const message=authErrorMessage(error);toast(message);if(isExistingAccountError(error))showExistingAccountLogin();else $('#authNote').textContent=message;return}const isNewSignup=!!data.user&&(!Array.isArray(data.user.identities)||data.user.identities.length>0);if(isNewSignup)await trackAppEvent('trial_signup');if(data.session){state.user=data.user;await loadMe();const {error:consentError}=await db.rpc('accept_legal_terms_v40',{p_document_version:LEGAL_VERSION,p_accepted_via:'signup'});if(consentError){toast('ההרשמה נשמרה, אך אישור התנאים לא נשמר. נסה להתחבר מחדש.');return}await routeAfterLogin()}else{$('#authNote').textContent='נשלח אליך אימייל לאישור ההרשמה. לאחר האישור חזור והתחבר.'}};
+$('#signupBtn').onclick=async()=>{const name=$('#authName').value.trim();if($('#signupBtn').dataset.mode==='edit'){if(!name){toast('יש להזין את השם שלך');return}const {data,error}=await db.auth.updateUser({data:{...state.user.user_metadata,full_name:name}});if(error){toast('לא ניתן לשמור את השינוי כרגע');return}state.user=data.user;await db.from('profiles').update({full_name:name}).eq('id',state.user.id);resetPendingSignupEdit();showPostSignupInstall();toast('פרטי ההרשמה עודכנו');return}const email=$('#authEmail').value.trim(),password=$('#authPassword').value,role='professional';if(!name){toast('יש להזין את השם שלך');return}if(!email||password.length<6){toast('הזן אימייל וסיסמה של לפחות 6 תווים');return}if(!$('#signupLegalConsent').checked){toast('כדי להירשם יש לאשר את תנאי השימוש ומדיניות הפרטיות');return}trackAppEvent('signup_attempt');const {data,error}=await db.auth.signUp({email,password,options:{data:{role,full_name:name,legal_version:LEGAL_VERSION,legal_accepted_at:new Date().toISOString()}}});if(error){const message=authErrorMessage(error);toast(message);if(isExistingAccountError(error))showExistingAccountLogin();else $('#authNote').textContent=message;return}const isNewSignup=!!data.user&&(!Array.isArray(data.user.identities)||data.user.identities.length>0);if(isNewSignup){trackMetaLifecycle('CompleteRegistration',data.user);await trackAppEvent('trial_signup');}if(data.session){state.user=data.user;await loadMe();const {error:consentError}=await db.rpc('accept_legal_terms_v40',{p_document_version:LEGAL_VERSION,p_accepted_via:'signup'});if(consentError){toast('ההרשמה נשמרה, אך אישור התנאים לא נשמר. נסה להתחבר מחדש.');return}await routeAfterLogin()}else{$('#authNote').textContent='נשלח אליך אימייל לאישור ההרשמה. לאחר האישור חזור והתחבר.'}};
 let legalReturnView='#authView';
 $$('[data-open-legal]').forEach(button=>button.onclick=()=>{const active=$('.view.active');legalReturnView=active?.id?`#${active.id}`:(state.user?'#homeView':'#authView');show('#legalInfoView')});
 $('#legalInfoBackBtn').onclick=()=>show(legalReturnView||'#authView');
