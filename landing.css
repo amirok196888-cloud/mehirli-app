@@ -22,3 +22,9 @@
 @media(max-width:380px){.hero-thought{font-size:14px;top:12px;left:10px;right:auto;padding:9px 8px}.hero-reassurance{gap:6px;right:9px;left:9px}.hero-reassurance span{font-size:13px}.hero-photo figcaption{font-size:17px;bottom:112px}}
 
 .hero-reassurance span:first-child{grid-column:1/-1}
+
+/* Keep the headline and solutions in normal flow, including enlarged mobile text. */
+.hero-photo figcaption{inset:auto 12px 14px;display:flex;flex-direction:column;gap:10px;font-size:16px;line-height:1.35}
+.hero-resolution{display:block;font:inherit;font-weight:800}
+.hero-photo figcaption .hero-reassurance{position:static;display:grid;gap:7px;text-shadow:none}
+@media(max-width:380px){.hero-photo figcaption{inset:auto 9px 12px;font-size:15px;gap:8px}}
