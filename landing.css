@@ -20,3 +20,5 @@
 .hero-reassurance{position:absolute;right:12px;left:12px;bottom:14px;display:grid;grid-template-columns:1fr 1fr;gap:8px;z-index:1}
 .hero-reassurance span{display:flex;align-items:center;justify-content:center;min-height:40px;padding:8px 7px;background:#e7f8eb;color:#185b35;border:1px solid #bcdec6;border-radius:14px 14px 4px 14px;font-size:14px;font-weight:700;line-height:1.4;text-align:center}
 @media(max-width:380px){.hero-thought{font-size:17px;top:12px;right:12px}.hero-reassurance{gap:6px;right:9px;left:9px}.hero-reassurance span{font-size:13px}.hero-photo figcaption{font-size:17px;bottom:112px}}
+
+.hero-reassurance span:first-child{grid-column:1/-1}
