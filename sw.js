@@ -1,5 +1,5 @@
-const CACHE='mehirli-v110';
-const ASSETS=['./','./index.html','./landing.css?v=74','./mechirli-hero-profit-v68.webp','./mehirli-hero-v43.jpg','./mehirli-explainer-poster-v62.jpg','./app.html','./reset-password.html','./style.css?v=97','./app.js?v=105','./sample-quote.html','./quote.html','./quote-preview-v61.jpg','./manifest.webmanifest','./icon-192.png','./icon-512.png','./icon-maskable-192.png','./share-preview-v20.jpg','./share.html'];
+const CACHE='mehirli-v111';
+const ASSETS=['./','./index.html','./landing.css?v=74','./mechirli-hero-profit-v68.webp','./mehirli-hero-v43.jpg','./mehirli-explainer-poster-v62.jpg','./app.html','./reset-password.html','./style.css?v=111','./app.js?v=111','./sample-quote.html','./quote.html','./quote-preview-v61.jpg','./manifest.webmanifest','./icon-192.png','./icon-512.png','./icon-maskable-192.png','./share-preview-v20.jpg','./share.html'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch',e=>{

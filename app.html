@@ -29,7 +29,7 @@
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="apple-touch-icon" sizes="180x180" href="icon-192.png" />
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
-<link rel="stylesheet" href="style.css?v=97" />
+<link rel="stylesheet" href="style.css?v=111" />
 <link rel="preload" as="image" href="mehirli-hero-v43.jpg" fetchpriority="high" />
 <!-- Meta Pixel: shared Rokach Digital data source; Mehirli conversions are separated by event and content_name. -->
 <script>
@@ -172,7 +172,8 @@ fbq('track','PageView',{content_name:'Mehirli'});
 </section>
 
 <section id="proJobFormView" class="view">
-  <div class="section-head"><button class="back" data-back-to="workspace">‹</button><div><span class="eyebrow">פנייה חדשה</span><h2>תמחור עבודה</h2></div></div>
+  <div class="section-head"><button class="back" data-back-to="workspace">‹</button><div><span id="proJobFormNote" class="eyebrow">פנייה חדשה</span><h2 id="proJobFormTitle">תמחור עבודה</h2></div></div>
+  <button id="cancelQuoteEditBtn" type="button" class="secondary hidden">ביטול עריכה וחזרה לתיק העבודה</button>
   <form id="proJobForm" class="card form-card" novalidate>
     <button type="button" class="job-step-button" data-job-step="0" aria-controls="jobPanel0">1. הכנסת פרטי לקוח <span>⌄</span></button>
     <div id="jobPanel0" class="form-step" data-job-panel="0">
@@ -224,7 +225,7 @@ fbq('track','PageView',{content_name:'Mehirli'});
       <div class="form-step-title"><b>4</b><div><h3>בדיקה לפני שמירה</h3><p>כל הפרטים מהשלבים הקודמים ירוכזו כאן.</p></div></div>
       <div id="proJobReview" class="job-review"></div>
       <p class="privacy-note">🔒 פרטי הלקוח משמשים לטיפול בעבודה בלבד ולא לשיווק ללא הסכמתו.</p>
-      <button class="primary big flow-submit" type="submit">שמור ועבור לשליחה ב־WhatsApp</button>
+      <button id="proJobSubmitBtn" class="primary big flow-submit" type="submit">שמור ועבור לשליחה ב־WhatsApp</button>
     </div>
   </form>
 </section>
@@ -413,5 +414,5 @@ fbq('track','PageView',{content_name:'Mehirli'});
 </section>
 </main><a id="developerSupportLink" class="developer-support-link hidden" href="#" target="_blank" rel="noopener" aria-label="דיווח תקלה או שיחה עם המפתח ב־WhatsApp">💬 דיווח תקלה / שיחה עם המפתח</a><div id="postSignupInstall" class="post-signup-install hidden" role="dialog" aria-modal="true" aria-labelledby="postSignupInstallTitle"><div class="post-signup-install-card"><span>📲</span><b>ההרשמה הסתיימה</b><h2 id="postSignupInstallTitle">עכשיו מוסיפים את מחירלי לטלפון</h2><p id="postSignupInstallText">המערכת תציג את דרך ההתקנה המתאימה לטלפון שלך. לאחר ההתקנה פותחים את מחירלי מהסמל במסך הבית.</p><button id="postSignupInstallBtn" class="primary big" type="button">הוספת מחירלי לטלפון</button><button id="postSignupEditBtn" class="secondary big install-edit-btn" type="button">חזרה לתיקון פרטי ההרשמה</button><small>אם תצא לפני ההתקנה, המסך הזה יוצג שוב בכניסה הבאה.</small></div></div><div id="firstQuoteWelcome" class="post-signup-install hidden" role="dialog" aria-modal="true" aria-labelledby="firstQuoteWelcomeTitle"><div class="post-signup-install-card first-quote-welcome-card"><span>✅</span><b>מחירלי מותקנת ומוכנה</b><h2 id="firstQuoteWelcomeTitle">בוא נכין את הצעת המחיר הראשונה</h2><p>נכניס את פרטי הלקוח והעבודה, נחשב מחיר ונשלח הצעה מקצועית.</p><button id="firstQuoteWelcomeBtn" class="primary big" type="button">הכנת הצעת המחיר הראשונה</button></div></div><div id="toast" class="toast"></div></div>
 <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"></script>
-<script src="app.js?v=105"></script>
+<script src="app.js?v=111"></script>
 </body></html>
