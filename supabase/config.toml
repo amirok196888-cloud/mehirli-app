@@ -3,3 +3,7 @@ verify_jwt = true
 
 [functions.mehirli-cardcom-webhook]
 verify_jwt = false
+
+# Protected by a dedicated cron secret checked by a service-role-only RPC.
+[functions.mehirli-finance-retention]
+verify_jwt = false

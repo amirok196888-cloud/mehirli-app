@@ -284,6 +284,7 @@ function renderNotifications(){
     if(kind==='new_job'){state.role='pro';await openProWorkspace()}
     else if(kind==='new_quote'){state.role='customer';await renderRequests();show('#requestsListView')}
     else if((kind==='payment_pending'||kind==='subscription_payment_pending')&&state.isAdmin){await openAdmin()}
+    else if(kind==='finance_retention'){await window.MehirliFinance?.open()}
     else if(kind==='subscription_status'){await openSubscription()}
     else if(kind==='quote_selected'){await renderWonJobs();show('#wonJobsView')}
     else if(kind==='direct_quote_approved'){state.role='pro';await openProWorkspace()}
@@ -587,8 +588,8 @@ function renderProJobCards(){
 async function openProWorkspace(){
   if(!state.user||!requireServiceAccess())return;await Promise.all([loadProSettings(),loadProJobs(),loadProReminders()]);
   const open=state.proJobs.filter(j=>!['paid','cancelled'].includes(j.status)).length,unpaid=state.proJobs.filter(j=>j.payment_status!=='paid'&&!['lead','cancelled'].includes(j.status)).length;
-  const start=new Date();start.setDate(1);start.setHours(0,0,0,0);const revenue=state.proJobs.filter(j=>j.payment_status==='paid'&&new Date(j.updated_at)>=start).reduce((sum,j)=>sum+Number(j.actual_paid||0),0);
-  $('#proOpenCount').textContent=open;$('#proUnpaidCount').textContent=unpaid;$('#proMonthRevenue').textContent=money(revenue);renderProJobCards();renderWorkspaceReminders();show('#proWorkspaceView')
+  const revenue=await window.MehirliFinance?.monthIncome();
+  $('#proOpenCount').textContent=open;$('#proUnpaidCount').textContent=unpaid;$('#proMonthRevenue').textContent=revenue==null?'—':money(revenue);renderProJobCards();renderWorkspaceReminders();show('#proWorkspaceView')
 }
 function renderWorkspaceReminders(){const box=$('#workspaceReminders'),due=state.proReminders.filter(r=>new Date(r.remind_at)<=new Date(Date.now()+24*60*60*1000));if(!box)return;box.classList.toggle('hidden',!due.length);if(due.length)box.innerHTML=`<b>🔔 ${due.length} תזכורות להיום</b><span>${esc(due[0].message)}${due.length>1?' ועוד…':''}</span><button class="ghost tiny" id="openDueRemindersBtn" type="button">פתח יומן</button>`;const button=$('#openDueRemindersBtn');if(button)button.onclick=openCalendar}
 function resetServiceForm(){const form=$('#serviceForm');form.reset();$('#serviceId').value='';$('#serviceTrade').value=state.proSettings?.trade||'handyman';$('#serviceDefaultHours').value=1;$('#serviceMaterialsCost').value=0;$('#cancelServiceEditBtn').classList.add('hidden')}
