@@ -1,7 +1,7 @@
 (function(){
  'use strict';
  const F=window.FinanceCore, B='finance-documents',VERSION='2026-09-v1';
- let rows=[],docs=[],settings=null,owner=null,selectedFile=null,previewUrl=null,busy=false,ocrWorker=null,ocrPromise=null;
+ let rows=[],docs=[],settings=null,owner=null,selectedFile=null,previewUrl=null,busy=false,ocrWorker=null,ocrPromise=null,manageKind=null;
  const el=id=>document.getElementById(id),fmt=n=>new Intl.NumberFormat('he-IL',{style:'currency',currency:'ILS'}).format(Number(n)||0),today=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jerusalem',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date()),month=()=>today().slice(0,7);
  const date=s=>s?new Date(String(s).slice(0,10)+'T12:00:00').toLocaleDateString('he-IL'):'לא צוין';
  const expiry=d=>new Date(new Date(d.expires_at).getTime()-1).toLocaleDateString('he-IL',{timeZone:'Asia/Jerusalem'});
@@ -11,15 +11,17 @@
  async function reload(){const id=state.user?.id;if(!id)throw Error('יש להתחבר מחדש');owner=id;const [a,b,c]=await Promise.all([all('finance_entries'),all('finance_documents'),db.from('finance_settings').select('*').eq('professional_id',id).maybeSingle()]);if(!userStill(id))throw Error('החשבון השתנה; יש לפתוח מחדש את מסך הכספים');if(c.error)throw c.error;rows=a;docs=b;settings=c.data||{business_type:'unknown',quota_bytes:104857600};}
  async function open(){if(!state.user)return;show('#financeView');error('');el('financeMonth').value ||=month();try{await reload();render();}catch(e){error('לא ניתן לטעון את הכספים. נסו רענון. '+friendly(e));}}
  function friendly(e){const m=String(e?.message||e||'');if(m.includes('quota'))return 'מכסת האחסון התמלאה. ניתן לשמור רישום ללא קובץ.';if(e?.code==='PGRST116')return 'הרישום השתנה מאז שנפתח. חזרו למסך הכספים ורעננו לפני עריכה נוספת.';if(e?.code==='23505')return 'מסמך או רישום עם אותם פרטים כבר קיים. חפשו אותו לפני הוספה נוספת.';if(m.includes('policy')||m.includes('permission'))return 'לא ניתן לבצע את הפעולה. בדקו שהמנוי פעיל ושמדיניות השמירה אושרה.';return m.slice(0,250);}
- function visible(){const m=el('financeMonth').value,f=el('financeFilter').value,q=el('financeSearch').value.trim().toLowerCase();return rows.filter(r=>{
+ function visible(){const m=el('financeMonth').value,f=manageKind?'history':el('financeFilter').value,q=el('financeSearch').value.trim().toLowerCase();return rows.filter(r=>{
+  if(manageKind&&(r.kind!==manageKind||r.voided))return false;
   if(r.voided&&f!=='history')return false;if(f==='review'){if(!r.review_required)return false;}
   else if(f!=='history'&&![(r.document_date||r.created_at||'').slice(0,7),(r.paid_on||'').slice(0,7)].includes(m))return false;
   if(['income','expense'].includes(f)&&r.kind!==f)return false;if(f==='unpaid'&&r.paid_on)return false;
   return !q||[r.counterparty,r.document_number,r.notes,r.amount].some(x=>String(x||'').toLowerCase().includes(q));
  }).sort((a,b)=>String(b.paid_on||b.document_date||b.created_at).localeCompare(String(a.paid_on||a.document_date||a.created_at)));}
  function render(){const s=F.summary(rows,el('financeMonth').value,settings.business_type);
-  el('financeSummary').innerHTML=[['כסף שהתקבל',s.income],['כסף ששולם',s.expense],['הכנסות פחות הוצאות',s.balance]].map(([label,n])=>`<div class="card"><small>${label}</small><strong>${fmt(n)}</strong></div>`).join('')+`<div class="card"><small>אומדן לשמירה עבור מע״מ</small><strong>${s.reserve===null?'—':fmt(s.reserve)}</strong><small>${settings.business_type==='exempt'?'לא מחושב לעוסק פטור':settings.business_type==='unknown'?'יש לבחור סוג עסק':s.unknown?`אומדן חלקי: ${s.unknown} רישומים ללא אישור מע״מ`:'לפי סכומי המע״מ שאושרו בלבד'}</small></div>`;
+  el('financeSummary').innerHTML=[['כסף שהתקבל',s.income,'income'],['כסף ששולם',s.expense,'expense'],['הכנסות פחות הוצאות',s.balance,null]].map(([label,n,kind])=>`<div class="card"><small>${label}</small><strong>${fmt(n)}</strong>${kind?`<button class="secondary" style="width:100%;min-height:48px;margin-top:10px;padding:10px 4px" type="button" data-finance-manage="${kind}">✏️ עריכה ומחיקה</button>`:''}</div>`).join('')+`<div class="card"><small>אומדן לשמירה עבור מע״מ</small><strong>${s.reserve===null?'—':fmt(s.reserve)}</strong><small>${settings.business_type==='exempt'?'לא מחושב לעוסק פטור':settings.business_type==='unknown'?'יש לבחור סוג עסק':s.unknown?`אומדן חלקי: ${s.unknown} רישומים ללא אישור מע״מ`:'לפי סכומי המע״מ שאושרו בלבד'}</small></div>`;
   if(settings.business_type==='vat')el('financeSummary').innerHTML+=`<div class="card finance-wide"><small>מע״מ הכנסות שאושר: ${fmt(s.outputVat)} · מע״מ הוצאות שאושר לקיזוז: ${fmt(s.inputVat)}${s.vatBalance<0?' · יתרה שלילית באומדן; אינה אישור להחזר':''}</small></div>`;
+  el('financeSummary').querySelectorAll('[data-finance-manage]').forEach(b=>b.onclick=()=>showManage(b.dataset.financeManage));
   el('financeReview').classList.toggle('hidden',!s.review);el('financeReview').textContent=`${s.review} תשלומים קיימים דורשים אישור תאריך. הם אינם כלולים בסיכומים עד לאישור. בחרו בסינון ״דורש אישור תאריך״.`;
   const due=docs.filter(d=>d.status==='stored'&&new Date(d.expires_at)-Date.now()<60*86400000);
   el('financeExpiry').classList.toggle('hidden',!due.length);el('financeExpiry').textContent=`${due.length} מסמכים יימחקו בתוך 60 יום. יש לייצא ולשמור את הקבצים לפני תאריך המחיקה המוצג בכל מסמך.`;
@@ -108,8 +110,24 @@
    }catch(e){b.textContent=old;error(friendly(e));}finally{busy=false;b.disabled=false;}
   };el('financeExportParts').append(b);});
  }
+
+ // Keep management beside the totals, not behind the lower settings and filters.
+ const listAnchor=document.createElement('div');el('financeList').before(listAnchor);
+ const management=document.createElement('div');management.id='financeManagement';management.className='hidden';
+ const managementHeading=document.createElement('h3');managementHeading.tabIndex=-1;
+ const managementNote=document.createElement('p');managementNote.className='note';managementNote.textContent='כל הרישומים מהסוג שבחרת, מכל החודשים. בחרו רישום לעריכה או למחיקה.';
+ const managementClose=document.createElement('button');managementClose.type='button';managementClose.className='secondary';managementClose.textContent='סגירת הרשימה';
+ management.append(managementHeading,managementNote,managementClose);el('financeSummary').after(management);
+ function showManage(kind){
+  manageKind=kind;el('financeSearch').value='';managementHeading.textContent=kind==='income'?'עריכה ומחיקה של הכנסות':'עריכה ומחיקה של הוצאות';
+  management.classList.remove('hidden');management.append(el('financeList'));render();
+  managementHeading.focus({preventScroll:true});management.scrollIntoView?.({behavior:'smooth',block:'start'});
+ }
+ function closeManage(){manageKind=null;listAnchor.after(el('financeList'));management.classList.add('hidden');render();}
+ managementClose.onclick=closeManage;
+
  el('subscriptionFinanceBtn').onclick=open;el('financeBtn').onclick=open;el('homeFinanceBtn').onclick=open;el('financeRefresh').onclick=open;
- el('financeMonth').value=month();for(const id of ['financeMonth','financeFilter'])el(id).onchange=render;el('financeSearch').oninput=render;
+ el('financeMonth').value=month();for(const id of ['financeMonth','financeFilter'])el(id).onchange=()=>{if(manageKind)closeManage();else render();};el('financeSearch').oninput=render;
  el('financeIncome').onclick=()=>edit(null,'income');el('financeExpense').onclick=()=>edit(null,'expense');
  el('financeBack').onclick=()=>{if(busy)return;clearFile();show('#financeView');};el('financeKind').onchange=updateFields;el('financePaid').onchange=updateFields;
  el('financeSaveSettings').onclick=()=>settingsSave();el('financeAcceptPolicy').onclick=()=>settingsSave(true);
