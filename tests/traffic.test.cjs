@@ -1,0 +1,20 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert/strict'),{randomUUID}=require('crypto');
+const code=fs.readFileSync(__dirname+'/../traffic.js','utf8');
+const storage=()=>{const m=new Map();return {getItem:k=>m.get(k)||null,setItem:(k,v)=>m.set(k,v)}};
+let time=Date.now();const calls=[];
+const w={location:{search:'?gclid=test',hostname:'example.test'},document:{referrer:''},localStorage:storage(),sessionStorage:storage(),crypto:{randomUUID},setTimeout:fn=>{fn();return 1},fetch:async(url,opt)=>{calls.push({url,payload:JSON.parse(opt.body)});return {ok:true,json:async()=>true}}};
+vm.runInNewContext(code,{window:w,URLSearchParams,URL,Date:{now:()=>time},Promise});
+const t=w.MehirliTraffic;
+const cases=[['?gclid=x','','google_paid'],['?gbraid=x','','google_paid'],['?wbraid=x','','google_paid'],['?utm_source=google&utm_medium=cpc','','google_paid'],['','https://www.google.co.il/search?q=x','google_organic'],['?utm_source=facebook&utm_medium=paid_social','','facebook_paid'],['?utm_source=facebook&utm_medium=social&utm_campaign=post','','facebook_organic'],['?fbclid=x','','facebook_unknown'],['?utm_source=instagram&utm_medium=cpc','','instagram_paid'],['?ttclid=x','','tiktok_paid'],['','','direct']];
+for(const [q,r,expected] of cases)assert.equal(t.resolve(q,r,'example.test').source,expected);
+(async()=>{
+ await t.trackVisit();const first=calls.at(-1).payload;
+ w.location.search='';t.attribution();await t.trackVisit();assert.equal(calls.at(-1).payload.p_visit_id,first.p_visit_id);assert.equal(calls.at(-1).payload.p_source,'google_paid');
+ time+=31*60*1000;await t.trackVisit();assert.notEqual(calls.at(-1).payload.p_visit_id,first.p_visit_id);assert.equal(calls.at(-1).payload.p_source,'direct');
+ w.location.search='?utm_source=facebook&utm_medium=paid_social';await t.trackVisit();assert.equal(calls.at(-1).payload.p_source,'facebook_paid');
+ w.localStorage.setItem('mehirli_admin_device_v1','1');const before=calls.length;await t.trackVisit();assert.equal(calls.length,before);
+ w.localStorage.setItem('mehirli_admin_device_v1','0');w.location.search='?quote=example';await t.trackVisit();assert.equal(calls.length,before);
+ let attempts=0;w.location.search='';w.fetch=async()=>{attempts++;if(attempts===1)throw Error('offline');return {ok:true,json:async()=>true}};assert.equal(await t.event('landing_cta_click'),true);assert.equal(attempts,2);
+ Object.defineProperty(w,'localStorage',{get(){throw Error('blocked')}});assert.equal(t.visitor(),t.visitor());
+ console.log('Passed: 11 source scenarios; session handoff, expiry, source change, admin/customer exclusions, retry, blocked storage');
+})().catch(e=>{console.error(e);process.exitCode=1});

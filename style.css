@@ -391,3 +391,5 @@ body{background:linear-gradient(180deg,#fbfcff 0%,#f3f7fd 100%);color:#13243b}
 .quote-workspace-card{display:grid;gap:8px}.quote-workspace-card .job-card{width:100%;margin:0}.quote-workspace-card .job-card small{display:block;margin-top:10px;color:#1761ac}#proJobFormNote{line-height:1.6}#cancelQuoteEditBtn{margin-bottom:12px}
 
 .job-tool-fold{margin:12px 0;border:1px solid #d8e2ec;border-radius:16px;background:#fff;overflow:hidden}.job-tool-fold>summary{cursor:pointer;padding:18px;font-size:17px;font-weight:800;color:#173e66;min-height:56px}.job-tool-fold[open]>summary{border-bottom:1px solid #e4ebf2}.job-tool-fold>.card{margin:0;border:0;box-shadow:none}.merchant-payment-setup p{font-size:14px;line-height:1.5;color:#526276}
+
+.traffic-source-card{display:flex!important;flex-direction:column;gap:5px!important;padding:12px 0;border-bottom:1px solid #e0e8e2}.traffic-source-card span{font-size:13px}#adminTrafficSources{overflow-wrap:anywhere}#adminTrafficSources>b{display:block;margin-top:16px}

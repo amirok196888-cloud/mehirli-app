@@ -10,56 +10,16 @@ const QUOTE_CONSENT_VERSION='quote-approval-2026-09-v1';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const state={user:null,profile:null,businessProfile:null,role:'pro',credits:0,requests:[],offers:[],jobs:[],selectedRequest:null,selectedJob:null,isAdmin:false,notifications:[],unreadNotifications:0,notificationTimer:null,timerInterval:null,lastNotificationSeenAt:null,proSettings:null,proJobs:[],selectedProJob:null,proJobMedia:[],proCustomers:[],proServices:[],proReminders:[],proAppointments:[],proTimeEntries:[],quoteItems:[],adminJobs:[],adminBusinesses:[],subscription:null,billingSettings:null,onboarding:null};
 let adminAnalyticsRange='today',adminAnalyticsTimer=null;
-const ANALYTICS_VISITOR_KEY='mehirli_visitor_v1';
-const ANALYTICS_ATTRIBUTION_KEY='mehirli_attribution_v2';
-function analyticsVisitorId(){
-  let id='';try{id=localStorage.getItem(ANALYTICS_VISITOR_KEY)||''}catch{}
-  if(!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)){
-    id=crypto.randomUUID();try{localStorage.setItem(ANALYTICS_VISITOR_KEY,id)}catch{}
-  }
-  return id
-}
-function analyticsAttribution(){
-  const params=new URLSearchParams(location.search),campaign=params.get('utm_campaign')||'',from=params.get('from')||'';
-  let raw=params.get('utm_source')||params.get('source')||'';
-  const normalize=value=>{
-    const source=String(value||'').toLowerCase().replace(/^www\./,'');
-    if((['fb','facebook','facebook.com','m.facebook.com','l.facebook.com','lm.facebook.com'].includes(source)||source==='ig'||source==='instagram')&&campaign)return 'meta_paid';
-    if(source==='facebook-groups'||source==='facebook_groups')return 'facebook_groups';
-    if(['fb','facebook','facebook.com','m.facebook.com','l.facebook.com','lm.facebook.com'].includes(source))return 'facebook_organic';
-    if(['ig','instagram','instagram.com','l.instagram.com'].includes(source))return 'instagram_organic';
-    if(['trade-sites','trade_sites','handyman-sites','handyman_sites'].includes(source))return 'trade_sites';
-    if(source.includes('whatsapp'))return 'whatsapp';
-    return source
-  };
-  let saved=null;try{saved=JSON.parse(localStorage.getItem(ANALYTICS_ATTRIBUTION_KEY)||'null')}catch{}
-  if(!raw&&params.has('fbclid'))raw='facebook';
-  if(!raw&&params.has('ttclid'))raw='tiktok';
-  if(!raw&&from&&from!=='landing')raw=from;
-  if(raw){
-    const value={source:normalize(raw)||'direct',campaign};
-    try{localStorage.setItem(ANALYTICS_ATTRIBUTION_KEY,JSON.stringify(value))}catch{}
-    return value
-  }
-  if(saved?.source)return {source:saved.source,campaign:saved.campaign||''};
-  if(document.referrer){
-    try{
-      const ref=new URL(document.referrer),host=ref.hostname.replace(/^www\./,'');
-      if(host!==location.hostname){
-        const value={source:normalize(host)||'direct',campaign:''};
-        try{localStorage.setItem(ANALYTICS_ATTRIBUTION_KEY,JSON.stringify(value))}catch{}
-        return value
-      }
-    }catch{}
-  }
-  const value={source:'direct',campaign:''};try{localStorage.setItem(ANALYTICS_ATTRIBUTION_KEY,JSON.stringify(value))}catch{}
-  return value
-}
+function analyticsVisitorId(){return window.MehirliTraffic.visitor()}
+function analyticsAttribution(){return window.MehirliTraffic.attribution()}
 async function trackAppEvent(eventName){
-  // Use the authenticated client so the server can exclude this admin's visitor ID.
   if(state.isAdmin&&eventName!=='account_active')return;
-  const a=analyticsAttribution(),payload={p_visitor_id:analyticsVisitorId(),p_event_name:eventName,p_source:a.source,p_campaign:a.campaign};
-  try{await db.rpc('track_app_event_v40',payload)}catch{}
+  if(eventName==='app_open')window.MehirliTraffic.trackVisit(db);
+  // account_active links identified admins to their earlier anonymous visitor ID.
+  if(eventName==='account_active'){
+    const a=analyticsAttribution();await db.rpc('track_app_event_v40',{p_visitor_id:analyticsVisitorId(),p_event_name:eventName,p_source:a.source,p_campaign:a.campaign});return;
+  }
+  return window.MehirliTraffic.event(eventName,db);
 }
 
 function authErrorMessage(error){
@@ -1085,28 +1045,30 @@ async function loadPublicQuote(token){
 }
 
 function renderAdminMarketing(funnel={}){
+  $('#adminTotalVisits').textContent=funnel.total_visits??0;
   $('#adminUniqueVisitors').textContent=funnel.unique_visitors_30d??funnel.unique_visitors??0;
-  $('#adminVisitors30d').textContent=adminAnalyticsRange==='today'?'היום':'30 הימים האחרונים';
+  $('#adminVisitors30d').textContent=adminAnalyticsRange==='today'?'היום':adminAnalyticsRange==='all'?'כל התקופה':'30 הימים האחרונים';
   $('#adminTrialClicks').textContent=funnel.trial_clicks||0;$('#adminFormOpens').textContent=funnel.form_opens||0;$('#adminSignupAttempts').textContent=funnel.signup_attempts||0;$('#adminTrialSignups').textContent=funnel.trial_signups||0;$('#adminFirstJobs').textContent=funnel.first_jobs||0;$('#adminQuoteSends').textContent=funnel.quote_sends||0;$('#adminAppInstalls').textContent=funnel.installs||0;$('#adminPayingCustomers').textContent=funnel.paying_customers||0;
   $('#adminVisitClickConversion').textContent=`${Number(funnel.visitor_to_click_percent||0).toLocaleString('he-IL')}%`;$('#adminClickTrialConversion').textContent=`${Number(funnel.click_to_trial_percent||0).toLocaleString('he-IL')}%`;$('#adminTrialJobConversion').textContent=`${Number(funnel.trial_to_job_percent||0).toLocaleString('he-IL')}%`;$('#adminTrialPaidConversion').textContent=`${Number(funnel.trial_to_paid_percent||0).toLocaleString('he-IL')}%`;
   const sources=Array.isArray(funnel.source_breakdown)?funnel.source_breakdown:Array.isArray(funnel.top_sources)?funnel.top_sources:[];
-  $('#adminTrafficSources').innerHTML=sources.length?`<b>ביצועים לפי מקור</b><div class="traffic-table"><div class="traffic-head"><span>מקור</span><span>כניסות</span><span>לחצו</span><span>טופס</span><span>ניסו</span><span>נרשמו</span></div>${sources.map(row=>`<div><span>${esc(row.source||'ישיר')}</span><strong>${Number(row.visitors||0)}</strong><strong>${Number(row.trial_clicks||0)}</strong><strong>${Number(row.form_opens||0)}</strong><strong>${Number(row.signup_attempts||0)}</strong><strong>${Number(row.trial_signups||0)}</strong></div>`).join('')}</div>`:'<small>אין עדיין כניסות בטווח שנבחר.</small>';
+  const visitSources=Array.isArray(funnel.visit_sources)?funnel.visit_sources:[];
+  $('#adminTrafficSources').innerHTML='<b>מקורות הגעה — מבקרים ייחודיים בתקופה</b>'+sources.map(row=>`<div class="traffic-source-card"><b>${esc(row.source||'ישיר')}</b><span>${Number(row.visitors||0)} מבקרים · ${Number(row.trial_clicks||0)} לחצו · ${Number(row.trial_signups||0)} נרשמו</span></div>`).join('')+(sources.length?'':'<p>אין מבקרים בטווח שנבחר.</p>')+'<b>ביקורים לפי מקור — מהפעלת המדידה החדשה</b>'+visitSources.map(row=>`<div class="traffic-source-card"><b>${esc(row.source)}</b><span>${Number(row.visits)} ביקורים · ${Number(row.visitors)} מבקרים</span></div>`).join('')+(visitSources.length?'':'<p>עדיין אין ביקורים במדידה החדשה בטווח שנבחר.</p>');
   $$('[data-admin-analytics-range]').forEach(button=>button.classList.toggle('active',button.dataset.adminAnalyticsRange===adminAnalyticsRange));
   const updated=funnel.generated_at?new Date(funnel.generated_at):new Date();
   const reportDate=updated.toLocaleDateString('he-IL',{timeZone:'Asia/Jerusalem'});
-  $('#adminVisitors30d').textContent=adminAnalyticsRange==='today'?`היום · ${reportDate}`:'30 הימים האחרונים';
-  $('#adminAnalyticsNote').textContent=`עודכן ${reportDate} ${updated.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Jerusalem'})} · לפי שעון ישראל. לחיצה או פתיחת טופס אינן הרשמה. ביקורי מנהל מזוהים מוחרגים.`
+  $('#adminVisitors30d').textContent=adminAnalyticsRange==='today'?`היום · ${reportDate}`:adminAnalyticsRange==='all'?'כל התקופה':'30 הימים האחרונים';
+  $('#adminAnalyticsNote').textContent=`עודכן ${reportDate} ${updated.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Jerusalem'})} · לפי שעון ישראל. ביקור חדש נספר אחרי 30 דקות ללא פעילות או בהגעה ממקור חדש. מספר הביקורים נמדד מ־25.9.2026; המבקרים כוללים גם את ההיסטוריה. ביקורי מנהל מזוהים מוחרגים. מקור שלא נמסר מוצג כלא מזוהה.`
 }
 async function loadAdminMarketing(range=adminAnalyticsRange){
-  adminAnalyticsRange=range==='30d'?'30d':'today';
-  const {data,error}=await db.rpc('admin_marketing_summary_v87',{p_range:adminAnalyticsRange});
+  adminAnalyticsRange=['today','30d','all'].includes(range)?range:'today';
+  const {data,error}=await db.rpc('admin_marketing_summary_v113',{p_range:adminAnalyticsRange});
   if(error){$('#adminAnalyticsNote').textContent='הרענון נכשל — הנתונים המוצגים הם מהעדכון הקודם.';toast('לא ניתן לרענן את נתוני הכניסות');return false}
   renderAdminMarketing(data||{});return true
 }
 async function loadAdmin(){
   if(!state.isAdmin){toast('אין הרשאת מנהל');return false}
   const [{data:summary,error:se},{data:jobs,error:je},{data:businesses,error:be},{data:billing,error:bse},{data:marketing,error:me}]=await Promise.all([
-    db.rpc('admin_professional_summary_v33'),db.rpc('admin_list_pro_jobs'),rpcWithFallback('admin_list_businesses_v83','admin_list_businesses_v33'),rpcWithFallback('admin_get_billing_settings_v38','admin_get_billing_settings_v33'),db.rpc('admin_marketing_summary_v87',{p_range:adminAnalyticsRange})
+    db.rpc('admin_professional_summary_v33'),db.rpc('admin_list_pro_jobs'),rpcWithFallback('admin_list_businesses_v83','admin_list_businesses_v33'),rpcWithFallback('admin_get_billing_settings_v38','admin_get_billing_settings_v33'),db.rpc('admin_marketing_summary_v113',{p_range:adminAnalyticsRange})
   ]);
   if(se||je||be||bse||me){toast((se||je||be||bse||me).message||'לא ניתן לטעון את אזור המנהל');return false}
   const sum=summary||{};state.adminJobs=jobs||[];state.adminBusinesses=businesses||[];state.billingSettings=billing||{};

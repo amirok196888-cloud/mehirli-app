@@ -30,13 +30,13 @@
   <script>
     const p=new URLSearchParams(location.search);
     p.delete('v');
-    if(!p.has('utm_source'))p.set('utm_source','facebook');
-    if(!p.has('utm_medium'))p.set('utm_medium','paid_social');
-    if(!p.has('utm_campaign'))p.set('utm_campaign','meta_campaign');
+    if(!p.has('utm_source'))p.set('utm_source',p.has('gclid')||p.has('gbraid')||p.has('wbraid')?'google':'facebook');
+    if(!p.has('utm_medium'))p.set('utm_medium',p.get('utm_source')==='google'?'cpc':'social');
+    if(!p.has('utm_campaign'))p.set('utm_campaign','shared_link');
     window.location.replace('./?'+p.toString());
   </script>
 </head>
 <body>
-  <main><h1>מעבירים אותך למחירלי…</h1><a href="./?utm_source=facebook&amp;utm_medium=paid_social&amp;utm_campaign=meta_campaign">כניסה למחירלי</a></main>
+  <main><h1>מעבירים אותך למחירלי…</h1><a href="./?utm_source=facebook&amp;utm_medium=social&amp;utm_campaign=shared_link">כניסה למחירלי</a></main>
 </body>
 </html>
