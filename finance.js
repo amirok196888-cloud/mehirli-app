@@ -13,7 +13,7 @@
  function friendly(e){const m=String(e?.message||e||'');if(m.includes('quota'))return 'מכסת האחסון התמלאה. ניתן לשמור רישום ללא קובץ.';if(e?.code==='PGRST116')return 'הרישום השתנה מאז שנפתח. חזרו למסך הכספים ורעננו לפני עריכה נוספת.';if(e?.code==='23505')return 'מסמך או רישום עם אותם פרטים כבר קיים. חפשו אותו לפני הוספה נוספת.';if(m.includes('policy')||m.includes('permission'))return 'לא ניתן לבצע את הפעולה. בדקו שהמנוי פעיל ושמדיניות השמירה אושרה.';return m.slice(0,250);}
  function visible(){const m=el('financeMonth').value,f=el('financeFilter').value,q=el('financeSearch').value.trim().toLowerCase();return rows.filter(r=>{
   if(r.voided&&f!=='history')return false;if(f==='review'){if(!r.review_required)return false;}
-  else if(f!=='history'&&![(r.document_date||'').slice(0,7),(r.paid_on||'').slice(0,7)].includes(m))return false;
+  else if(f!=='history'&&![(r.document_date||r.created_at||'').slice(0,7),(r.paid_on||'').slice(0,7)].includes(m))return false;
   if(['income','expense'].includes(f)&&r.kind!==f)return false;if(f==='unpaid'&&r.paid_on)return false;
   return !q||[r.counterparty,r.document_number,r.notes,r.amount].some(x=>String(x||'').toLowerCase().includes(q));
  }).sort((a,b)=>String(b.paid_on||b.document_date||b.created_at).localeCompare(String(a.paid_on||a.document_date||a.created_at)));}
@@ -27,14 +27,16 @@
   const bytes=docs.filter(d=>['stored','pending'].includes(d.status)).reduce((n,d)=>n+Number(d.byte_size),0);
   el('financeUsage').textContent=`אחסון מסמכים: ${(bytes/1048576).toFixed(1)} מתוך ${(settings.quota_bytes/1048576).toFixed(0)} מ״ב. עד 5 מ״ב לקובץ. צילומים מוקטנים לפני העלאה.`;
   el('financeRetentionAccept').checked=settings.retention_version===VERSION&&!!settings.retention_accepted_at;
-  const list=visible();el('financeList').innerHTML=list.length?list.map(r=>`<article class="card finance-record"><div class="finance-record-top"><h3>${esc(r.counterparty|| (r.kind==='income'?'הכנסה':'הוצאה'))}</h3><strong>${r.kind==='income'?'הכנסה':'הוצאה'} · ${fmt(r.amount)}</strong></div><p>${r.paid_on?'תשלום: '+date(r.paid_on):r.review_required?'תאריך התשלום ממתין לאישור':'טרם שולם'}${r.document_number?' · מסמך '+esc(r.document_number):''}</p><p>${r.voided?'רישום מבוטל · ':''}${r.source!=='manual'?'מתיק עבודה · ':''}${r.vat_confirmed?'פרטי מע״מ אושרו':'מע״מ טרם אושר'}</p><button class="secondary" data-finance-edit="${r.id}" type="button">פרטים ומסמכים</button></article>`).join(''):'<div class="card"><p>אין רישומים בתצוגה הזו. אפשר לבחור חודש אחר, לשנות סינון או להוסיף רישום.</p></div>';
+  const list=visible();el('financeList').innerHTML=list.length?list.map(r=>`<article class="card finance-record"><div class="finance-record-top"><h3>${esc(r.counterparty|| (r.kind==='income'?'הכנסה':'הוצאה'))}</h3><strong>${r.kind==='income'?'הכנסה':'הוצאה'} · ${fmt(r.amount)}</strong></div><p>${r.paid_on?'תשלום: '+date(r.paid_on):r.review_required?'תאריך התשלום ממתין לאישור':'טרם שולם'}${r.document_number?' · מסמך '+esc(r.document_number):''}</p><p>${r.voided?'רישום מבוטל · ':''}${r.source!=='manual'?'מתיק עבודה · ':''}${r.vat_confirmed?'פרטי מע״מ אושרו':'מע״מ טרם אושר'}</p><button class="secondary" data-finance-edit="${r.id}" type="button">✏️ עריכה ומסמכים</button>${r.source==='manual'&&!r.voided?` <button class="ghost" data-finance-delete="${r.id}" type="button">🗑️ מחיקה מהרשימה</button>`:''}${r.source!=='manual'&&r.job_id?` <button class="secondary" data-finance-job="${r.job_id}" type="button">תיקון התשלום בתיק העבודה</button>`:''}</article>`).join(''):'<div class="card"><p>אין רישומים בתצוגה הזו. אפשר לבחור חודש אחר, לשנות סינון או להוסיף רישום.</p></div>';
   el('financeList').querySelectorAll('[data-finance-edit]').forEach(b=>b.onclick=()=>edit(rows.find(r=>r.id===b.dataset.financeEdit)));
+  el('financeList').querySelectorAll('[data-finance-delete]').forEach(b=>b.onclick=()=>removeEntry(b.dataset.financeDelete));
+  el('financeList').querySelectorAll('[data-finance-job]').forEach(b=>b.onclick=()=>openProJobDetail(b.dataset.financeJob));
   el('financeExportParts').replaceChildren();
  }
  function clearFile(){selectedFile=null;if(previewUrl)URL.revokeObjectURL(previewUrl);previewUrl=null;el('financePreview').removeAttribute('src');el('financePreview').classList.add('hidden');el('financeScan').classList.add('hidden');el('financeRemoveFile').classList.add('hidden');el('financeFileStatus').textContent='';el('financeFile').value='';el('financeCamera').value='';}
  async function edit(r,kind='expense'){if(busy||!requireServiceAccess())return;clearFile();el('financeForm').reset();error('','financeFormError');
   el('financeEntryId').value=r?.id||'';el('financeEntryTitle').textContent=r?'פרטי רישום ומסמכים':kind==='expense'?'הוצאה חדשה':'הכנסה אחרת';
-  const map={financeKind:r?.kind||kind,financeCounterparty:r?.counterparty||'',financeAmount:r?.amount??'',financeNumber:r?.document_number||'',financeDocDate:r?.document_date||'',financePaidDate:r?.paid_on||today(),financeCategory:r?.category||'other',financeVat:r?.vat_amount||0,financeDeductible:r?.deductible_vat||0,financeVatMonth:(r?.vat_period||month()).slice(0,7),financeNotes:r?.notes||''};for(const [id,v] of Object.entries(map))el(id).value=v;
+  const map={financeKind:r?.kind||kind,financeCounterparty:r?.counterparty||'',financeAmount:r?.amount??'',financeNumber:r?.document_number||'',financeDocDate:r?r.document_date||'':today(),financePaidDate:r?.paid_on||today(),financeCategory:r?.category||'other',financeVat:r?.vat_amount||0,financeDeductible:r?.deductible_vat||0,financeVatMonth:(r?.vat_period||month()).slice(0,7),financeNotes:r?.notes||''};for(const [id,v] of Object.entries(map))el(id).value=v;
   el('financePaid').checked=!!r?.paid_on;el('financeVatConfirmed').checked=!!r?.vat_confirmed;
   const source=!!r&&r.source!=='manual';el('financeKind').disabled=source;el('financeAmount').readOnly=source;el('financePaid').disabled=source;el('financePaid').checked=source||!!r?.paid_on;
   el('financeSourceNote').classList.toggle('hidden',!source);el('financeSourceNote').textContent=r?.review_required?'תשלום שהועבר מתיק עבודה ישן. אשרו את תאריך הקבלה בפועל. הסכום מתעדכן דרך תיק העבודה בלבד.':'תשלום שהגיע אוטומטית מתיק עבודה. שינוי סכום נעשה בתיק העבודה; כאן אפשר לתקן תאריך ולהוסיף מסמך ופרטי מע״מ.';
@@ -114,7 +116,21 @@
  el('financeCameraBtn').onclick=()=>el('financeCamera').click();el('financeFileBtn').onclick=()=>el('financeFile').click();
  for(const id of ['financeCamera','financeFile'])el(id).onchange=e=>prepareFile(e.target.files?.[0]);
  el('financeRemoveFile').onclick=()=>{if(!busy)clearFile();};el('financeScan').onclick=scan;el('financeForm').onsubmit=save;
- el('financeVoid').onclick=async()=>{if(busy||!requireServiceAccess()||!confirm('לבטל את הרישום מהסיכומים? המסמך יישאר בארכיון עד למועד המחיקה.'))return;const r=await db.from('finance_entries').update({voided:true}).eq('id',el('financeEntryId').value).eq('professional_id',state.user.id);if(r.error){error(friendly(r.error),'financeFormError');return;}await open();};
+
+ async function removeEntry(id){
+  const record=rows.find(r=>r.id===id);
+  if(busy||!record||record.source!=='manual'||!requireServiceAccess())return;
+  if(!confirm('למחוק את הרישום מהרשימה ומהסיכומים? מסמך מצורף יישמר בארכיון עד מועד המחיקה שלו.'))return;
+  busy=true;
+  try{
+   const result=await db.from('finance_entries').update({voided:true}).eq('id',id).eq('professional_id',state.user.id).select('id').single();
+   if(result.error)throw result.error;
+   clearFile();await reload();render();show('#financeView');toast('הרישום הוסר מהרשימה ומהסיכומים');
+  }catch(e){toast('לא ניתן להסיר את הרישום: '+friendly(e));}finally{busy=false;}
+ }
+ el('financeVoid').textContent='🗑️ מחיקה מהרשימה ומהסיכומים';
+ el('financeVoid').onclick=()=>removeEntry(el('financeEntryId').value);
+
  el('financeExportCsv').onclick=exportCsv;el('financeExportZip').onclick=exportParts;
  db.auth.onAuthStateChange((event,session)=>{if(owner&&owner!==session?.user?.id){rows=[];docs=[];settings=null;owner=null;clearFile();el('financeList').replaceChildren();el('financeSummary').replaceChildren();el('financeForm').reset();el('financeExistingDocs').replaceChildren();el('financeExportParts').replaceChildren();}});
  window.MehirliFinance={open,monthIncome:async()=>{const uid=state.user?.id;if(!uid)return null;let total=0;for(let from=0;;from+=500){const start=month()+'-01',next=new Date(Number(start.slice(0,4)),Number(start.slice(5,7)),1),end=next.getFullYear()+'-'+String(next.getMonth()+1).padStart(2,'0')+'-01';const r=await db.from('finance_entries').select('amount').eq('professional_id',uid).eq('kind','income').eq('voided',false).eq('review_required',false).gte('paid_on',start).lt('paid_on',end).order('id').range(from,from+499);if(r.error)return null;total+=r.data.reduce((n,e)=>n+F.cents(e.amount),0);if(r.data.length<500)return total/100;}}};
