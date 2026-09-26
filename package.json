@@ -1,0 +1,10 @@
+{
+  "name": "mehirli-tracking-tests",
+  "private": true,
+  "scripts": {
+    "test:tracking": "node --test tests/traffic.test.cjs tests/attribution-regression.test.cjs tests/marketing-summary.test.cjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.3.14"
+  }
+}

@@ -1053,12 +1053,12 @@ function renderAdminMarketing(funnel={}){
   $('#adminVisitClickConversion').textContent=`${Number(funnel.visitor_to_click_percent||0).toLocaleString('he-IL')}%`;$('#adminClickTrialConversion').textContent=`${Number(funnel.click_to_trial_percent||0).toLocaleString('he-IL')}%`;$('#adminTrialJobConversion').textContent=`${Number(funnel.trial_to_job_percent||0).toLocaleString('he-IL')}%`;$('#adminTrialPaidConversion').textContent=`${Number(funnel.trial_to_paid_percent||0).toLocaleString('he-IL')}%`;
   const sources=Array.isArray(funnel.source_breakdown)?funnel.source_breakdown:Array.isArray(funnel.top_sources)?funnel.top_sources:[];
   const visitSources=Array.isArray(funnel.visit_sources)?funnel.visit_sources:[];
-  $('#adminTrafficSources').innerHTML='<b>מקורות הגעה — מבקרים ייחודיים בתקופה</b>'+sources.map(row=>`<div class="traffic-source-card"><b>${esc(row.source||'ישיר')}</b><span>${Number(row.visitors||0)} מבקרים · ${Number(row.trial_clicks||0)} לחצו · ${Number(row.trial_signups||0)} נרשמו</span></div>`).join('')+(sources.length?'':'<p>אין מבקרים בטווח שנבחר.</p>')+'<b>ביקורים לפי מקור — מהפעלת המדידה החדשה</b>'+visitSources.map(row=>`<div class="traffic-source-card"><b>${esc(row.source)}</b><span>${Number(row.visits)} ביקורים · ${Number(row.visitors)} מבקרים</span></div>`).join('')+(visitSources.length?'':'<p>עדיין אין ביקורים במדידה החדשה בטווח שנבחר.</p>');
+  $('#adminTrafficSources').innerHTML='<b>מקורות הגעה — מבקרים ייחודיים בתקופה</b>'+sources.map(row=>`<div class="traffic-source-card"><b>${esc(row.source||'ישיר')}</b><span>${Number(row.visitors||0)} מבקרים · ${Number(row.trial_clicks||0)} לחצו · ${Number(row.trial_signups||0)} נרשמו · ${Number(row.first_jobs||0)} יצרו עבודה ראשונה · ${Number(row.paying_customers||0)} שילמו</span></div>`).join('')+(sources.length?'':'<p>אין מבקרים בטווח שנבחר.</p>')+'<b>ביקורים לפי מקור — מהפעלת המדידה החדשה</b>'+visitSources.map(row=>`<div class="traffic-source-card"><b>${esc(row.source)}</b><span>${Number(row.visits)} ביקורים · ${Number(row.visitors)} מבקרים</span></div>`).join('')+(visitSources.length?'':'<p>עדיין אין ביקורים במדידה החדשה בטווח שנבחר.</p>');
   $$('[data-admin-analytics-range]').forEach(button=>button.classList.toggle('active',button.dataset.adminAnalyticsRange===adminAnalyticsRange));
   const updated=funnel.generated_at?new Date(funnel.generated_at):new Date();
   const reportDate=updated.toLocaleDateString('he-IL',{timeZone:'Asia/Jerusalem'});
   $('#adminVisitors30d').textContent=adminAnalyticsRange==='today'?`היום · ${reportDate}`:adminAnalyticsRange==='all'?'כל התקופה':'30 הימים האחרונים';
-  $('#adminAnalyticsNote').textContent=`עודכן ${reportDate} ${updated.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Jerusalem'})} · לפי שעון ישראל. ביקור חדש נספר אחרי 30 דקות ללא פעילות או בהגעה ממקור חדש. מספר הביקורים נמדד מ־25.9.2026; המבקרים כוללים גם את ההיסטוריה. ביקורי מנהל מזוהים מוחרגים. מקור שלא נמסר מוצג כלא מזוהה.`
+  $('#adminAnalyticsNote').textContent=`עודכן ${reportDate} ${updated.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Jerusalem'})} · לפי שעון ישראל. ביקור חדש נספר אחרי 30 דקות ללא פעילות או בהגעה ממקור חדש. מספר הביקורים נמדד מ־25.9.2026; המבקרים כוללים גם את ההיסטוריה. ביקורי מנהל מזוהים מוחרגים. מקור שלא נמסר מוצג כלא מזוהה. עבודות ראשונות ותשלומים משויכים למקור ההגעה הראשון הידוע של החשבון, גם אם הביקור היה בתקופה קודמת.`
 }
 async function loadAdminMarketing(range=adminAnalyticsRange){
   adminAnalyticsRange=['today','30d','all'].includes(range)?range:'today';
@@ -1275,3 +1275,4 @@ if('serviceWorker' in navigator){
   });
   window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{}));
 }
+
