@@ -28,3 +28,6 @@
 .hero-resolution{display:block;font:inherit;font-weight:800}
 .hero-photo figcaption .hero-reassurance{position:static;display:grid;gap:7px;text-shadow:none}
 @media(max-width:380px){.hero-photo figcaption{inset:auto 9px 12px;font-size:15px;gap:8px}}
+
+/* Finance feature spotlight: existing palette and typography. */
+.accountant-intro{margin-top:20px;padding:18px;border:1px solid currentColor;border-radius:18px}.accountant-intro h2{font-size:clamp(24px,4vw,34px);line-height:1.2;margin:8px 0}.accountant-intro p{margin:8px 0;font-size:18px}.accountant-intro a{color:inherit;font-weight:700;display:inline-block;padding:8px 0}.feature-grid .accountant-feature{grid-column:1/-1;scroll-margin-top:24px}.feature-grid .accountant-feature h3{font-size:clamp(25px,4vw,34px)}.accountant-feature ul{padding-inline-start:22px;line-height:1.8}.accountant-feature small{display:block;line-height:1.6}.feature-grid .accountant-feature .section-kicker{font-size:14px;display:block;margin:8px 0}
