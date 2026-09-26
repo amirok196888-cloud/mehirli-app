@@ -2,7 +2,8 @@
 (function(root){
   'use strict';
   const VISITOR='mehirli_visitor_v1',SESSION='mehirli_visit_v113',TTL=30*60*1000;
-  let memoryVisitor='',memorySession=null;
+  const ACQUISITION='mehirli_acquisition_v1';
+  let memoryVisitor='',memorySession=null,memoryAcquisition=null;
   function read(store,key){try{return JSON.parse(store.getItem(key)||'null')}catch{return null}}
   function write(store,key,value){try{store.setItem(key,JSON.stringify(value))}catch{}}
   function storage(name){try{return root[name]}catch{return null}}
@@ -33,9 +34,13 @@
     let s=read(storage('sessionStorage'),SESSION)||memorySession;
     const changed=s&&a.explicit&&(a.source!==s.source||a.campaign!==s.campaign);
     if(!s||now-s.lastSeen>=TTL||changed)s={id:uuid(),source:a.source,campaign:a.campaign,startedAt:now};
-    s.lastSeen=now;memorySession=s;write(storage('sessionStorage'),SESSION,s);return s;
+    s.lastSeen=now;memorySession=s;write(storage('sessionStorage'),SESSION,s);
+    // Keep the first known acquisition separate from the 30-minute visit.
+    let first=read(storage('localStorage'),ACQUISITION)||memoryAcquisition;
+    if(!first||first.source==='direct'&&s.source!=='direct')first={source:s.source,campaign:s.campaign};
+    memoryAcquisition=first;write(storage('localStorage'),ACQUISITION,first);return s;
   }
-  function attribution(){const s=visit();return {source:s.source,campaign:s.campaign}}
+  function attribution(){visit();return {source:memoryAcquisition.source,campaign:memoryAcquisition.campaign}}
   async function send(rpc,payload,client){
     for(let attempt=0;attempt<2;attempt++){
       try{
@@ -51,6 +56,6 @@
     if(excluded()||new URLSearchParams(root.location.search).has('quote'))return false;
     const s=visit();return send('track_visit_v113',{p_visit_id:s.id,p_visitor_id:visitor(),p_source:s.source,p_campaign:s.campaign},client);
   }
-  async function event(name,client){if(excluded())return false;const a=attribution();return send('track_app_event_v40',{p_visitor_id:visitor(),p_event_name:name,p_source:a.source,p_campaign:a.campaign},client)}
+  async function event(name,client){if(excluded())return false;const a=['landing_page_view','landing_cta_click','app_open','page_view'].includes(name)?visit():attribution();return send('track_app_event_v40',{p_visitor_id:visitor(),p_event_name:name,p_source:a.source,p_campaign:a.campaign},client)}
   root.MehirliTraffic={visitor,attribution,trackVisit,event,resolve};
 })(window);

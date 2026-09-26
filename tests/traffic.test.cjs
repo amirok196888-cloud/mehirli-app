@@ -1,7 +1,7 @@
 const fs=require('fs'),vm=require('vm'),assert=require('assert/strict'),{randomUUID}=require('crypto');
 const code=fs.readFileSync(__dirname+'/../traffic.js','utf8');
 const storage=()=>{const m=new Map();return {getItem:k=>m.get(k)||null,setItem:(k,v)=>m.set(k,v)}};
-let time=Date.now();const calls=[];
+let time=1800000000000;const calls=[];
 const w={location:{search:'?gclid=test',hostname:'example.test'},document:{referrer:''},localStorage:storage(),sessionStorage:storage(),crypto:{randomUUID},setTimeout:fn=>{fn();return 1},fetch:async(url,opt)=>{calls.push({url,payload:JSON.parse(opt.body)});return {ok:true,json:async()=>true}}};
 vm.runInNewContext(code,{window:w,URLSearchParams,URL,Date:{now:()=>time},Promise});
 const t=w.MehirliTraffic;
