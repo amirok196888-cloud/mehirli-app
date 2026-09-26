@@ -43,3 +43,14 @@
 .feature-grid article.accountant-feature li{margin:8px 0}
 .feature-grid article.accountant-feature small{margin-top:14px}
 @media(max-width:600px){.feature-grid article.accountant-feature{padding:20px}.feature-grid article.accountant-feature h3{font-size:27px}.feature-grid article.accountant-feature .section-kicker{font-size:13px}}
+
+/* Compact the page without reducing readable body text or cropping video. */
+.hero{padding-top:38px;padding-bottom:30px;gap:22px}
+.section{padding-top:32px;padding-bottom:32px}
+.features{gap:24px}.feature-copy h2{margin-top:0;margin-bottom:10px}
+.feature-grid article.accountant-feature ul{margin:8px 0}
+.feature-grid article.accountant-feature li{margin:5px 0}
+.feature-grid article.accountant-feature small{margin-top:10px}
+.faq>h2{margin-bottom:16px}.faq details{margin:7px 0;padding:14px 18px}
+.bottom-cta{margin-top:24px;margin-bottom:28px;padding:32px 24px}
+@media(max-width:600px){.hero{padding-top:24px;padding-bottom:24px;gap:16px}.section{padding:28px 17px}.features{gap:16px}.hero-video-card{width:min(100%,300px)}.landing-video{max-height:470px;object-fit:contain}.bottom-cta{padding:28px 20px}.feature-grid article.accountant-feature h3{font-size:26px}}
