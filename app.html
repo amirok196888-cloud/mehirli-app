@@ -42,7 +42,7 @@ fbq('init','1944984039489234');
 fbq('track','PageView',{content_name:'Mehirli'});
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link rel="stylesheet" href="finance.css?v=118" />
+<link rel="stylesheet" href="finance.css?v=119" />
 </head>
 <body>
 <div class="app-shell">
@@ -421,6 +421,14 @@ fbq('track','PageView',{content_name:'Mehirli'});
 </section>
 <section id="financeView" class="view">
  <div class="section-head"><button class="back" data-back-to="workspace">‹</button><div><span class="eyebrow">המסמכים והכספים של העסק</span><h2>הכספים שלי</h2></div></div>
+ <div id="financeSetupStatus" class="finance-notice" role="status"></div>
+ <details id="financeSettings" class="card finance-options"><summary>⚙ הגדרות החישובים — מתחילים כאן</summary>
+  <p class="note">מגדירים פעם אחת כדי שהאומדנים יתאימו לעסק שלכם. אפשר לעדכן בהמשך.</p>
+  <label>סוג העסק<select id="financeBusinessType"><option value="unknown">בחירת סוג העסק</option><option value="exempt">עוסק פטור</option><option value="vat">עסק המדווח מע״מ</option></select></label>
+  <label>אחוז מקדמות מס הכנסה<input id="financeAdvanceRate" type="number" min="0" max="100" step="0.01" inputmode="decimal" placeholder="לפי האחוז שנקבע לעסק" /></label>
+  <label>תקופת הסיכום<select id="financeReportingMonths"><option value="1">חודש</option><option value="2">חודשיים</option></select></label>
+  <button id="financeSaveSettings" class="primary big" type="button">שמירת ההגדרות</button>
+ </details>
  <nav class="finance-tabs" aria-label="מסכי הכספים"><button type="button" data-finance-tab="income">הכנסות</button><button type="button" data-finance-tab="expense">הוצאות</button><button type="button" data-finance-tab="summary">סיכום</button></nav>
  <div id="financeError" class="finance-notice hidden" role="alert"></div>
  <div class="finance-toolbar"><label>חודש תחילת התקופה<input id="financeMonth" type="month" /></label><button id="financeRefresh" class="secondary" type="button">רענון</button></div>
@@ -441,11 +449,7 @@ fbq('track','PageView',{content_name:'Mehirli'});
   <p class="note">הורדת עותק אינה נועלת. סגירת תקופה שומרת גרסה קבועה; לאחריה מוסיפים תיקונים בתקופה פתוחה.</p>
   <div id="financeExportParts" class="stack" aria-live="polite"></div>
  </div>
- <details id="financeSettings" class="card finance-options"><summary>הגדרות חד־פעמיות ואחסון</summary>
-  <label>סוג העסק<select id="financeBusinessType"><option value="unknown">בחירת סוג העסק</option><option value="exempt">עוסק פטור</option><option value="vat">עסק המדווח מע״מ</option></select></label>
-  <label>אחוז מקדמות מס הכנסה<input id="financeAdvanceRate" type="number" min="0" max="100" step="0.01" inputmode="decimal" placeholder="לפי האחוז שנקבע לעסק" /></label>
-  <label>תקופת הסיכום<select id="financeReportingMonths"><option value="1">חודש</option><option value="2">חודשיים</option></select></label>
-  <button id="financeSaveSettings" class="secondary" type="button">שמירת ההגדרות</button>
+ <details class="card finance-options"><summary>אחסון מסמכים וחיבור לסליקה</summary>
   <p id="financeConnectionStatus" class="note">קישור תשלום אינו מייבא מסמכים. בשלב זה מצרפים את החשבוניות והקבלות בצילום או בקובץ.</p>
   <p id="financeUsage"></p><p>מסמכים נמחקים בסוף החודש שלאחר השלמת שנה מההעלאה. הנתונים נשארים. התראות יופיעו 60, 30 ו־7 ימים לפני המחיקה.</p>
   <label class="finance-check"><input id="financeRetentionAccept" type="checkbox" /> הבנתי ואשמור עותק של המסמכים מחוץ למחירלי לפני מחיקתם.</label>
@@ -496,5 +500,5 @@ fbq('track','PageView',{content_name:'Mehirli'});
 <script src="traffic.js?v=113"></script>
 <script src="app.js?v=117"></script>
 <script src="finance-core.js?v=118"></script>
-<script src="finance.js?v=118"></script>
+<script src="finance.js?v=119"></script>
 </body></html>
