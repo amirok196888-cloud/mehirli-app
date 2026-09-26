@@ -431,7 +431,7 @@ fbq('track','PageView',{content_name:'Mehirli'});
  </details>
  <nav class="finance-tabs" aria-label="מסכי הכספים"><button type="button" data-finance-tab="income">הכנסות</button><button type="button" data-finance-tab="expense">הוצאות</button><button type="button" data-finance-tab="summary">סיכום</button></nav>
  <div id="financeError" class="finance-notice hidden" role="alert"></div>
- <div class="finance-toolbar"><label>חודש תחילת התקופה<input id="financeMonth" type="month" /></label><button id="financeRefresh" class="secondary" type="button">רענון</button></div>
+ <div class="finance-toolbar" style="grid-template-columns:1fr"><label>חודש תחילת התקופה<input id="financeMonth" type="month" /></label><button id="financeRefresh" class="secondary hidden" type="button" hidden aria-hidden="true" tabindex="-1">רענון</button></div>
  <p id="financePeriodLabel" class="note"></p><p id="financeClosureStatus" class="finance-notice hidden"></p>
  <div id="financeReview" class="finance-notice hidden" role="status"></div><div id="financeExpiry" class="finance-notice hidden"></div>
  <div id="financeRecordsPanel">
