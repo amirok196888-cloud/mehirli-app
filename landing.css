@@ -54,3 +54,8 @@
 .faq>h2{margin-bottom:16px}.faq details{margin:7px 0;padding:14px 18px}
 .bottom-cta{margin-top:24px;margin-bottom:28px;padding:32px 24px}
 @media(max-width:600px){.hero{padding-top:24px;padding-bottom:24px;gap:16px}.section{padding:28px 17px}.features{gap:16px}.hero-video-card{width:min(100%,300px)}.landing-video{max-height:470px;object-fit:contain}.bottom-cta{padding:28px 20px}.feature-grid article.accountant-feature h3{font-size:26px}}
+
+/* Wide YouTube-style player. Preserve all of the vertical video with side margins. */
+.hero-video-card{width:min(100%,520px)}
+.landing-video{width:100%;height:auto;aspect-ratio:16/9;max-height:none;object-fit:contain;background:var(--navy)}
+@media(max-width:600px){.hero-video-card{width:100%}.landing-video{aspect-ratio:16/9;max-height:none;object-fit:contain}}
