@@ -13,6 +13,23 @@
   }
   return {income:income/100,expense:expense/100,balance:(income-expense)/100,outputVat:outputVat/100,inputVat:inputVat/100,reserve:businessType==='vat'?Math.max(0,outputVat-inputVat)/100:null,vatBalance:(outputVat-inputVat)/100,unknown,review};
  }
+ function range(month,count=1){const [y,m]=month.split('-').map(Number),end=new Date(Date.UTC(y,m-1+count,1)).toISOString().slice(0,10);return {start:month+'-01',end};}
+ function workflowSummary(entries,month,settings={}){
+  const r=range(month,Number(settings.reporting_months)||1),inside=d=>!!d&&d>=r.start&&d<r.end;
+  let income=0,expense=0,unpaid=0,outputVat=0,inputVat=0,turnover=0,withholding=0,advancePaid=0,vatPaid=0,pending=0;
+  for(const e of entries){if(e.voided||e.deletion_pending||!inside(e.report_month))continue;
+   if(e.review_required||!e.approved_at){pending++;continue;}
+   const a=cents(e.amount),v=cents(e.vat_amount),w=cents(e.withholding);
+   if(e.category==='tax_advance'){if(e.paid_on)advancePaid+=a;continue;}
+   if(e.category==='vat_payment'){if(e.paid_on)vatPaid+=a;continue;}
+   if(e.kind==='income'){turnover+=a-v;outputVat+=v;if(e.paid_on){income+=a-w;withholding+=w;}else unpaid+=a;}
+   else {inputVat+=cents(e.deductible_vat);if(e.paid_on)expense+=a;}
+  }
+  const rate=settings.advance_rate,advance=rate===null||rate===undefined||rate===''?null:Math.round(turnover*Number(rate)/100),vatBalance=outputVat-inputVat;
+  const vat=settings.business_type==='vat'?Math.max(0,vatBalance-vatPaid):settings.business_type==='exempt'?0:null;
+  const advanceBalance=advance===null?null:advance-withholding-advancePaid;
+  return {income:income/100,expense:expense/100,balance:(income-expense-advancePaid-vatPaid)/100,unpaid:unpaid/100,outputVat:outputVat/100,inputVat:inputVat/100,vatBalance:vatBalance/100,vat:vat===null?null:vat/100,turnover:turnover/100,withholding:withholding/100,advance:advance===null?null:advance/100,advancePaid:advancePaid/100,vatPaid:vatPaid/100,advanceBalance:advanceBalance===null?null:advanceBalance/100,advanceRemaining:advanceBalance===null?null:Math.max(0,advanceBalance)/100,reserve:vat===null||advanceBalance===null?null:(vat+Math.max(0,advanceBalance))/100,pending};
+ }
  function parseOcr(text){
   const lines=String(text).split(/\n/).map(s=>s.trim()).filter(Boolean),r={};
   const dt=String(text).match(/\b(\d{1,2})[./-](\d{1,2})[./-](20\d{2})\b/);
@@ -46,5 +63,5 @@
   }
   const end=new Uint8Array(22),v=new DataView(end.buffer);v.setUint32(0,0x06054b50,true);v.setUint16(8,files.length,true);v.setUint16(10,files.length,true);v.setUint32(12,size,true);v.setUint32(16,offset,true);return new Blob([...parts,...central,end],{type:'application/zip'});
  }
- const api={cents,amount,summary,parseOcr,csv,validate,zip};if(typeof module!=='undefined')module.exports=api;else root.FinanceCore=api;
+ const api={range,workflowSummary,cents,amount,summary,parseOcr,csv,validate,zip};if(typeof module!=='undefined')module.exports=api;else root.FinanceCore=api;
 })(typeof window!=='undefined'?window:globalThis);

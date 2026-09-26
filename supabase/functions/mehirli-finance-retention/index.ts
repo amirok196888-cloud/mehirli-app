@@ -7,6 +7,15 @@ Deno.serve(async (req: Request) => {
  const auth=await db.rpc('finance_cron_authorized',{p_token:token});
  if(auth.error||auth.data!==true)return new Response('Unauthorized',{status:401});
  try {
+  // Retry owner-authorized expense deletion, including partially failed Storage removals.
+  const queue=await db.from('finance_entries').select('id').eq('deletion_pending',true).limit(100);
+  if(queue.error)throw queue.error;
+  for(const entry of queue.data||[]){
+   const docs=await db.from('finance_documents').select('storage_path').eq('entry_id',entry.id);
+   if(docs.error)continue;
+   let ok=true;for(const doc of docs.data||[]){const r=await db.storage.from('finance-documents').remove([doc.storage_path]);if(r.error){ok=false;break;}}
+   if(ok)await db.rpc('finance_finish_expense_delete',{p_id:entry.id});
+  }
   const notices=await db.rpc('finance_retention_notify');if(notices.error)throw notices.error;
   const now=new Date().toISOString(), stale=new Date(Date.now()-86400000).toISOString();
   const {data,error}=await db.from('finance_documents').select('id,storage_path,status').or(`and(status.eq.stored,expires_at.lte.${now}),and(status.eq.pending,uploaded_at.lte.${stale})`).order('uploaded_at').limit(100);

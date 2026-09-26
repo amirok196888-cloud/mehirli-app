@@ -7,3 +7,6 @@ verify_jwt = false
 # Protected by a dedicated cron secret checked by a service-role-only RPC.
 [functions.mehirli-finance-retention]
 verify_jwt = false
+
+[functions.mehirli-finance-delete]
+verify_jwt = false

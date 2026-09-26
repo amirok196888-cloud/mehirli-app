@@ -42,7 +42,7 @@ fbq('init','1944984039489234');
 fbq('track','PageView',{content_name:'Mehirli'});
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link rel="stylesheet" href="finance.css?v=117" />
+<link rel="stylesheet" href="finance.css?v=118" />
 </head>
 <body>
 <div class="app-shell">
@@ -420,70 +420,74 @@ fbq('track','PageView',{content_name:'Mehirli'});
   </div>
 </section>
 <section id="financeView" class="view">
- <div class="section-head"><button class="back" data-back-to="workspace">‹</button><div><span class="eyebrow">מנהל החשבונות הקטן</span><h2>הכספים שלי</h2></div></div>
- <p class="note">הכנסות, הוצאות והמסמכים שלהן — במקום אחד. התשלומים מתיקי העבודה מופיעים כאן אוטומטית.</p>
+ <div class="section-head"><button class="back" data-back-to="workspace">‹</button><div><span class="eyebrow">המסמכים והכספים של העסק</span><h2>הכספים שלי</h2></div></div>
+ <nav class="finance-tabs" aria-label="מסכי הכספים"><button type="button" data-finance-tab="income">הכנסות</button><button type="button" data-finance-tab="expense">הוצאות</button><button type="button" data-finance-tab="summary">סיכום</button></nav>
  <div id="financeError" class="finance-notice hidden" role="alert"></div>
- <div class="finance-toolbar"><label>חודש להצגה<input id="financeMonth" type="month" /></label><button id="financeRefresh" class="secondary" type="button">רענון</button></div>
- <div id="financeSummary" class="finance-summary" aria-live="polite"></div>
- <div id="financeReview" class="finance-notice hidden"></div>
- <div id="financeExpiry" class="finance-notice hidden"></div>
- <div class="finance-actions"><button id="financeIncome" class="primary" type="button">＋ הכנסה אחרת</button><button id="financeExpense" class="secondary" type="button">＋ הוצאה / צילום</button></div>
- <p class="note">תשלום על עבודה קיימת רושמים בתיק העבודה בלבד, כדי שלא ייספר פעמיים.</p>
- <details class="card finance-options"><summary>סוג העסק ואחסון המסמכים</summary>
-  <label>סוג העסק לצורך סיכום מע״מ<select id="financeBusinessType"><option value="unknown">טרם הוגדר</option value="exempt">עוסק פטור</option><option value="vat">עסק המדווח מע״מ</option></select></label>
-  <button id="financeSaveSettings" class="secondary" type="button">שמירת סוג העסק</button>
-  <p id="financeUsage"></p>
-  <p>כל מסמך יימחק אוטומטית בסוף החודש שלאחר השלמת שנה מהעלאתו, גם אם לא יוצא. הנתונים המספריים נשארים. לדוגמה: העלאה בספטמבר 2026 — מחיקה בתום אוקטובר 2027.</p>
-  <p>התראות יופיעו באפליקציה 60, 30 ו־7 ימים לפני המחיקה. יש לייצא ולשמור את המסמכים בארכיון משלכם לפני המועד. מחירלי אינה ארכיון לשמירה ארוכת טווח.</p>
-  <label class="finance-check"><input id="financeRetentionAccept" type="checkbox" /> הבנתי את מדיניות המחיקה ואדאג לשמור עותק מחוץ למחירלי.</label>
-  <button id="financeAcceptPolicy" class="secondary" type="button">אישור מדיניות שמירת המסמכים</button>
+ <div class="finance-toolbar"><label>חודש תחילת התקופה<input id="financeMonth" type="month" /></label><button id="financeRefresh" class="secondary" type="button">רענון</button></div>
+ <p id="financePeriodLabel" class="note"></p><p id="financeClosureStatus" class="finance-notice hidden"></p>
+ <div id="financeReview" class="finance-notice hidden" role="status"></div><div id="financeExpiry" class="finance-notice hidden"></div>
+ <div id="financeRecordsPanel">
+  <h3 id="financeRecordsTitle">הכנסות</h3>
+  <button id="financeAdd" class="primary big" type="button">📷 הוספת מסמך</button>
+  <p id="financeRecordsHelp" class="note"></p>
+  <div class="finance-toolbar"><label>חיפוש<input id="financeSearch" type="search" placeholder="לקוח, ספק או מספר מסמך" /></label><label>הצגה<select id="financeFilter"><option value="all">התקופה שנבחרה</option><option value="review">ממתינים לבדיקה — כל התקופות</option><option value="history">כל התקופות</option></select></label></div>
+  <div id="financeList" class="stack"></div>
+ </div>
+ <div id="financeSummaryPanel"><div id="financeSummary" class="finance-summary" aria-live="polite"></div>
+  <p class="note">אומדנים לפי המסמכים שאישרתם בתקופה. הסיכום מיועד לעזר ואינו דיווח לרשויות.</p>
+  <details class="card finance-options"><summary>פירוט החישוב</summary><div id="financeCalculation"></div></details>
+  <div class="finance-actions"><button id="financeExportCsv" class="secondary" type="button">הורדת סיכום</button><button id="financeExportZip" class="secondary" type="button">הורדת עותק עם מסמכים</button></div>
+  <button id="financeClose" class="primary big" type="button">סגירת התקופה והכנת החומר למסירה</button>
+  <p class="note">הורדת עותק אינה נועלת. סגירת תקופה שומרת גרסה קבועה; לאחריה מוסיפים תיקונים בתקופה פתוחה.</p>
+  <div id="financeExportParts" class="stack" aria-live="polite"></div>
+ </div>
+ <details id="financeSettings" class="card finance-options"><summary>הגדרות חד־פעמיות ואחסון</summary>
+  <label>סוג העסק<select id="financeBusinessType"><option value="unknown">בחירת סוג העסק</option><option value="exempt">עוסק פטור</option><option value="vat">עסק המדווח מע״מ</option></select></label>
+  <label>אחוז מקדמות מס הכנסה<input id="financeAdvanceRate" type="number" min="0" max="100" step="0.01" inputmode="decimal" placeholder="לפי האחוז שנקבע לעסק" /></label>
+  <label>תקופת הסיכום<select id="financeReportingMonths"><option value="1">חודש</option><option value="2">חודשיים</option></select></label>
+  <button id="financeSaveSettings" class="secondary" type="button">שמירת ההגדרות</button>
+  <p id="financeConnectionStatus" class="note">קישור תשלום אינו מייבא מסמכים. בשלב זה מצרפים את החשבוניות והקבלות בצילום או בקובץ.</p>
+  <p id="financeUsage"></p><p>מסמכים נמחקים בסוף החודש שלאחר השלמת שנה מההעלאה. הנתונים נשארים. התראות יופיעו 60, 30 ו־7 ימים לפני המחיקה.</p>
+  <label class="finance-check"><input id="financeRetentionAccept" type="checkbox" /> הבנתי ואשמור עותק של המסמכים מחוץ למחירלי לפני מחיקתם.</label>
+  <button id="financeAcceptPolicy" class="secondary" type="button">אישור שמירת המסמכים</button>
  </details>
- <div class="finance-toolbar"><label>חיפוש ספק, לקוח, סכום או מסמך<input id="financeSearch" type="search" placeholder="חיפוש ברישומים" /></label><label>סינון<select id="financeFilter"><option value="all">הכול בחודש הנבחר</option><option value="income">הכנסות</option><option value="expense">הוצאות</option><option value="unpaid">טרם שולם</option><option value="review">דורש אישור תאריך — כל החודשים</option><option value="history">כל ההיסטוריה</option></select></label></div>
- <div id="financeList" class="stack"></div>
- <div class="finance-actions"><button id="financeExportCsv" class="secondary" type="button">ייצוא נתונים CSV</button><button id="financeExportZip" class="secondary" type="button">ייצוא עם המסמכים</button></div>
- <p class="note">הייצוא כולל את הרישומים המוצגים לפי החודש, החיפוש והסינון. לייצוא כל הארכיון בחרו ״כל ההיסטוריה״ ונקו את החיפוש.</p>
- <div id="financeExportParts" class="stack" aria-live="polite"></div>
- <p class="note">זהו כלי מעקב עסקי, לא דוח מס. אומדן המע״מ מבוסס רק על סכומים ותקופות שאישרתם; הוא אינו מעביר כסף ואינו קובע זכאות לקיזוז.</p>
 </section>
 <section id="financeEntryView" class="view">
- <div class="section-head"><button id="financeBack" class="secondary" type="button">‹ חזרה לכספים</button><h2 id="financeEntryTitle">רישום כספי</h2></div>
- <form id="financeForm" class="card form-card">
-  <input id="financeEntryId" type="hidden" />
+ <div class="section-head"><button id="financeBack" class="secondary" type="button">‹ חזרה לכספים</button><h2 id="financeEntryTitle">מסמך חדש</h2></div>
+ <form id="financeForm" class="card form-card" novalidate>
+  <input id="financeEntryId" type="hidden" /><input id="financeCorrection" type="hidden" />
   <p id="financeSourceNote" class="finance-notice hidden"></p>
-  <label>סוג רישום<select id="financeKind"><option value="expense">הוצאה</option><option value="income">הכנסה אחרת</option></select></label>
-  <label>ספק / לקוח<input id="financeCounterparty" maxlength="200" autocomplete="off" /></label>
-  <div class="finance-pair"><label>סכום כולל מע״מ (₪)<input id="financeAmount" type="number" step="0.01" min="-999999999" max="999999999" inputmode="decimal" required /></label><label>מספר מסמך<input id="financeNumber" maxlength="100" /></label></div>
-  <p class="note">לזיכוי או החזר הזינו סכום שלילי. אין להזין שוב הכנסה שכבר נרשמה בתיק עבודה.</p>
-  <label>תאריך המסמך<input id="financeDocDate" type="date" /></label>
-  <label class="finance-check"><input id="financePaid" type="checkbox" /> הכסף התקבל / שולם בפועל</label>
-  <label id="financePaidDateLabel">תאריך התשלום<input id="financePaidDate" type="date" /></label>
-  <label>קטגוריה<select id="financeCategory"><option value="other">אחר</option><option value="work">עבודה / שירות</option><option value="materials">חומרים</option><option value="tools">כלי עבודה וציוד</option><option value="travel">רכב ונסיעות</option><option value="office">משרד ותוכנות</option><option value="subcontractor">קבלן משנה</option><option value="insurance">ביטוח</option></select></label>
-  <label id="financeJobLabel">שיוך הוצאה לעבודה<select id="financeJob"><option value="">הוצאה כללית</option></select></label>
-  <details class="finance-options"><summary>מע״מ — בדיקה ואישור ידני</summary>
-   <label>סכום המע״מ שמופיע במסמך (₪)<input id="financeVat" type="number" step="0.01" value="0" inputmode="decimal" /></label>
-   <label id="financeDeductibleLabel">מתוכו, מע״מ שאושר לקיזוז (₪)<input id="financeDeductible" type="number" step="0.01" value="0" inputmode="decimal" /></label>
-   <p class="note">לא כל הוצאה מזכה בקיזוז. השאירו 0 עד לבדיקת הזכאות. בזיכוי יש להזין גם את סכומי המע״מ בסימן שלילי.</p>
-   <label>חודש לשיוך המע״מ<input id="financeVatMonth" type="month" /></label>
-   <label class="finance-check"><input id="financeVatConfirmed" type="checkbox" /> בדקתי ואישרתי את סכומי המע״מ ואת חודש השיוך.</label>
-  </details>
-  <label>הערות<textarea id="financeNotes" maxlength="2000"></textarea></label>
   <div class="finance-document-box">
-   <h3>צילום או צירוף מסמך</h3>
-   <p id="financeUploadPolicy" class="note"></p>
-   <div class="finance-actions"><button id="financeCameraBtn" class="secondary" type="button">📷 צילום</button><button id="financeFileBtn" class="secondary" type="button">📎 תמונה / PDF</button></div>
-   <input id="financeCamera" type="file" accept="image/*" capture="environment" hidden />
-   <input id="financeFile" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" hidden />
-   <img id="financePreview" class="finance-preview hidden" alt="תצוגת המסמך לפני שמירה" />
+   <h3>1. מצלמים או מעלים מסמך</h3><p id="financeUploadPolicy" class="note"></p>
+   <div class="finance-actions"><button id="financeCameraBtn" class="primary" type="button">📷 צילום מסמך</button><button id="financeFileBtn" class="secondary" type="button">📎 העלאת קובץ</button></div>
+   <input id="financeCamera" type="file" accept="image/*" capture="environment" hidden /><input id="financeFile" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" hidden />
+   <img id="financePreview" class="finance-preview hidden" alt="המסמך לבדיקה" />
    <p id="financeFileStatus" role="status" aria-live="polite"></p>
-   <button id="financeScan" class="secondary hidden" type="button">זיהוי פרטים מהצילום</button>
-   <button id="financeRemoveFile" class="ghost hidden" type="button">ביטול הצירוף</button>
+   <button id="financeScan" class="secondary hidden" type="button">זיהוי פרטים מהצילום</button><button id="financeRemoveFile" class="ghost hidden" type="button">החלפת הקובץ שנבחר</button>
    <div id="financeExistingDocs" class="stack"></div>
-   <p class="note">הזיהוי מציע פרטים לבדיקה ואינו שומר אותם אוטומטית. PDF נשמר כפי שהתקבל; יש להזין את פרטיו ידנית.</p>
   </div>
-  <label class="finance-check"><input id="financeVerified" type="checkbox" required /> בדקתי את הפרטים והם נכונים.</label>
+  <h3>2. בודקים את הפרטים</h3>
+  <label>סוג מסמך<select id="financeKind"><option value="expense">הוצאה</option><option value="income">הכנסה</option></select></label>
+  <label>ספק / לקוח<input id="financeCounterparty" maxlength="200" autocomplete="off" /></label>
+  <div class="finance-pair"><label>סכום כולל מע״מ (₪)<input id="financeAmount" type="number" step="0.01" inputmode="decimal" /></label><label>מע״מ שמופיע במסמך (₪)<input id="financeVat" type="number" step="0.01" inputmode="decimal" placeholder="0 אם אין מע״מ" /></label></div>
+  <div class="finance-pair"><label>תאריך המסמך<input id="financeDocDate" type="date" /></label><label>מספר מסמך<input id="financeNumber" maxlength="100" /></label></div>
+  <label class="finance-check"><input id="financePaid" type="checkbox" /> הכסף התקבל / שולם</label><label id="financePaidDateLabel">תאריך התשלום<input id="financePaidDate" type="date" /></label>
+  <details class="finance-options"><summary>פרטים נוספים — ניכוי מס, שיוך והערות</summary>
+   <label id="financeWithholdingLabel">מס שנוכה במקור מהתשלום (₪)<input id="financeWithholding" type="number" step="0.01" inputmode="decimal" value="0" /></label>
+   <p id="financeNetPayment" class="note"></p>
+   <label id="financeDeductibleLabel">מע״מ מההוצאה שייכלל באומדן (₪)<input id="financeDeductible" type="number" step="0.01" inputmode="decimal" value="0" /></label>
+   <label>קטגוריה<select id="financeCategory"><option value="other">אחר</option><option value="work">עבודה / שירות</option><option value="materials">חומרים</option><option value="tools">כלי עבודה</option><option value="travel">רכב ונסיעות</option><option value="office">משרד</option><option value="subcontractor">קבלן משנה</option><option value="insurance">ביטוח</option><option value="tax_advance">תשלום מקדמות מס הכנסה</option><option value="vat_payment">תשלום מע״מ</option></select></label>
+   <label id="financeJobLabel">שיוך הוצאה לעבודה<select id="financeJob"><option value="">הוצאה כללית</option></select></label>
+   <label>חודש לשיוך בסיכום<input id="financeVatMonth" type="month" /></label>
+   <p class="note">תיקון לתקופה סגורה משייכים לחודש פתוח. לזיכוי מזינים סכום ומע״מ שליליים ומצרפים מסמך זיכוי.</p>
+   <label>הערות<textarea id="financeNotes" maxlength="2000"></textarea></label>
+  </details>
+  <label class="finance-check"><input id="financeVerified" type="checkbox" /> בדקתי את הפרטים מול המסמך.</label>
   <p id="financeFormError" class="finance-notice hidden" role="alert"></p>
-  <button id="financeSave" class="primary big" type="submit">אישור ושמירה</button>
-  <button id="financeVoid" class="ghost hidden" type="button">ביטול הרישום — המסמך נשאר בארכיון</button>
+  <button id="financeSave" class="primary big" type="submit">אישור והוספה לסיכום</button>
+  <button id="financeDraft" class="secondary big" type="button">שמירת המסמך לבדיקה אחר כך</button>
+  <button id="financeCredit" class="secondary hidden" type="button">הוספת מסמך זיכוי מקושר</button>
+  <button id="financeVoid" class="ghost hidden" type="button">מחיקת ההוצאה והמסמך</button>
  </form>
 </section>
 
@@ -491,6 +495,6 @@ fbq('track','PageView',{content_name:'Mehirli'});
 <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"></script>
 <script src="traffic.js?v=113"></script>
 <script src="app.js?v=117"></script>
-<script src="finance-core.js?v=117"></script>
-<script src="finance.js?v=117"></script>
+<script src="finance-core.js?v=118"></script>
+<script src="finance.js?v=118"></script>
 </body></html>
