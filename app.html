@@ -29,7 +29,7 @@
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="apple-touch-icon" sizes="180x180" href="icon-192.png" />
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
-<link rel="stylesheet" href="style.css?v=113" />
+<link rel="stylesheet" href="style.css?v=121" />
 <link rel="preload" as="image" href="mehirli-hero-v43.jpg" fetchpriority="high" />
 <!-- Meta Pixel: dedicated Mehirli data source. -->
 <script>
@@ -137,18 +137,16 @@ fbq('track','PageView',{content_name:'Mehirli'});
   </div>
   <div id="proHome">
     <button id="subscriptionBanner" class="subscription-banner hidden" type="button"></button>
-    <div class="flow-overview card">
-      <span class="eyebrow">איך זה עובד</span>
-      <div class="flow-steps">
-        <div><b>1</b><span>פרטי הלקוח והעבודה</span></div>
-        <div><b>2</b><span>תמחור והכנת הצעה</span></div>
-        <div><b>3</b><span>שליחת הצעה דיגיטלית ב־WhatsApp</span></div>
-      </div>
+    <div class="home-action-grid" aria-label="מה תרצו לעשות?">
+      <button id="homeNewJobBtn" class="home-action-card home-action-featured" type="button"><span class="home-action-icon" aria-hidden="true">＋</span><strong>עבודה חדשה</strong><small>פרטי לקוח, תמחור והצעה לשליחה</small><span class="home-action-arrow" aria-hidden="true">←</span></button>
+      <button id="proWorkspaceBtn" class="home-action-card" type="button"><span class="home-action-icon" aria-hidden="true">📋</span><strong>העבודות שלי</strong><small>כל העבודות, הסטטוסים והתשלומים</small><span class="home-action-arrow" aria-hidden="true">←</span></button>
+      <button id="homeFinanceBtn" class="home-action-card" type="button"><span class="home-action-icon" aria-hidden="true">🧾</span><strong>הכנסות והוצאות</strong><small>מנהל החשבונות הקטן שלי — כולל מסמכים</small><span class="home-action-arrow" aria-hidden="true">←</span></button>
+      <button id="profileBtn" class="home-action-card" type="button"><span class="home-action-icon" aria-hidden="true">🏪</span><strong>פרופיל העסק</strong><small>פרטי העסק והגדרות הגבייה</small><span class="home-action-arrow" aria-hidden="true">←</span></button>
+      <button id="sampleQuoteBtn" class="home-action-card" type="button"><span class="home-action-icon" aria-hidden="true">▶</span><strong>מרכז הדרכה</strong><small>סרטון והסברים שיעזרו להתחיל</small><span class="home-action-arrow" aria-hidden="true">←</span></button>
+      <button id="subscriptionBtn" class="home-action-card" type="button"><span class="home-action-icon" aria-hidden="true">💳</span><strong>המנוי שלי</strong><small>מצב המנוי וחידוש השימוש</small><span class="home-action-arrow" aria-hidden="true">←</span></button>
     </div>
-    <div class="home-primary-actions"><button id="homeNewJobBtn" class="primary big" type="button">＋ עבודה חדשה</button><button id="sampleQuoteBtn" class="secondary big" type="button">▶️ איך מכינים הצעת מחיר</button><button id="proWorkspaceBtn" class="secondary big" type="button">📋 כל העבודות שלי</button></div>
     <button id="whatsappSetupNotice" class="whatsapp-setup big hidden" type="button">💬 אופציונלי: הוסף WhatsApp עסקי שיופיע ללקוחות</button>
-    <button id="homeFinanceBtn" class="secondary big" type="button">🧾 הכנסות, הוצאות ומסמכים</button>
-    <button id="profileBtn" class="profile-entry big" type="button">🏪 פרופיל העסק והגדרות הגבייה</button><button id="subscriptionBtn" class="subscription-entry big" type="button">💳 המנוי שלי</button><button id="adminBtn" class="admin-entry big hidden" type="button">⚙️ כניסת מנהל — כל הקטגוריות</button>
+    <button id="adminBtn" class="admin-entry big hidden" type="button">⚙️ כניסת מנהל — כל הקטגוריות</button>
   </div>
 </section>
 
