@@ -29,7 +29,7 @@
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="apple-touch-icon" sizes="180x180" href="icon-192.png" />
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
-<link rel="stylesheet" href="style.css?v=129" />
+<link rel="stylesheet" href="style.css?v=130" />
 <link rel="preload" as="image" href="mehirli-hero-v43.jpg" fetchpriority="high" />
 <!-- Meta Pixel: dedicated Mehirli data source. -->
 <script>
@@ -140,7 +140,7 @@ fbq('track','PageView',{content_name:'Mehirli'});
     <div class="home-action-grid" aria-label="מה תרצו לעשות?">
       <button id="homeNewJobBtn" class="home-action-card home-action-featured" type="button"><span class="home-action-icon" aria-hidden="true">＋</span><strong>עבודה חדשה</strong><small>פרטי לקוח, תמחור והצעה לשליחה</small><span class="home-action-arrow" aria-hidden="true">←</span></button>
       <button id="proWorkspaceBtn" class="home-action-card" type="button"><span class="home-action-icon" aria-hidden="true">📋</span><strong>העבודות שלי</strong><small>כל העבודות, הסטטוסים והתשלומים</small><span class="home-action-arrow" aria-hidden="true">←</span></button>
-      <button id="homeFinanceBtn" class="home-action-card" type="button"><span class="home-action-icon" aria-hidden="true">🧾</span><strong>הכנסות והוצאות</strong><small>מנהל החשבונות הקטן שלי — כולל מסמכים</small><span class="home-action-arrow" aria-hidden="true">←</span></button>
+      <button id="homeFinanceBtn" class="home-action-card" type="button"><span class="home-action-icon" aria-hidden="true">🧾</span><strong>הכנסות והוצאות</strong><small>סיכום הכנסות והוצאות חודשי</small><span class="home-action-arrow" aria-hidden="true">←</span></button>
       <button id="profileBtn" class="home-action-card" type="button"><span class="home-action-icon" aria-hidden="true">🏪</span><strong>פרופיל העסק</strong><small>פרטי העסק והגדרות הגבייה</small><span class="home-action-arrow" aria-hidden="true">←</span></button>
       <button id="sampleQuoteBtn" class="home-action-card" type="button"><span class="home-action-icon" aria-hidden="true">▶</span><strong>מרכז הדרכה</strong><small>מדריכים לכל מסך, צעד אחר צעד</small><span class="home-action-arrow" aria-hidden="true">←</span></button>
       <button id="subscriptionBtn" class="home-action-card" type="button"><span class="home-action-icon" aria-hidden="true">💳</span><strong>המנוי שלי</strong><small>מצב המנוי וחידוש השימוש</small><span class="home-action-arrow" aria-hidden="true">←</span></button>
@@ -226,7 +226,7 @@ fbq('track','PageView',{content_name:'Mehirli'});
       <div class="form-step-title"><b>4</b><div><h3>בדיקה לפני שמירה</h3><p>כל הפרטים מהשלבים הקודמים ירוכזו כאן.</p></div></div>
       <div id="proJobReview" class="job-review"></div>
       <p class="privacy-note">🔒 פרטי הלקוח משמשים לטיפול בעבודה בלבד ולא לשיווק ללא הסכמתו.</p>
-      <button id="proJobSubmitBtn" class="primary big flow-submit" type="submit">שמור ועבור לשליחה ב־WhatsApp</button>
+      <button id="proJobSubmitBtn" class="primary big flow-submit" type="submit">שמירה ושליחה ב־WhatsApp</button>
     </div>
   </form>
 </section>
@@ -275,14 +275,7 @@ fbq('track','PageView',{content_name:'Mehirli'});
     <div id="jobMediaGrid" class="media-grid"></div>
   </div>
   </details>
-  </details><details class="job-tool-fold"><summary>רישום תשלום וסיום העבודה</summary>
-  <form id="actualProfitForm" class="card form-card">
-    <h3>סיום ורווח בפועל</h3>
-    <div class="two-cols"><label>סה״כ זמן כולל נסיעה<input id="actualHours" type="number" min="0.25" step="0.25" /></label><label>עלות חומרים בפועל<input id="actualMaterials" type="number" min="0" step="10" /></label></div>
-    <label>סכום שהתקבל בפועל<input id="actualPaid" type="number" min="0" step="10" /></label>
-    <button class="primary big" type="submit">שמור וסמן כעבודה ששולמה</button>
-    <div id="actualProfitResult" class="profit-result hidden"></div>
-  </form></details>
+  </details>
 </section>
 
 <section id="proSettingsView" class="view">
@@ -413,12 +406,12 @@ fbq('track','PageView',{content_name:'Mehirli'});
     <a id="subscriptionSupportBtn" class="secondary big pay-link hidden" href="#" target="_blank" rel="noopener">WhatsApp לתמיכה</a>
     <div id="subscriptionPaymentStatus" class="payment-status hidden"></div>
     <p class="note">התשלום כאן הוא על השימוש במחירלי. תשלומי הלקוחות ממשיכים להיכנס ישירות לבעל העסק.</p>
-    <button id="subscriptionFinanceBtn" class="secondary big" type="button">🧾 צפייה בכספים וייצוא המסמכים שלי</button>
+    <button id="subscriptionFinanceBtn" class="secondary big" type="button">🧾 סיכום הכנסות והוצאות שלי</button>
     <button id="subscriptionLogoutBtn" class="logout-link" type="button">התנתק</button>
   </div>
 </section>
 <section id="financeView" class="view">
- <div class="section-head"><button class="back" data-back-to="workspace">‹</button><div><span class="eyebrow">מנהל החשבונות הקטן שלי</span><h2>הכספים שלי</h2></div></div>
+ <div class="section-head"><button class="back" data-back-to="workspace">‹</button><div><span class="eyebrow">מעקב אישי לעסק</span><h2>סיכום הכנסות והוצאות חודשי</h2></div></div>
  <div id="financeSetupStatus" class="finance-notice" role="status"></div>
  <details id="financeSettings" class="card finance-options"><summary>⚙ הגדרות החישובים — מתחילים כאן</summary>
   <p class="note">מגדירים פעם אחת כדי שהאומדנים יתאימו לעסק שלכם. אפשר לעדכן בהמשך.</p>
@@ -429,7 +422,7 @@ fbq('track','PageView',{content_name:'Mehirli'});
  </details>
  <nav class="finance-tabs" aria-label="מסכי הכספים"><button type="button" data-finance-tab="income">הכנסות</button><button type="button" data-finance-tab="expense">הוצאות</button><button type="button" data-finance-tab="summary">סיכום</button></nav>
  <div id="financeError" class="finance-notice hidden" role="alert"></div>
- <div class="finance-toolbar"><label>חודש תחילת התקופה<input id="financeMonth" type="month" /></label><button id="financeRefresh" class="secondary" type="button">רענון</button></div>
+ <div class="finance-toolbar"><label>החודש להצגה<input id="financeMonth" type="month" /></label><button id="financeRefresh" class="secondary" type="button">רענון</button></div>
  <p id="financePeriodLabel" class="note"></p><p id="financeClosureStatus" class="finance-notice hidden"></p>
  <div id="financeReview" class="finance-notice hidden" role="status"></div><div id="financeExpiry" class="finance-notice hidden"></div>
  <div id="financeRecordsPanel">
@@ -440,11 +433,11 @@ fbq('track','PageView',{content_name:'Mehirli'});
   <div id="financeList" class="stack"></div>
  </div>
  <div id="financeSummaryPanel"><div id="financeSummary" class="finance-summary" aria-live="polite"></div>
-  <p class="note">אומדנים לפי המסמכים שאישרתם בתקופה. הסיכום מיועד לעזר ואינו דיווח לרשויות.</p>
+  <p class="note">אומדנים לפי הפרטים שאישרתם בתקופה. הסיכום מיועד לעזר ואינו דיווח לרשויות.</p>
   <details class="card finance-options"><summary>פירוט החישוב</summary><div id="financeCalculation"></div></details>
   <div class="finance-actions"><button id="financeExportCsv" class="secondary" type="button">הורדת סיכום</button><button id="financeExportZip" class="secondary" type="button">הורדת עותק עם מסמכים</button></div>
-  <button id="financeClose" class="primary big" type="button">סגירת התקופה והכנת החומר למסירה</button>
-  <p class="note">הורדת עותק אינה נועלת. סגירת תקופה שומרת גרסה קבועה; לאחריה מוסיפים תיקונים בתקופה פתוחה.</p>
+  <button hidden id="financeClose" class="primary big" type="button">סגירת תקופה</button>
+  <p class="note">הסיכום מיועד למעקב אישי לפי הנתונים שהזנתם. אין סנכרון אוטומטי עם חברת הסליקה.</p>
   <div id="financeExportParts" class="stack" aria-live="polite"></div>
  </div>
  <details class="card finance-options"><summary>אחסון מסמכים וחיבור לסליקה</summary>
@@ -459,20 +452,20 @@ fbq('track','PageView',{content_name:'Mehirli'});
  <form id="financeForm" class="card form-card" novalidate>
   <input id="financeEntryId" type="hidden" /><input id="financeCorrection" type="hidden" />
   <p id="financeSourceNote" class="finance-notice hidden"></p>
-  <div class="finance-document-box">
-   <h3>1. מצלמים או מעלים מסמך</h3><p id="financeUploadPolicy" class="note"></p>
+  <details class="finance-document-box">
+   <summary>צירוף צילום או מסמך — אופציונלי</summary><p id="financeUploadPolicy" class="note"></p>
    <div class="finance-actions"><button id="financeCameraBtn" class="primary" type="button">📷 צילום מסמך</button><button id="financeFileBtn" class="secondary" type="button">📎 העלאת קובץ</button></div>
    <input id="financeCamera" type="file" accept="image/*" capture="environment" hidden /><input id="financeFile" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" hidden />
    <img id="financePreview" class="finance-preview hidden" alt="המסמך לבדיקה" />
    <p id="financeFileStatus" role="status" aria-live="polite"></p>
    <button id="financeScan" class="secondary hidden" type="button">זיהוי פרטים מהצילום</button><button id="financeRemoveFile" class="ghost hidden" type="button">החלפת הקובץ שנבחר</button>
    <div id="financeExistingDocs" class="stack"></div>
-  </div>
-  <h3>2. בודקים את הפרטים</h3>
-  <label>סוג מסמך<select id="financeKind"><option value="expense">הוצאה</option><option value="income">הכנסה</option></select></label>
+  </details>
+  <h3>פרטי ההכנסה או ההוצאה</h3>
+  <label>סוג רישום<select id="financeKind"><option value="expense">הוצאה</option><option value="income">הכנסה</option></select></label>
   <label>ספק / לקוח<input id="financeCounterparty" maxlength="200" autocomplete="off" /></label>
-  <div class="finance-pair"><label>סכום כולל מע״מ (₪)<input id="financeAmount" type="number" step="0.01" inputmode="decimal" /></label><label>מע״מ שמופיע במסמך (₪)<input id="financeVat" type="number" step="0.01" inputmode="decimal" placeholder="0 אם אין מע״מ" /></label></div>
-  <div class="finance-pair"><label>תאריך המסמך<input id="financeDocDate" type="date" /></label><label>מספר מסמך<input id="financeNumber" maxlength="100" /></label></div>
+  <div class="finance-pair"><label>סכום כולל מע״מ (₪)<input id="financeAmount" type="number" step="0.01" inputmode="decimal" /></label><label>מע״מ לפי פרטי העסקה (₪)<input id="financeVat" type="number" step="0.01" inputmode="decimal" placeholder="0 אם אין מע״מ" /></label></div>
+  <div class="finance-pair"><label>תאריך הרישום<input id="financeDocDate" type="date" /></label><label>מספר מסמך — אם קיים<input id="financeNumber" maxlength="100" /></label></div>
   <label class="finance-check"><input id="financePaid" type="checkbox" /> הכסף התקבל / שולם</label><label id="financePaidDateLabel">תאריך התשלום<input id="financePaidDate" type="date" /></label>
   <details class="finance-options"><summary>פרטים נוספים — ניכוי מס, שיוך והערות</summary>
    <label id="financeWithholdingLabel">מס שנוכה במקור מהתשלום (₪)<input id="financeWithholding" type="number" step="0.01" inputmode="decimal" value="0" /></label>
@@ -484,19 +477,19 @@ fbq('track','PageView',{content_name:'Mehirli'});
    <p class="note">תיקון לתקופה סגורה משייכים לחודש פתוח. לזיכוי מזינים סכום ומע״מ שליליים ומצרפים מסמך זיכוי.</p>
    <label>הערות<textarea id="financeNotes" maxlength="2000"></textarea></label>
   </details>
-  <label class="finance-check"><input id="financeVerified" type="checkbox" /> בדקתי את הפרטים מול המסמך.</label>
+  <label class="finance-check"><input id="financeVerified" type="checkbox" /> בדקתי שהסכומים והפרטים נכונים.</label>
   <p id="financeFormError" class="finance-notice hidden" role="alert"></p>
   <button id="financeSave" class="primary big" type="submit">אישור והוספה לסיכום</button>
-  <button id="financeDraft" class="secondary big" type="button">שמירת המסמך לבדיקה אחר כך</button>
+  <button id="financeDraft" class="secondary big" type="button">שמירה לבדיקה אחר כך</button>
   <button id="financeCredit" class="secondary hidden" type="button">הוספת מסמך זיכוי מקושר</button>
   <button id="financeVoid" class="ghost hidden" type="button">מחיקת ההוצאה והמסמך</button>
  </form>
 </section>
 
-</main><a id="developerSupportLink" class="developer-support-link hidden" href="#" target="_blank" rel="noopener" aria-label="דיווח תקלה או שיחה עם המפתח ב־WhatsApp">💬 דיווח תקלה / שיחה עם המפתח</a><div id="postSignupInstall" class="post-signup-install hidden" role="dialog" aria-modal="true" aria-labelledby="postSignupInstallTitle"><div class="post-signup-install-card"><span>📲</span><b>ההרשמה הסתיימה</b><h2 id="postSignupInstallTitle">עכשיו מוסיפים את מחירלי לטלפון</h2><p id="postSignupInstallText">המערכת תציג את דרך ההתקנה המתאימה לטלפון שלך. לאחר ההתקנה פותחים את מחירלי מהסמל במסך הבית.</p><button id="postSignupInstallBtn" class="primary big" type="button">הוספת מחירלי לטלפון</button><button id="postSignupEditBtn" class="secondary big install-edit-btn" type="button">חזרה לתיקון פרטי ההרשמה</button><small>אם תצא לפני ההתקנה, המסך הזה יוצג שוב בכניסה הבאה.</small></div></div><div id="firstQuoteWelcome" class="post-signup-install hidden" role="dialog" aria-modal="true" aria-labelledby="firstQuoteWelcomeTitle"><div class="post-signup-install-card first-quote-welcome-card"><span>✅</span><b>מחירלי מותקנת ומוכנה</b><h2 id="firstQuoteWelcomeTitle">בוא נכין את הצעת המחיר הראשונה</h2><p>נכניס את פרטי הלקוח והעבודה, נחשב מחיר ונשלח הצעה מקצועית.</p><button id="firstQuoteWelcomeBtn" class="primary big" type="button">הכנת הצעת המחיר הראשונה</button></div></div><div id="toast" class="toast"></div></div>
+</main><a id="developerSupportLink" class="developer-support-link hidden" href="#" target="_blank" rel="noopener" aria-label="דיווח תקלה או שיחה עם המפתח ב־WhatsApp">💬 דיווח תקלה / שיחה עם המפתח</a><div id="postSignupInstall" class="post-signup-install hidden" role="dialog" aria-modal="true" aria-labelledby="postSignupInstallTitle"><div class="post-signup-install-card"><span>📲</span><b>ההרשמה הסתיימה</b><h2 id="postSignupInstallTitle">עכשיו מוסיפים את מחירלי לטלפון</h2><p id="postSignupInstallText">המערכת תציג את דרך ההתקנה המתאימה לטלפון שלך. לאחר ההתקנה פותחים את מחירלי מהסמל במסך הבית.</p><button id="postSignupInstallBtn" class="primary big" type="button">הוספת מחירלי לטלפון</button><button id="postSignupEditBtn" class="secondary big install-edit-btn" type="button">חזרה לתיקון פרטי ההרשמה</button><small>אם תצא לפני ההתקנה, המסך הזה יוצג שוב בכניסה הבאה.</small></div></div><div id="firstQuoteWelcome" class="post-signup-install hidden" role="dialog" aria-modal="true" aria-labelledby="firstQuoteWelcomeTitle"><div class="post-signup-install-card first-quote-welcome-card"><button id="firstQuoteWelcomeClose" class="welcome-close secondary" type="button" aria-label="סגירת ההזמנה להצעת מחיר">×</button><span>✅</span><b>מחירלי מותקנת ומוכנה</b><h2 id="firstQuoteWelcomeTitle">רוצה להכין הצעת מחיר ראשונה?</h2><p>נכניס את פרטי הלקוח והעבודה, נחשב מחיר ונשלח הצעה מקצועית.</p><button id="firstQuoteWelcomeBtn" class="primary big" type="button">הכנת הצעת המחיר הראשונה</button><button id="firstQuoteWelcomeLater" class="secondary big" type="button">לא עכשיו, מעבר למסך הבית</button></div></div><div id="toast" class="toast"></div></div>
 <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"></script>
 <script src="traffic.js?v=113"></script>
-<script src="app.js?v=129"></script>
-<script src="finance-core.js?v=118"></script>
-<script src="finance.js?v=119"></script>
+<script src="app.js?v=130"></script>
+<script src="finance-core.js?v=130"></script>
+<script src="finance.js?v=130"></script>
 </body></html>

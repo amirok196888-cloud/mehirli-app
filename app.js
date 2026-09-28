@@ -208,10 +208,23 @@ function showPostSignupInstall(){
   if($('#postSignupInstallText'))$('#postSignupInstallText').textContent=isAndroidInAppBrowser()?'פייסבוק אינו מאפשר התקנת אפליקציות. בלחיצה הבאה מחירלי תיפתח ב־Chrome, ושם ניתן יהיה להתקין.':isIosDevice()?'באייפון מתקינים דרך Safari: שיתוף ← הוספה למסך הבית ← הוסף.':'באנדרואיד לוחצים על הכפתור ומאשרים התקנת אפליקציה.';
   overlay.classList.remove('hidden')
 }
+const dismissedQuoteWelcome=new Set();
+function quoteWelcomeKey(){return 'mehirli:quote-welcome-dismissed:'+state.user?.id}
 function showFirstQuoteWelcome(){
   $('#postSignupInstall')?.classList.add('hidden');
+  if(!state.user||state.isAdmin||state.onboarding?.first_quote_created_at||state.onboarding?.quote_welcome_dismissed_at||dismissedQuoteWelcome.has(state.user.id))return;
+  try{if(localStorage.getItem(quoteWelcomeKey()))return}catch{}
   $('#firstQuoteWelcome')?.classList.remove('hidden')
 }
+function dismissFirstQuoteWelcome(){
+  $('#firstQuoteWelcome')?.classList.add('hidden');
+  if(!state.user)return;
+  dismissedQuoteWelcome.add(state.user.id);
+  try{localStorage.setItem(quoteWelcomeKey(),'1')}catch{}
+  // Persist per account as well as locally; never hold up navigation for this request.
+  void db.rpc('dismiss_my_quote_welcome_v130').then(({error})=>{if(error)console.warn('Welcome preference sync pending')}).catch(()=>{});
+}
+
 function openPendingSignupEdit(){
   $('#postSignupInstall')?.classList.add('hidden');
   setAuthMode('signup');
@@ -514,7 +527,7 @@ function calculateProPrice(updateQuote=true){
   const s=state.proSettings||defaultProSettings(),mode=$('#proPricingMode')?.value||'hourly',hours=Math.max(.25,numberValue('#proLaborHours')),basePrice=numberValue('#proBasePrice'),materials=numberValue('#proMaterialsCost'),travel=numberValue('#proTravelCost'),assistant=numberValue('#proAssistantCost');
   const labor=mode==='fixed'?basePrice:hours*basePrice;
   const base=labor+materials+travel+assistant;
-  const calculatedFloor=round10(base),floorInput=$('#priceFloor');
+  const calculatedFloor=Math.round(base*100)/100,floorInput=$('#priceFloor');
   if(floorInput?.dataset.manualOverride!=='true')floorInput.value=calculatedFloor;
   const floor=Math.max(0,numberValue('#priceFloor'));
   const recommended=floor;
@@ -533,10 +546,10 @@ function analyzeProfessionalJob(){
 }
 async function openNewProJob(skipDraft=false){
   if(!requireServiceAccess())return;
-  state.editingProJob=null;state.quoteRevisionSource=null;clearTimeout(proJobDraftTimer);$('#proJobFormTitle').textContent='תמחור עבודה';$('#proJobFormNote').textContent='פנייה חדשה';$('#proJobSubmitBtn').textContent='שמור ועבור לשליחה ב־WhatsApp';$('#cancelQuoteEditBtn').classList.add('hidden');const s=await loadProSettings();await Promise.all([loadProCustomers(),loadProServices()]);$('#proJobForm').reset();$('#proReminderAt').disabled=false;state.quoteItems=[];renderQuoteItemsEditor();renderCustomerOptions();setTrade(ANALYSIS_RULES[s.trade]?s.trade:'handyman');
+  state.editingProJob=null;state.quoteRevisionSource=null;clearTimeout(proJobDraftTimer);$('#proJobFormTitle').textContent='תמחור עבודה';$('#proJobFormNote').textContent='פנייה חדשה';$('#proJobSubmitBtn').textContent='שמירה ושליחה ב־WhatsApp';$('#cancelQuoteEditBtn').classList.add('hidden');const s=await loadProSettings();await Promise.all([loadProCustomers(),loadProServices()]);$('#proJobForm').reset();$('#proReminderAt').disabled=false;state.quoteItems=[];renderQuoteItemsEditor();renderCustomerOptions();setTrade(ANALYSIS_RULES[s.trade]?s.trade:'handyman');
   $('#proTravelCost').value=s.default_travel_cost||0;$('#proLaborHours').value=1;$('#proMaterialsCost').value=0;$('#proAssistantCost').value=0;$('#proDepositAmount').value=0;$('#proDiscountType').value='none';$('#proDiscountValue').value=0;$('#proDiscountValue').disabled=true;$('#priceFloor').value='';$('#priceFloor').dataset.manualOverride='false';$('#proQuotedPrice').value='';$('#proQuotedPrice').dataset.manualOverride='false';const valid=new Date();valid.setDate(valid.getDate()+14);$('#proQuoteValidUntil').value=valid.toISOString().slice(0,10);setPricingMode(s.default_pricing_mode||'hourly',true);const restored=skipDraft!==true&&restoreProJobDraft();setJobStep(0);show('#proJobFormView');if(restored)toast('הטיוטה הקודמת שוחזרה')
 }
-function quoteCanEdit(job){return !job.client_approved_at&&['lead','quoted'].includes(job.status)&&!(Number(job.actual_paid)>0)}
+function quoteCanEdit(job){return !job.client_approved_at&&['lead','quoted'].includes(job.status)&&!(Number(job.actual_paid)>0)&&!Number(job.addition_total)&&!Number(job.adjustment_discount_total)}
 function dateTimeInputValue(value){if(!value)return '';const date=new Date(value);return new Date(date.getTime()-date.getTimezoneOffset()*60000).toISOString().slice(0,16)}
 async function openQuoteEditor(id){
   if(!requireServiceAccess())return;
@@ -559,7 +572,7 @@ async function openQuoteEditor(id){
   $('#proDiscountValue').disabled=$('#proDiscountType').value==='none';
   $('#proJobFormTitle').textContent=state.editingProJob?'עריכת הצעת מחיר':'עריכת עותק חדש';
   $('#proJobFormNote').textContent=state.editingProJob?'אחרי השמירה יש לשלוח את הקישור המעודכן. הקישור הישן יפסיק לפעול.':'ההצעה המקורית נשמרת ללא שינוי. השמירה תיצור הצעה חדשה לשליחה ולאישור.';
-  $('#proJobSubmitBtn').textContent=state.editingProJob?'שמור שינויים ועבור לשליחה':'שמור כהצעה חדשה ועבור לשליחה';
+  $('#proJobSubmitBtn').textContent=state.editingProJob?'שמירת שינויים ושליחה':'שמירה כהצעה חדשה ושליחה';
   $('#cancelQuoteEditBtn').classList.remove('hidden');$('#proReminderAt').disabled=!!state.editingProJob;setJobStep(-1);show('#proJobFormView');
 }
 $('#cancelQuoteEditBtn').onclick=async()=>{const job=state.editingProJob||state.quoteRevisionSource;state.editingProJob=null;state.quoteRevisionSource=null;clearTimeout(proJobDraftTimer);if(job)await openProJobDetail(job.id)};
@@ -595,7 +608,7 @@ function groupJobFilesByCustomer(jobs){
 }
 function renderProJobCards(){
   const box=$('#proJobsList'),filter=$('#proJobStatusFilter').value,rows=state.proJobs.filter(j=>proJobMatchesFilter(j,filter));
-  box.innerHTML=rows.length?groupJobFilesByCustomer(rows).map(group=>`<section class="customer-job-files"><header><h3>${esc(group.name)}</h3><span>${group.jobs.length} תיקי עבודה</span></header><div class="customer-job-files-list">${group.jobs.map(j=>`<button type="button" class="job-card" data-manage-job="${esc(j.id)}"><div class="job-card-top"><b>תיק עבודה מס׳ ${esc(jobFileNumber(j))}</b><span class="status-pill status-${esc(j.status)}">${esc(jobStatusHe[j.status]||j.status)}</span></div><p>${esc(j.description)}</p><div class="job-card-bottom"><span>${esc(j.city||'')}</span><strong>${money(j.quoted_price??j.recommended_price)}</strong></div><small>פתיחת תיק העבודה ←</small></button>`).join('')}</div></section>`).join(''):'<div class="empty-state card"><h3>אין תיקי עבודה להצגה</h3><p>עבודה חדשה תישמר בתיק תחת שם הלקוח.</p></div>';
+  box.innerHTML=rows.length?groupJobFilesByCustomer(rows).map(group=>`<section class="customer-job-files"><header><h3>${esc(group.name)}</h3><span>${group.jobs.length} תיקי עבודה</span></header><div class="customer-job-files-list">${group.jobs.map(j=>`<button type="button" class="job-card" data-manage-job="${esc(j.id)}"><div class="job-card-top"><b>תיק עבודה מס׳ ${esc(jobFileNumber(j))}</b><span class="status-pill status-${esc(j.status)}">${esc(jobStatusHe[j.status]||j.status)}</span></div><p>${esc(j.description)}</p><div class="job-card-bottom"><span>${esc(j.city||'')}</span><strong>${money(jobBalance(j).total)}</strong></div><small>פתיחת תיק העבודה ←</small></button>`).join('')}</div></section>`).join(''):'<div class="empty-state card"><h3>אין תיקי עבודה להצגה</h3><p>עבודה חדשה תישמר בתיק תחת שם הלקוח.</p></div>';
   box.querySelectorAll('[data-manage-job]').forEach(b=>b.onclick=()=>openProJobDetail(b.dataset.manageJob))
 }
 
@@ -610,7 +623,7 @@ function resetServiceForm(){const form=$('#serviceForm');form.reset();$('#servic
 function renderServices(){const box=$('#servicesList');box.innerHTML=state.proServices.length?state.proServices.map(s=>`<div class="item service-card"><h3>${tradeIcon(s.trade)} ${esc(s.name)}</h3><p>${esc(s.quote_scope||'ללא פירוט קבוע')}</p><div class="service-meta"><span class="badge">${PRICING_MODE_HE[s.pricing_mode]||''}</span><span class="badge">${money(s.base_price)}</span><span class="badge">${Number(s.default_hours)} שעות</span></div><div class="item-actions"><button class="secondary" data-edit-service="${s.id}">ערוך</button><button class="ghost" data-delete-service="${s.id}">מחק</button></div></div>`).join(''):'<div class="card empty-state"><span>🏷️</span><h3>עדיין אין תבניות אישיות</h3><p>התבניות המובנות כבר זמינות בפתיחת עבודה. כאן אפשר להוסיף את השירותים והמחירים שלך.</p></div>';box.querySelectorAll('[data-edit-service]').forEach(b=>b.onclick=()=>{const s=state.proServices.find(x=>x.id===b.dataset.editService);if(!s)return;$('#serviceId').value=s.id;$('#serviceName').value=s.name;$('#serviceTrade').value=s.trade;$('#servicePricingMode').value=s.pricing_mode;$('#serviceBasePrice').value=s.base_price;$('#serviceDefaultHours').value=s.default_hours;$('#serviceMaterialsCost').value=s.default_materials_cost;$('#serviceScope').value=s.quote_scope||'';$('#cancelServiceEditBtn').classList.remove('hidden');window.scrollTo({top:0,behavior:'smooth'})});box.querySelectorAll('[data-delete-service]').forEach(b=>b.onclick=async()=>{if(!confirm('למחוק את התבנית מהמחירון?'))return;const {error}=await db.from('pro_services').delete().eq('id',b.dataset.deleteService).eq('professional_id',state.user.id);if(error){toast(error.message);return}await loadProServices();renderServices();toast('התבנית נמחקה')})}
 async function openPriceBook(){if(!requireServiceAccess())return;await Promise.all([loadProSettings(),loadProServices()]);resetServiceForm();renderServices();show('#priceBookView')}
 $('#serviceForm').onsubmit=async e=>{e.preventDefault();const id=$('#serviceId').value,row={professional_id:state.user.id,name:$('#serviceName').value.trim(),trade:$('#serviceTrade').value,pricing_mode:$('#servicePricingMode').value,base_price:numberValue('#serviceBasePrice'),default_hours:numberValue('#serviceDefaultHours'),default_materials_cost:numberValue('#serviceMaterialsCost'),quote_scope:$('#serviceScope').value.trim()||null};const query=id?db.from('pro_services').update(row).eq('id',id).eq('professional_id',state.user.id):db.from('pro_services').insert(row);const {error}=await query;if(error){toast(error.message);return}await loadProServices();resetServiceForm();renderServices();toast(id?'התבנית עודכנה':'התבנית נוספה למחירון')};$('#cancelServiceEditBtn').onclick=resetServiceForm;
-function renderCustomers(){const search=$('#customerSearch').value.trim().toLowerCase(),rows=state.proCustomers.filter(c=>[c.name,c.phone,c.city].some(v=>String(v||'').toLowerCase().includes(search))),box=$('#customersList');box.innerHTML=rows.length?rows.map(c=>{const jobs=state.proJobs.filter(j=>j.customer_id===c.id||normalizedPhone(j.customer_phone)===c.normalized_phone).slice(0,4);return `<div class="item customer-card"><div class="customer-card-head"><div><h3>${esc(c.name)}</h3><span>${esc(c.phone)}${c.city?` · ${esc(c.city)}`:''}</span></div><a class="secondary tiny" href="https://wa.me/${waNumber(c.phone)}" target="_blank" rel="noopener">WhatsApp</a></div><div class="customer-history"><b>${jobs.length} עבודות אחרונות</b>${jobs.length?jobs.map(j=>`<div class="customer-history-row"><span>${esc(j.description)}</span><strong>${money(j.quoted_price)}</strong></div>`).join(''):'<p class="muted">עדיין אין היסטוריה.</p>'}</div></div>`}).join(''):'<div class="card empty-state"><span>👥</span><h3>לא נמצאו לקוחות</h3><p>לקוח נשמר אוטומטית כשפותחים עבורו עבודה.</p></div>'}
+function renderCustomers(){const search=$('#customerSearch').value.trim().toLowerCase(),rows=state.proCustomers.filter(c=>[c.name,c.phone,c.city].some(v=>String(v||'').toLowerCase().includes(search))),box=$('#customersList');box.innerHTML=rows.length?rows.map(c=>{const jobs=state.proJobs.filter(j=>j.customer_id===c.id||normalizedPhone(j.customer_phone)===c.normalized_phone).slice(0,4);return `<div class="item customer-card"><div class="customer-card-head"><div><h3>${esc(c.name)}</h3><span>${esc(c.phone)}${c.city?` · ${esc(c.city)}`:''}</span></div><a class="secondary tiny" href="https://wa.me/${waNumber(c.phone)}" target="_blank" rel="noopener">WhatsApp</a></div><div class="customer-history"><b>${jobs.length} עבודות אחרונות</b>${jobs.length?jobs.map(j=>`<div class="customer-history-row"><span>${esc(j.description)}</span><strong>${money(jobBalance(j).total)}</strong></div>`).join(''):'<p class="muted">עדיין אין היסטוריה.</p>'}</div></div>`}).join(''):'<div class="card empty-state"><span>👥</span><h3>לא נמצאו לקוחות</h3><p>לקוח נשמר אוטומטית כשפותחים עבורו עבודה.</p></div>'}
 async function openCustomers(){if(!requireServiceAccess())return;await Promise.all([loadProCustomers(),loadProJobs()]);$('#customerSearch').value='';renderCustomers();show('#customersView')}
 $('#customerSearch').oninput=renderCustomers;
 function calendarEntries(){const jobs=state.proJobs.filter(j=>j.scheduled_at&&!['cancelled','paid'].includes(j.status)).map(j=>({id:`job:${j.id}`,date:j.scheduled_at,title:j.customer_name,body:j.description,kind:'job'})),reminders=state.proReminders.map(r=>({id:r.id,date:r.remind_at,title:r.message,body:'תזכורת',kind:'reminder'})),appointments=state.proAppointments.map(a=>({id:a.id,date:a.appointment_at,title:a.customer_name,body:[a.title,a.address].filter(Boolean).join(' · '),kind:'appointment'}));return [...jobs,...appointments,...reminders].sort((a,b)=>new Date(a.date)-new Date(b.date))}
@@ -639,6 +652,8 @@ $('#proServiceTemplate').onchange=e=>{const t=serviceTemplatesForTrade($('#proJo
 if(SpeechRecognition){const proRec=new SpeechRecognition();proRec.lang='he-IL';$('#proVoiceBtn').onclick=()=>{try{proRec.start();$('#proVoiceStatus').textContent='מקשיב…'}catch{}};proRec.onresult=e=>{$('#proJobDescription').value=e.results[0][0].transcript||'';$('#proVoiceStatus').textContent='הטקסט נקלט. אפשר לבדוק ולערוך אותו.'}}else{$('#proVoiceBtn').disabled=true;$('#proVoiceStatus').textContent='הכתבה קולית אינה נתמכת בדפדפן הזה.'}
 $('#proJobForm').onsubmit=async e=>{
   e.preventDefault();if(!requireServiceAccess())return;
+  const submitButton=$('#proJobSubmitBtn');if(submitButton.disabled)return;submitButton.disabled=true;
+  try{
   const invalid=[...e.currentTarget.elements].find(input=>input.willValidate&&!input.checkValidity());
   if(invalid){setJobStep(Number(invalid.closest('[data-job-panel]').dataset.jobPanel));invalid.reportValidity();return}
   const analysis=analyzeProfessionalJob(false),pricing=calculateProPrice(false),scheduled=$('#proScheduledAt').value;
@@ -654,11 +669,12 @@ $('#proJobForm').onsubmit=async e=>{
       const {data,error}=await db.rpc('edit_pro_quote_v111',{p_job_id:editing.id,p_expected_updated_at:editing.updated_at,p_quote:row,p_items:items});
       if(error){const messages={quote_changed:'ההצעה השתנתה מאז שפתחת אותה. חזור לתיק העבודה ופתח שוב לעריכה.',quote_locked:'ההצעה כבר אושרה או נמצאת בביצוע. חזור ופתח עותק חדש לעריכה.'};toast(messages[error.message]||'השינויים לא נשמרו: '+error.message);return}
       const pending=quotePdfCache.get(String(editing.id));if(pending?.status==='loading')await pending.promise.catch(()=>{});quotePdfCache.delete(String(editing.id));
-      state.editingProJob=null;state.selectedProJob={...data,items};clearTimeout(proJobDraftTimer);await loadProJobs();await renderProJobDetail({readyToSend:true});show('#proJobDetailView');toast('השינויים נשמרו. שלח ללקוח את הקישור המעודכן.');
+      state.editingProJob=null;state.selectedProJob={...data,items};clearTimeout(proJobDraftTimer);await loadProJobs();await renderProJobDetail({readyToSend:true});show('#proJobDetailView');toast('השינויים נשמרו. פותח WhatsApp…');await sendDigitalQuoteToWhatsapp(state.selectedProJob);
     }finally{button.disabled=false}
     return
   }
-  const {data,error}=await db.from('pro_jobs').insert(row).select('*').single();if(error){toast('לא נשמר: '+error.message);return}const cleanItems=state.quoteItems.filter(i=>String(i.description||'').trim()).map((i,index)=>({job_id:data.id,professional_id:state.user.id,description:String(i.description).trim(),quantity:Number(i.quantity)||1,unit_price:Number(i.unit_price)||0,estimated_cost:Number(i.estimated_cost)||0,sort_order:index}));if(!cleanItems.length)cleanItems.push({job_id:data.id,professional_id:state.user.id,description:row.description,quantity:1,unit_price:pricing.discountAmount>0?pricing.subtotal:pricing.total,estimated_cost:row.materials_cost,sort_order:0});const {error:itemsError}=await db.from('pro_job_items').insert(cleanItems);if(itemsError){await db.from('pro_jobs').delete().eq('id',data.id);toast('סעיפי ההצעה לא נשמרו: '+itemsError.message);return}const reminder=$('#proReminderAt').value;if(reminder)await db.from('pro_reminders').insert({job_id:data.id,professional_id:state.user.id,remind_at:new Date(reminder).toISOString(),kind:'quote_followup',message:`מעקב הצעה מול ${customerName}`});if(!state.quoteRevisionSource)clearProJobDraft();state.quoteRevisionSource=null;trackAppEvent('first_job_created');if(state.onboarding)state.onboarding.first_quote_created_at=data.created_at||new Date().toISOString();state.selectedProJob={...data,items:cleanItems};await loadProJobs();await renderProJobDetail({readyToSend:true});show('#proJobDetailView');toast('ההצעה נשמרה ומוכנה לשליחה ב־WhatsApp')
+  const {data,error}=await db.from('pro_jobs').insert(row).select('*').single();if(error){toast('לא נשמר: '+error.message);return}const cleanItems=state.quoteItems.filter(i=>String(i.description||'').trim()).map((i,index)=>({job_id:data.id,professional_id:state.user.id,description:String(i.description).trim(),quantity:Number(i.quantity)||1,unit_price:Number(i.unit_price)||0,estimated_cost:Number(i.estimated_cost)||0,sort_order:index}));if(!cleanItems.length)cleanItems.push({job_id:data.id,professional_id:state.user.id,description:row.description,quantity:1,unit_price:pricing.discountAmount>0?pricing.subtotal:pricing.total,estimated_cost:row.materials_cost,sort_order:0});const {error:itemsError}=await db.from('pro_job_items').insert(cleanItems);if(itemsError){await db.from('pro_jobs').delete().eq('id',data.id);toast('סעיפי ההצעה לא נשמרו: '+itemsError.message);return}const reminder=$('#proReminderAt').value;if(reminder)await db.from('pro_reminders').insert({job_id:data.id,professional_id:state.user.id,remind_at:new Date(reminder).toISOString(),kind:'quote_followup',message:`מעקב הצעה מול ${customerName}`});if(!state.quoteRevisionSource)clearProJobDraft();state.quoteRevisionSource=null;trackAppEvent('first_job_created');if(state.onboarding)state.onboarding.first_quote_created_at=data.created_at||new Date().toISOString();state.selectedProJob={...data,items:cleanItems};await loadProJobs();await renderProJobDetail({readyToSend:true});show('#proJobDetailView');toast('ההצעה נשמרה. פותח WhatsApp…');await sendDigitalQuoteToWhatsapp(state.selectedProJob)
+  }finally{submitButton.disabled=false}
 };
 function quoteUrl(job){const url=new URL('./quote.html',location.href);url.searchParams.set('quote',job.public_token);return url.href}
 function whatsappUrl(phone,message){const number=waNumber(phone);return number?`https://wa.me/${number}?text=${encodeURIComponent(message)}`:''}
@@ -678,7 +694,7 @@ function refreshDeveloperSupportLink(){
 function questionMessage(job){return `🟠 מחירלי | השלמת פרטים להצעת מחיר\n\nשלום ${job.customer_name}, כדי להכין את העבודה והמחיר בצורה מדויקת אשמח למענה קצר:\n\n${(job.customer_questions||[]).map((q,i)=>`${i+1}. ${q}`).join('\n')}\n\nתודה, ${state.businessProfile?.business_name||state.profile?.full_name||'מחירלי'}\n\nנשלח באמצעות מחירלי`}
 function quoteMessage(job){const link=safePaymentUrl(state.proSettings?.payment_link);return `🟠 מחירלי | הצעת מחיר\n\nשלום ${job.customer_name}, הכנתי עבורך הצעת מחיר עבור: ${job.description}\n\nמחיר: ${money(job.quoted_price)}${Number(job.deposit_amount)>0?`\nמקדמה: ${money(job.deposit_amount)}`:''}\n\nלצפייה, אישור והורדת PDF לטלפון:\n${quoteUrl(job)}${link?`\n\nלתשלום ישירות לבית העסק, בהתאם לסכום שסוכם:\n${link}`:''}\n\nנשלח באמצעות מחירלי`}
 function storedQuoteMessage(job){return `🟠 מחירלי | הצעת מחיר\n\nשלום ${job.customer_name}, הכנתי עבורך הצעת מחיר עבור: ${job.description}\n\nמחיר: ${money(job.quoted_price)}${Number(job.deposit_amount)>0?`\nמקדמה: ${money(job.deposit_amount)}`:''}\n\nלאישור ההצעה:\n${quoteUrl(job)}\n\nקובץ הצעת המחיר מצורף כ־PDF.\n\nנשלח באמצעות מחירלי`}
-function paymentMessage(job){const amount=Math.max(0,Number(job.quoted_price||0)-Number(job.actual_paid||0)),link=safePaymentUrl(state.proSettings?.payment_link),provider=paymentProviderLabel(state.proSettings?.payment_provider);return `🟠 מחירלי | קישור לתשלום\n\nשלום ${job.customer_name}, לתשלום ${money(amount)} עבור העבודה: ${job.description}.${link?`\n\nקישור לתשלום ישיר ומאובטח באמצעות ${provider}:\n${link}`:''}\n\nהתשלום מועבר ישירות לבית העסק.\n\nנשלח באמצעות מחירלי`}
+function paymentMessage(job){const amount=jobBalance(job).remaining,link=safePaymentUrl(state.proSettings?.payment_link),provider=paymentProviderLabel(state.proSettings?.payment_provider);return `🟠 מחירלי | קישור לתשלום\n\nשלום ${job.customer_name}, לתשלום ${money(amount)} עבור העבודה: ${job.description}.${link?`\n\nקישור לתשלום ישיר ומאובטח באמצעות ${provider}:\n${link}`:''}\n\nהתשלום מועבר ישירות לבית העסק.\n\nנשלח באמצעות מחירלי`}
 function quotePdfFileName(job){
   const customer=String(job.customer_name||'לקוח').replace(/[\\/:*?"<>|]+/g,'-').trim()||'לקוח';
   return `הצעת-מחיר-${customer}.pdf`
@@ -907,16 +923,15 @@ function compactJobDetail(){
 
 async function renderProJobDetail({readyToSend=false}={}){
   const j=state.selectedProJob;if(!j)return;await loadProSettings();if(!j.items)await loadJobExtras(j);$('#jobDetailTitle').textContent='תיק עבודה — '+(j.customer_name||'לקוח ללא שם');$('#jobDetailCustomer').textContent='תיק מס׳ '+jobFileNumber(j);
-  const below=Number(j.quoted_price)<Number(j.price_floor),remaining=Math.max(0,Number(j.quoted_price||0)-Number(j.actual_paid||0));
+  const balance=jobBalance(j),remaining=balance.remaining;
   $('#jobDetailContent').innerHTML=`<div class="quote-send-callout card"><span id="quoteStorageStatus" class="quote-send-status stored">${readyToSend?'ההצעה נשמרה ומוכנה לשליחה':'הצעת המחיר'}</span><h3>ההצעה ל־${esc(j.customer_name)}</h3><p>${readyToSend?'אפשר לשלוח כעת את ההצעה ללקוח.':'אפשר לצפות בהצעה או לערוך אותה.'}</p><a class="secondary quote-preview-action" href="${esc(quoteUrl(j))}" target="_blank" rel="noopener">צפייה בהצעה</a>${readyToSend?'<button class="primary big whatsapp-action" data-job-action="quote-whatsapp">💬 שלח הצעה דיגיטלית ב־WhatsApp</button>':''}</div>
   <div class="job-hero card"><div class="job-card-top"><span class="status-pill status-${j.status}">${jobStatusHe[j.status]||j.status}</span></div><span class="quote-number">הצעה מס׳ ${esc(j.quote_number||String(j.id).slice(0,8))} · ${PRICING_MODE_HE[j.pricing_mode]||'תמחור'}</span><h3>${esc(j.description)}</h3><p>👤 ${esc(j.customer_name)} · 📍 ${esc(j.city||'לא צוין')} · 🗓️ ${esc(formatDateTime(j.scheduled_at))}</p><div class="contact-actions"><a class="secondary" href="tel:${esc(j.customer_phone)}">📞 התקשר</a><button class="secondary" data-job-action="questions">💬 שלח שאלות</button></div></div>
-  <div class="detail-price-grid"><div class="card"><small>מחיר מינימום</small><strong>${money(j.price_floor)}</strong></div><div class="card featured"><small>הצעה ללקוח</small><strong>${money(j.quoted_price)}</strong></div><div class="card"><small>יתרה לתשלום</small><strong>${money(remaining)}</strong></div></div>
-  ${below?'<div class="price-warning">⚠️ המחיר ללקוח נמוך ממחיר המינימום שחושב לעבודה.</div>':''}
+  <div class="detail-price-grid"><div class="card"><small>סכום כולל</small><strong>${money(balance.total)}</strong></div><div class="card"><small>התקבל עד עכשיו</small><strong>${money(balance.paid)}</strong></div><div class="card featured"><small>יתרה לתשלום</small><strong>${money(remaining)}</strong></div></div><div id="jobLedgerPanel"></div>
   <div class="card"><h3>הצעת המחיר</h3><button class="secondary" data-job-action="edit-quote">✏️ ${quoteCanEdit(j)?'עריכת הצעת המחיר':'עריכת עותק חדש'}</button><p>${esc(j.quote_scope||'לא נוסף פירוט להצעה.')}</p>${quoteItemsView(j)}<div class="quote-totals">${Number(j.discount_amount)>0?`<div><span>לפני הנחה</span><b>${money(j.subtotal)}</b></div><div><span>הנחה</span><b>− ${money(j.discount_amount)}</b></div>`:''}<div class="final"><span>סה״כ</span><b>${money(j.quoted_price)}</b></div></div>${j.warranty_text?`<p><b>אחריות:</b> ${esc(j.warranty_text)}</p>`:''}${j.quote_terms?`<div class="terms-box">${esc(j.quote_terms)}</div>`:''}<div class="action-grid"><button class="secondary" data-job-action="quote-pdf" disabled>⏳ מכין PDF…</button><button class="secondary" data-job-action="copy">העתק קישור להצעה</button>${safePaymentUrl(state.proSettings?.payment_link)?'<button class="secondary" data-job-action="payment">שלח קישור לתשלום</button>':''}</div><p class="stored-pdf-note">אפשר ליצור ולשמור PDF גם מתיק העבודה. הלקוח יכול להוריד עותק משלו ישירות מההצעה הדיגיטלית.</p></div>
   <div class="card"><h3>תזכורת חדשה</h3><div class="reminder-inline"><label>מועד<input id="detailReminderAt" type="datetime-local"></label><button class="secondary" data-job-action="add-reminder">שמור</button></div></div>
-  <div class="card"><label class="inline-select">מצב העבודה<select id="jobStatusSelect">${Object.entries(jobStatusHe).map(([v,l])=>`<option value="${v}" ${j.status===v?'selected':''}>${l}</option>`).join('')}</select></label></div>
+  <div class="card"><label class="inline-select">מצב העבודה<select id="jobStatusSelect">${Object.entries(jobStatusHe).filter(([v])=>v!=='paid'||j.status==='paid').map(([v,l])=>`<option value="${v}" ${j.status===v?'selected':''}>${l}</option>`).join('')}</select></label></div>
   <div class="analysis-display card"><div><h3>שאלות ללקוח</h3>${renderList(j.customer_questions)}</div><div><h3>ציוד והכנה</h3>${renderList(j.tools_needed)}</div>${j.warnings?.length?`<div class="safety-box">${j.warnings.map(w=>`<p>⚠️ ${esc(w)}</p>`).join('')}</div>`:''}</div>`;
-  const trackedHours=elapsedSeconds()/3600,rounding=(Number(state.proSettings?.time_rounding_minutes)||15)/60,roundedTracked=trackedHours?Math.ceil(trackedHours/rounding)*rounding:0;$('#actualHours').value=j.actual_hours||roundedTracked||j.labor_hours||'';$('#actualMaterials').value=j.actual_materials_cost??j.materials_cost??'';$('#actualPaid').value=j.actual_paid||'';renderActualProfit(j);
+  await renderJobLedger(j);
   const merchantLink=safePaymentUrl(state.proSettings?.payment_link);
   const paymentPanel=document.createElement('div');paymentPanel.className='card merchant-payment-setup';
   paymentPanel.innerHTML=merchantLink?'<b>💳 קישור התשלום של העסק מחובר</b><p>הקישור מצורף לוואטסאפ ומופיע ללקוח אחרי אישור ההצעה.</p><button class="secondary" data-config-payment>עדכון קישור התשלום</button>':'<b>💳 קבלת תשלום מהלקוח</b><p>עדיין לא הוספת קישור סליקה משלך, ולכן הלקוח לא רואה כפתור תשלום.</p><button class="primary" data-config-payment>הוסף את קישור התשלום של העסק</button>';
@@ -928,21 +943,35 @@ async function renderProJobDetail({readyToSend=false}={}){
   $('#jobDetailContent').querySelector('[data-job-action="copy"]').onclick=()=>copyText(quoteUrl(j));
   const paymentButton=$('#jobDetailContent').querySelector('[data-job-action="payment"]');if(paymentButton)paymentButton.onclick=()=>openWhatsapp(j.customer_phone,paymentMessage(j));
   $('#jobDetailContent').querySelector('[data-job-action="add-reminder"]').onclick=async()=>{const value=$('#detailReminderAt').value;if(!value){toast('בחר מועד לתזכורת');return}const {error}=await db.from('pro_reminders').insert({job_id:j.id,professional_id:state.user.id,remind_at:new Date(value).toISOString(),kind:'followup',message:`טיפול בעבודה של ${j.customer_name}`});if(error){toast(error.message);return}$('#detailReminderAt').value='';toast('התזכורת נשמרה')};
-  $('#jobStatusSelect').onchange=async e=>{if(!requireServiceAccess())return;const status=e.target.value,payment_status=status==='paid'?'paid':j.payment_status;const {error}=await db.from('pro_jobs').update({status,payment_status}).eq('id',j.id).eq('professional_id',state.user.id);if(error){toast(error.message);return}j.status=status;j.payment_status=payment_status;toast('מצב העבודה עודכן');await loadProJobs();await renderProJobDetail()};
+  $('#jobStatusSelect').onchange=async e=>{if(!requireServiceAccess())return;const status=e.target.value;const {error}=await db.from('pro_jobs').update({status}).eq('id',j.id).eq('professional_id',state.user.id);if(error){toast(error.message);return}j.status=status;toast('מצב העבודה עודכן');await loadProJobs();await renderProJobDetail()};
   if(state.timerInterval){clearInterval(state.timerInterval);state.timerInterval=null}compactJobDetail();prepareJobQuotePdf(j).catch(()=>{});await loadJobMedia(j.id)
 }
 async function openProJobDetail(id){if(!requireServiceAccess())return;state.selectedProJob=state.proJobs.find(j=>j.id===id);if(!state.selectedProJob){const {data}=await db.from('pro_jobs').select('*').eq('id',id).eq('professional_id',state.user.id).single();state.selectedProJob=data}await renderProJobDetail();show('#proJobDetailView')}
-function renderActualProfit(job){
-  const box=$('#actualProfitResult'),paid=Number(job.actual_paid||0),hours=Number(job.actual_hours||0);if(!paid||!hours){box.classList.add('hidden');box.innerHTML='';return}
-  const profit=Number(job.actual_profit ?? (paid-Number(job.actual_materials_cost||0)-Number(job.travel_cost||0)-Number(job.assistant_cost||0)-paid*(Number(job.overhead_percent||0)/100))),perHour=Number(job.actual_hourly_profit ?? profit/hours);
-  box.classList.remove('hidden');box.innerHTML=`<small>הרווח המחושב לאחר חומרים, נסיעה והוצאות העסק</small><strong>${money(profit)}</strong><span>${money(perHour)} לשעה</span>`
+function jobBalance(job){
+  const cents=x=>Math.round(Number(x||0)*100),total=cents(job.quoted_price)+cents(job.addition_total)-cents(job.adjustment_discount_total),paid=cents(job.actual_paid);
+  return {total:total/100,paid:paid/100,remaining:Math.max(0,total-paid)/100};
 }
-$('#actualProfitForm').onsubmit=async e=>{
-  e.preventDefault();if(!requireServiceAccess())return;const j=state.selectedProJob,hours=numberValue('#actualHours'),materials=numberValue('#actualMaterials'),paid=numberValue('#actualPaid');if(!hours||!paid){toast('יש להזין זמן וסכום שהתקבלו');return}
-  const profit=paid-materials-Number(j.travel_cost||0)-Number(j.assistant_cost||0)-paid*(Number(j.overhead_percent||0)/100),perHour=profit/hours;
-  const changes={actual_hours:hours,actual_materials_cost:materials,actual_paid:paid,actual_profit:profit,actual_hourly_profit:perHour,status:'paid',payment_status:'paid'};
-  const {data,error}=await db.from('pro_jobs').update(changes).eq('id',j.id).eq('professional_id',state.user.id).select('*').single();if(error){toast(error.message);return}state.selectedProJob=data;toast('העבודה נסגרה והרווח חושב');await loadProJobs();await renderProJobDetail()
-};
+async function renderJobLedger(job){
+  const panel=$('#jobLedgerPanel');
+  const {data:entries,error}=await db.from('pro_job_ledger').select('*').eq('job_id',job.id).eq('professional_id',state.user.id).order('created_at');
+  const names={addition:'הוספת עבודה',discount:'הוספת הנחה',payment:'רישום תשלום שהתקבל'};
+  panel.innerHTML=`<div class="job-ledger-actions">${Object.entries(names).map(([kind,label])=>`<button class="secondary" type="button" data-ledger-kind="${kind}">${label}</button>`).join('')}</div>
+    <form id="jobLedgerForm" class="card form-card hidden"><h3 id="jobLedgerFormTitle"></h3><label id="jobLedgerDescriptionLabel">תיאור קצר<input id="jobLedgerDescription" maxlength="500" /></label><label>סכום (₪)<input id="jobLedgerAmount" type="number" min="0.01" max="999999999" step="0.01" inputmode="decimal" required /></label><p id="jobLedgerHint" class="note"></p><div class="form-actions"><button class="primary" type="submit">שמירה</button><button id="jobLedgerCancel" class="ghost" type="button">ביטול</button></div><p id="jobLedgerError" role="alert"></p></form>
+    <details class="job-tool-fold"><summary>פירוט הסכומים והתשלומים</summary><div class="ledger-history"><p>ההצעה המקורית: ${money(job.quoted_price)} · תוספות: ${money(job.addition_total)} · הנחות נוספות: ${money(job.adjustment_discount_total)}</p>${error?'<p>לא ניתן לטעון את פירוט הפעולות. נסה לפתוח את התיק מחדש.</p>':(entries||[]).map(e=>`<p><b>${names[e.kind]} · ${money(e.amount)}</b><br>${esc(e.description)} <small>${esc(formatDateTime(e.created_at))}</small></p>`).join('')||'<p>עדיין לא נרשמו פעולות נוספות.</p>'}</div></details>`;
+  let kind='payment',requestId=null,pendingSignature=null,saving=false;
+  panel.querySelectorAll('[data-ledger-kind]').forEach(button=>button.onclick=()=>{if(saving)return;kind=button.dataset.ledgerKind;requestId=crypto.randomUUID();pendingSignature=null;$('#jobLedgerForm').reset();$('#jobLedgerError').textContent='';$('#jobLedgerFormTitle').textContent=names[kind];$('#jobLedgerDescription').required=kind==='addition';$('#jobLedgerDescriptionLabel').firstChild.textContent=kind==='addition'?'מה נוסף לעבודה?':'הערה — אופציונלי';$('#jobLedgerHint').textContent=kind==='payment'?'רושמים כסף שהתקבל בפועל. הפעולה אינה גובה כסף ואינה מפיקה קבלה.':kind==='discount'?'ההנחה מפחיתה את היתרה; היא אינה תשלום שהתקבל.':'מוסיפים כאן עבודה וסכום שסוכמו עם הלקוח. ההצעה המקורית נשמרת.';$('#jobLedgerForm').classList.remove('hidden');$('#jobLedgerAmount').focus();});
+  $('#jobLedgerCancel').onclick=()=>{if(!saving)$('#jobLedgerForm').classList.add('hidden')};
+  $('#jobLedgerForm').onsubmit=async event=>{event.preventDefault();if(saving||!requireServiceAccess())return;
+    const amount=Number($('#jobLedgerAmount').value),description=$('#jobLedgerDescription').value.trim();
+    if(!Number.isFinite(amount)||amount<=0||Math.abs(amount*100-Math.round(amount*100))>0.00001){$('#jobLedgerError').textContent='יש להזין סכום חיובי עם עד שתי ספרות אחרי הנקודה';return}
+    if(kind!=='addition'&&amount>jobBalance(job).remaining){$('#jobLedgerError').textContent='הסכום גדול מהיתרה לתשלום';return}
+    const signature=JSON.stringify([kind,amount,description]);if(pendingSignature&&pendingSignature!==signature)requestId=crypto.randomUUID();pendingSignature=signature;
+    saving=true;const buttons=panel.querySelectorAll('button');buttons.forEach(b=>b.disabled=true);
+    try{const {data,error}=await db.rpc('record_job_ledger',{p_job_id:job.id,p_id:requestId,p_kind:kind,p_amount:amount,p_description:description});if(error)throw error;state.selectedProJob=data;await loadProJobs();await renderProJobDetail();toast('הפעולה נשמרה והיתרה עודכנה');}
+    catch(e){$('#jobLedgerError').textContent=String(e.message||'').includes('Amount exceeds')?'היתרה השתנתה. פתח את התיק מחדש ובדוק את הסכום.':'לא התקבל אישור שמירה. אפשר לנסות שוב; אותה פעולה לא תירשם פעמיים.';}
+    finally{saving=false;buttons.forEach(b=>b.disabled=false)}
+  };
+}
 function printJobQuote(j){
   const win=window.open('','_blank');if(!win){toast('יש לאפשר חלונות קופצים כדי לשמור PDF');return}
   const business=state.businessProfile?.business_name||state.profile?.full_name||'בעל מקצוע',license=j.trade==='electrician'&&state.proSettings?.electrician_license_number?`<p>רישיון חשמלאי: ${esc(state.proSettings.electrician_license_number)}</p>`:'';
@@ -1286,7 +1315,10 @@ if(installBtn)installBtn.onclick=requestAppInstall;
 $('#openChromeBtn').onclick=openInChrome;
 $('#postSignupInstallBtn').onclick=requestAppInstall;
 $('#postSignupEditBtn').onclick=openPendingSignupEdit;
-$('#firstQuoteWelcomeBtn').onclick=async()=>{$('#firstQuoteWelcome')?.classList.add('hidden');await openNewProJob()};
+$('#firstQuoteWelcomeBtn').onclick=async()=>{dismissFirstQuoteWelcome();await openNewProJob()};
+$('#firstQuoteWelcomeClose').onclick=dismissFirstQuoteWelcome;
+$('#firstQuoteWelcomeLater').onclick=dismissFirstQuoteWelcome;
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#firstQuoteWelcome').classList.contains('hidden'))dismissFirstQuoteWelcome()});
 updateInstallButton();
 
 boot();
