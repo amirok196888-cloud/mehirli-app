@@ -33,7 +33,11 @@ Deno.serve(async (req: Request) => {
       return json(req, { error: "cardcom_waiting_for_approval" }, 409);
     }
 
-    const amount = Number(settings.monthly_price);
+    const { data: subscription, error: subscriptionError } = await admin
+      .from("professional_subscriptions").select("monthly_price")
+      .eq("professional_id", user.id).single();
+    if (subscriptionError || !subscription) throw new Error("subscription_price_unavailable");
+    const amount = Number(subscription.monthly_price);
     if (!Number.isFinite(amount) || amount <= 0) throw new Error("invalid_subscription_price");
     const productCode = String(settings.cardcom_product_code || PRODUCT_CODE).slice(0, 50);
 
