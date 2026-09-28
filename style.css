@@ -408,3 +408,14 @@ body{background:linear-gradient(180deg,#fbfcff 0%,#f3f7fd 100%);color:#13243b}
 @media(hover:hover){#homeView .home-action-card:hover{transform:translateY(-2px);box-shadow:0 12px 26px #133a6820}}
 @media(max-width:360px){#homeView .home-action-grid{gap:10px}#homeView .home-action-card{padding:16px 12px 30px;min-height:180px}#homeView .home-action-card strong{font-size:18px}}
 @media(prefers-reduced-motion:reduce){#homeView .home-action-card{transition:none}}
+
+/* Distinguish section navigation from actions inside each section. */
+#proJobForm .job-step-button{background:#eaf2ff;color:#183e70;border:2px solid #a9c4e8;box-shadow:none}
+#proJobForm .job-step-button.active{background:#d8e8ff;color:#102f59;border-color:#547fb5}
+#proJobForm .job-step-next,#proJobSubmitBtn{background:#176a43;color:#fff;border:2px solid #176a43}
+#proJobForm .job-step-next:hover,#proJobSubmitBtn:hover{background:#115234;border-color:#115234}
+#proJobForm .secondary:not(.job-step-next){background:#fff;color:#224a79;border:1px solid #8da9c9}
+#proJobForm .job-step-button:focus-visible,#proJobForm button:focus-visible,#jobDetailContent summary:focus-visible{outline:3px solid #d89416;outline-offset:3px}
+#jobDetailContent .job-tool-fold>summary{background:#eaf2ff;color:#183e70}
+#jobDetailContent .job-tool-fold[open]>summary{background:#d8e8ff}
+#jobDetailContent .job-tool-fold .secondary{background:#fff;color:#224a79;border:1px solid #8da9c9}
