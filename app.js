@@ -585,11 +585,20 @@ async function loadProJobs(){
   state.proJobs=data||[];return state.proJobs
 }
 function proJobMatchesFilter(job,filter){if(filter==='open')return !['paid','cancelled'].includes(job.status);if(filter==='unpaid')return job.payment_status!=='paid'&&!['lead','cancelled'].includes(job.status);if(filter==='paid')return job.payment_status==='paid';return true}
+function jobFileNumber(job){return String(job.quote_number??String(job.id||'').slice(0,8))}
+function groupJobFilesByCustomer(jobs){
+  const groups=new Map();
+  jobs.forEach(job=>{const key=job.customer_id?'customer:'+job.customer_id:'job:'+job.id;
+    if(!groups.has(key))groups.set(key,{name:job.customer_name||'לקוח ללא שם',jobs:[]});
+    groups.get(key).jobs.push(job);
+  });return [...groups.values()]
+}
 function renderProJobCards(){
   const box=$('#proJobsList'),filter=$('#proJobStatusFilter').value,rows=state.proJobs.filter(j=>proJobMatchesFilter(j,filter));
-  box.innerHTML=rows.length?rows.map(j=>`<div class="quote-workspace-card"><button class="job-card" data-pro-job="${j.id}"><div class="job-card-top"><span class="trade-badge ${j.trade}">${tradeIcon(j.trade)} ${tradeHe[j.trade]||''}</span><span class="status-pill status-${j.status}">${jobStatusHe[j.status]||j.status}</span></div><h3>${esc(j.customer_name)}</h3><p>${esc(j.description)}</p><div class="job-card-bottom"><span>📍 ${esc(j.city||'לא צוין')}</span><strong>${money(j.quoted_price||j.recommended_price)}</strong></div><small>✏️ ${quoteCanEdit(j)?'לחץ לעריכת ההצעה':'לחץ לעריכת עותק חדש'}</small></button><button class="secondary" data-manage-job="${j.id}">פתח תיק עבודה ושליחה</button></div>`).join(''):'<div class="empty-state card"><span>🧰</span><h3>עדיין אין עבודות במרכז</h3><p>הכנס את הפנייה הבאה ותקבל תמחור, שאלות הכנה והצעה מוכנה.</p></div>';
-  box.querySelectorAll('[data-pro-job]').forEach(b=>b.onclick=()=>openQuoteEditor(b.dataset.proJob));box.querySelectorAll('[data-manage-job]').forEach(b=>b.onclick=()=>openProJobDetail(b.dataset.manageJob))
+  box.innerHTML=rows.length?groupJobFilesByCustomer(rows).map(group=>`<section class="customer-job-files"><header><h3>${esc(group.name)}</h3><span>${group.jobs.length} תיקי עבודה</span></header><div class="customer-job-files-list">${group.jobs.map(j=>`<button type="button" class="job-card" data-manage-job="${esc(j.id)}"><div class="job-card-top"><b>תיק עבודה מס׳ ${esc(jobFileNumber(j))}</b><span class="status-pill status-${esc(j.status)}">${esc(jobStatusHe[j.status]||j.status)}</span></div><p>${esc(j.description)}</p><div class="job-card-bottom"><span>${esc(j.city||'')}</span><strong>${money(j.quoted_price??j.recommended_price)}</strong></div><small>פתיחת תיק העבודה ←</small></button>`).join('')}</div></section>`).join(''):'<div class="empty-state card"><h3>אין תיקי עבודה להצגה</h3><p>עבודה חדשה תישמר בתיק תחת שם הלקוח.</p></div>';
+  box.querySelectorAll('[data-manage-job]').forEach(b=>b.onclick=()=>openProJobDetail(b.dataset.manageJob))
 }
+
 async function openProWorkspace(){
   if(!state.user||!requireServiceAccess())return;await Promise.all([loadProSettings(),loadProJobs(),loadProReminders()]);
   const open=state.proJobs.filter(j=>!['paid','cancelled'].includes(j.status)).length,unpaid=state.proJobs.filter(j=>j.payment_status!=='paid'&&!['lead','cancelled'].includes(j.status)).length;
@@ -897,7 +906,7 @@ function compactJobDetail(){
 }
 
 async function renderProJobDetail({readyToSend=false}={}){
-  const j=state.selectedProJob;if(!j)return;await loadProSettings();if(!j.items)await loadJobExtras(j);const jobTitle=String(j.job_type||'').trim();const legacyType=(TRADE_JOBS[j.trade]||[]).some(([key])=>key===jobTitle);$('#jobDetailTitle').textContent='תיק עבודה — '+((jobTitle&&!legacyType?jobTitle:String(j.description||'').trim())||'ללא כותרת');$('#jobDetailCustomer').textContent='לקוח: '+(j.customer_name||'לא צוין');
+  const j=state.selectedProJob;if(!j)return;await loadProSettings();if(!j.items)await loadJobExtras(j);$('#jobDetailTitle').textContent='תיק עבודה — '+(j.customer_name||'לקוח ללא שם');$('#jobDetailCustomer').textContent='תיק מס׳ '+jobFileNumber(j);
   const below=Number(j.quoted_price)<Number(j.price_floor),remaining=Math.max(0,Number(j.quoted_price||0)-Number(j.actual_paid||0));
   $('#jobDetailContent').innerHTML=`<div class="quote-send-callout card"><span id="quoteStorageStatus" class="quote-send-status stored">${readyToSend?'ההצעה נשמרה ומוכנה לשליחה':'הצעת המחיר'}</span><h3>ההצעה ל־${esc(j.customer_name)}</h3><p>${readyToSend?'אפשר לשלוח כעת את ההצעה ללקוח.':'אפשר לצפות בהצעה או לערוך אותה.'}</p><a class="secondary quote-preview-action" href="${esc(quoteUrl(j))}" target="_blank" rel="noopener">צפייה בהצעה</a>${readyToSend?'<button class="primary big whatsapp-action" data-job-action="quote-whatsapp">💬 שלח הצעה דיגיטלית ב־WhatsApp</button>':''}</div>
   <div class="job-hero card"><div class="job-card-top"><span class="status-pill status-${j.status}">${jobStatusHe[j.status]||j.status}</span></div><span class="quote-number">הצעה מס׳ ${esc(j.quote_number||String(j.id).slice(0,8))} · ${PRICING_MODE_HE[j.pricing_mode]||'תמחור'}</span><h3>${esc(j.description)}</h3><p>👤 ${esc(j.customer_name)} · 📍 ${esc(j.city||'לא צוין')} · 🗓️ ${esc(formatDateTime(j.scheduled_at))}</p><div class="contact-actions"><a class="secondary" href="tel:${esc(j.customer_phone)}">📞 התקשר</a><button class="secondary" data-job-action="questions">💬 שלח שאלות</button></div></div>
