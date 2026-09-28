@@ -429,3 +429,5 @@ body{background:linear-gradient(180deg,#fbfcff 0%,#f3f7fd 100%);color:#13243b}
 #proJobDetailView .job-file-heading>div{min-width:0;flex:1}
 #proJobDetailView #jobDetailTitle{font-size:clamp(24px,5.5vw,32px);font-weight:900;line-height:1.35;color:#14375e;margin:0;overflow-wrap:anywhere}
 #jobDetailCustomer{font-size:18px;font-weight:700;color:#344c65;margin:8px 0 0;overflow-wrap:anywhere}
+
+.customer-job-files{border:1px solid #b6cbe4;background:#f4f8ff;border-radius:18px;padding:16px;margin:0 0 18px}.customer-job-files>header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.customer-job-files>header h3{font-size:23px;color:#173e66;margin:0;overflow-wrap:anywhere}.customer-job-files>header span{font-size:13px;color:#526276;white-space:nowrap}.customer-job-files-list{display:grid;gap:12px}.customer-job-files-list .job-card{width:100%;background:#fff;border:1px solid #cbd9e8;text-align:right}.customer-job-files-list .job-card small{display:block;color:#234f81;font-weight:700;margin-top:12px}
