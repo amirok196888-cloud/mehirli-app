@@ -424,3 +424,8 @@ body{background:linear-gradient(180deg,#fbfcff 0%,#f3f7fd 100%);color:#13243b}
 .quote-send-callout .quote-preview-action,.quote-send-callout [data-job-action="edit-quote"]{display:block;width:100%;text-align:center;margin:10px 0;padding:12px;background:#fff;color:#224a79;border:1px solid #8da9c9;border-radius:12px;text-decoration:none}
 #jobAdditionalDetails{padding-bottom:0}#jobAdditionalDetails[open]{padding-bottom:12px}
 #jobAdditionalDetails .job-tool-fold{margin:10px}
+
+#proJobDetailView .job-file-heading{align-items:flex-start;padding:20px 16px;margin:0 0 20px;background:#eaf2ff;border:2px solid #9fbbdf;border-radius:18px}
+#proJobDetailView .job-file-heading>div{min-width:0;flex:1}
+#proJobDetailView #jobDetailTitle{font-size:clamp(24px,5.5vw,32px);font-weight:900;line-height:1.35;color:#14375e;margin:0;overflow-wrap:anywhere}
+#jobDetailCustomer{font-size:18px;font-weight:700;color:#344c65;margin:8px 0 0;overflow-wrap:anywhere}
