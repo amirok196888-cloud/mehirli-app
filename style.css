@@ -419,3 +419,8 @@ body{background:linear-gradient(180deg,#fbfcff 0%,#f3f7fd 100%);color:#13243b}
 #jobDetailContent .job-tool-fold>summary{background:#eaf2ff;color:#183e70}
 #jobDetailContent .job-tool-fold[open]>summary{background:#d8e8ff}
 #jobDetailContent .job-tool-fold .secondary{background:#fff;color:#224a79;border:1px solid #8da9c9}
+
+#proJobDetailView>.job-tool-fold>summary{background:#eaf2ff;color:#183e70}
+.quote-send-callout .quote-preview-action,.quote-send-callout [data-job-action="edit-quote"]{display:block;width:100%;text-align:center;margin:10px 0;padding:12px;background:#fff;color:#224a79;border:1px solid #8da9c9;border-radius:12px;text-decoration:none}
+#jobAdditionalDetails{padding-bottom:0}#jobAdditionalDetails[open]{padding-bottom:12px}
+#jobAdditionalDetails .job-tool-fold{margin:10px}
