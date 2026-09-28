@@ -645,11 +645,11 @@ $('#proJobForm').onsubmit=async e=>{
       const {data,error}=await db.rpc('edit_pro_quote_v111',{p_job_id:editing.id,p_expected_updated_at:editing.updated_at,p_quote:row,p_items:items});
       if(error){const messages={quote_changed:'ההצעה השתנתה מאז שפתחת אותה. חזור לתיק העבודה ופתח שוב לעריכה.',quote_locked:'ההצעה כבר אושרה או נמצאת בביצוע. חזור ופתח עותק חדש לעריכה.'};toast(messages[error.message]||'השינויים לא נשמרו: '+error.message);return}
       const pending=quotePdfCache.get(String(editing.id));if(pending?.status==='loading')await pending.promise.catch(()=>{});quotePdfCache.delete(String(editing.id));
-      state.editingProJob=null;state.selectedProJob={...data,items};clearTimeout(proJobDraftTimer);await loadProJobs();await renderProJobDetail();show('#proJobDetailView');toast('השינויים נשמרו. שלח ללקוח את הקישור המעודכן.');
+      state.editingProJob=null;state.selectedProJob={...data,items};clearTimeout(proJobDraftTimer);await loadProJobs();await renderProJobDetail({readyToSend:true});show('#proJobDetailView');toast('השינויים נשמרו. שלח ללקוח את הקישור המעודכן.');
     }finally{button.disabled=false}
     return
   }
-  const {data,error}=await db.from('pro_jobs').insert(row).select('*').single();if(error){toast('לא נשמר: '+error.message);return}const cleanItems=state.quoteItems.filter(i=>String(i.description||'').trim()).map((i,index)=>({job_id:data.id,professional_id:state.user.id,description:String(i.description).trim(),quantity:Number(i.quantity)||1,unit_price:Number(i.unit_price)||0,estimated_cost:Number(i.estimated_cost)||0,sort_order:index}));if(!cleanItems.length)cleanItems.push({job_id:data.id,professional_id:state.user.id,description:row.description,quantity:1,unit_price:pricing.discountAmount>0?pricing.subtotal:pricing.total,estimated_cost:row.materials_cost,sort_order:0});const {error:itemsError}=await db.from('pro_job_items').insert(cleanItems);if(itemsError){await db.from('pro_jobs').delete().eq('id',data.id);toast('סעיפי ההצעה לא נשמרו: '+itemsError.message);return}const reminder=$('#proReminderAt').value;if(reminder)await db.from('pro_reminders').insert({job_id:data.id,professional_id:state.user.id,remind_at:new Date(reminder).toISOString(),kind:'quote_followup',message:`מעקב הצעה מול ${customerName}`});if(!state.quoteRevisionSource)clearProJobDraft();state.quoteRevisionSource=null;trackAppEvent('first_job_created');if(state.onboarding)state.onboarding.first_quote_created_at=data.created_at||new Date().toISOString();state.selectedProJob={...data,items:cleanItems};await loadProJobs();await renderProJobDetail();show('#proJobDetailView');toast('ההצעה נשמרה ומוכנה לשליחה ב־WhatsApp')
+  const {data,error}=await db.from('pro_jobs').insert(row).select('*').single();if(error){toast('לא נשמר: '+error.message);return}const cleanItems=state.quoteItems.filter(i=>String(i.description||'').trim()).map((i,index)=>({job_id:data.id,professional_id:state.user.id,description:String(i.description).trim(),quantity:Number(i.quantity)||1,unit_price:Number(i.unit_price)||0,estimated_cost:Number(i.estimated_cost)||0,sort_order:index}));if(!cleanItems.length)cleanItems.push({job_id:data.id,professional_id:state.user.id,description:row.description,quantity:1,unit_price:pricing.discountAmount>0?pricing.subtotal:pricing.total,estimated_cost:row.materials_cost,sort_order:0});const {error:itemsError}=await db.from('pro_job_items').insert(cleanItems);if(itemsError){await db.from('pro_jobs').delete().eq('id',data.id);toast('סעיפי ההצעה לא נשמרו: '+itemsError.message);return}const reminder=$('#proReminderAt').value;if(reminder)await db.from('pro_reminders').insert({job_id:data.id,professional_id:state.user.id,remind_at:new Date(reminder).toISOString(),kind:'quote_followup',message:`מעקב הצעה מול ${customerName}`});if(!state.quoteRevisionSource)clearProJobDraft();state.quoteRevisionSource=null;trackAppEvent('first_job_created');if(state.onboarding)state.onboarding.first_quote_created_at=data.created_at||new Date().toISOString();state.selectedProJob={...data,items:cleanItems};await loadProJobs();await renderProJobDetail({readyToSend:true});show('#proJobDetailView');toast('ההצעה נשמרה ומוכנה לשליחה ב־WhatsApp')
 };
 function quoteUrl(job){const url=new URL('./quote.html',location.href);url.searchParams.set('quote',job.public_token);return url.href}
 function whatsappUrl(phone,message){const number=waNumber(phone);return number?`https://wa.me/${number}?text=${encodeURIComponent(message)}`:''}
@@ -857,7 +857,12 @@ async function sendDigitalQuoteToWhatsapp(job){
   if(!waNumber(job.customer_phone)){toast('חסר מספר טלפון ללקוח');return}
   trackAppEvent('quote_send_opened');
   await markOnboardingStep('first_quote_sent');
-  openWhatsapp(job.customer_phone,quoteMessage(job));
+  if(openWhatsapp(job.customer_phone,quoteMessage(job))){
+    const panel=$('#jobDetailContent .quote-send-callout');
+    panel?.querySelector('[data-job-action="quote-whatsapp"]')?.remove();
+    const status=panel?.querySelector('#quoteStorageStatus');if(status)status.textContent='הצעת המחיר';
+    const note=panel?.querySelector('p');if(note)note.textContent='אפשר לצפות בהצעה או לערוך אותה.';
+  }
 }
 async function openStoredQuotePdf(job,button){
   if(!requireServiceAccess())return;
@@ -891,10 +896,10 @@ function compactJobDetail(){
   });
 }
 
-async function renderProJobDetail(){
+async function renderProJobDetail({readyToSend=false}={}){
   const j=state.selectedProJob;if(!j)return;await loadProSettings();if(!j.items)await loadJobExtras(j);$('#jobDetailTitle').textContent=j.customer_name;
   const below=Number(j.quoted_price)<Number(j.price_floor),remaining=Math.max(0,Number(j.quoted_price||0)-Number(j.actual_paid||0));
-  $('#jobDetailContent').innerHTML=`<div class="quote-send-callout card"><span id="quoteStorageStatus" class="quote-send-status stored">הצעה דיגיטלית מוכנה</span><h3>ההצעה ל־${esc(j.customer_name)}</h3><p>ההצעה מוכנה. אפשר לצפות בה או לשלוח ללקוח.</p><a class="secondary quote-preview-action" href="${esc(quoteUrl(j))}" target="_blank" rel="noopener">צפייה בהצעה</a><button class="primary big whatsapp-action" data-job-action="quote-whatsapp">💬 שלח הצעה דיגיטלית ב־WhatsApp</button></div>
+  $('#jobDetailContent').innerHTML=`<div class="quote-send-callout card"><span id="quoteStorageStatus" class="quote-send-status stored">${readyToSend?'ההצעה נשמרה ומוכנה לשליחה':'הצעת המחיר'}</span><h3>ההצעה ל־${esc(j.customer_name)}</h3><p>${readyToSend?'אפשר לשלוח כעת את ההצעה ללקוח.':'אפשר לצפות בהצעה או לערוך אותה.'}</p><a class="secondary quote-preview-action" href="${esc(quoteUrl(j))}" target="_blank" rel="noopener">צפייה בהצעה</a>${readyToSend?'<button class="primary big whatsapp-action" data-job-action="quote-whatsapp">💬 שלח הצעה דיגיטלית ב־WhatsApp</button>':''}</div>
   <div class="job-hero card"><div class="job-card-top"><span class="status-pill status-${j.status}">${jobStatusHe[j.status]||j.status}</span></div><span class="quote-number">הצעה מס׳ ${esc(j.quote_number||String(j.id).slice(0,8))} · ${PRICING_MODE_HE[j.pricing_mode]||'תמחור'}</span><h3>${esc(j.description)}</h3><p>👤 ${esc(j.customer_name)} · 📍 ${esc(j.city||'לא צוין')} · 🗓️ ${esc(formatDateTime(j.scheduled_at))}</p><div class="contact-actions"><a class="secondary" href="tel:${esc(j.customer_phone)}">📞 התקשר</a><button class="secondary" data-job-action="questions">💬 שלח שאלות</button></div></div>
   <div class="detail-price-grid"><div class="card"><small>מחיר מינימום</small><strong>${money(j.price_floor)}</strong></div><div class="card featured"><small>הצעה ללקוח</small><strong>${money(j.quoted_price)}</strong></div><div class="card"><small>יתרה לתשלום</small><strong>${money(remaining)}</strong></div></div>
   ${below?'<div class="price-warning">⚠️ המחיר ללקוח נמוך ממחיר המינימום שחושב לעבודה.</div>':''}
@@ -910,7 +915,7 @@ async function renderProJobDetail(){
   $('#jobDetailContent').querySelector('[data-job-action="questions"]').onclick=()=>openWhatsapp(j.customer_phone,questionMessage(j));
   $('#jobDetailContent').querySelector('[data-job-action="edit-quote"]').onclick=()=>openQuoteEditor(j.id);
   const pdfShareButton=$('#jobDetailContent').querySelector('[data-job-action="quote-pdf"]');pdfShareButton.onclick=()=>openStoredQuotePdf(j,pdfShareButton);
-  const whatsappButton=$('#jobDetailContent').querySelector('[data-job-action="quote-whatsapp"]');whatsappButton.onclick=()=>sendDigitalQuoteToWhatsapp(j);
+  const whatsappButton=$('#jobDetailContent').querySelector('[data-job-action="quote-whatsapp"]');if(whatsappButton)whatsappButton.onclick=()=>sendDigitalQuoteToWhatsapp(j);
   $('#jobDetailContent').querySelector('[data-job-action="copy"]').onclick=()=>copyText(quoteUrl(j));
   const paymentButton=$('#jobDetailContent').querySelector('[data-job-action="payment"]');if(paymentButton)paymentButton.onclick=()=>openWhatsapp(j.customer_phone,paymentMessage(j));
   $('#jobDetailContent').querySelector('[data-job-action="add-reminder"]').onclick=async()=>{const value=$('#detailReminderAt').value;if(!value){toast('בחר מועד לתזכורת');return}const {error}=await db.from('pro_reminders').insert({job_id:j.id,professional_id:state.user.id,remind_at:new Date(value).toISOString(),kind:'followup',message:`טיפול בעבודה של ${j.customer_name}`});if(error){toast(error.message);return}$('#detailReminderAt').value='';toast('התזכורת נשמרה')};
