@@ -43,7 +43,7 @@ fbq('track','PageView',{content_name:'Mehirli'});
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="finance.css?v=119" />
-<link rel="stylesheet" href="app-design.css?v=141" />
+<link rel="stylesheet" href="app-design.css?v=142" />
 </head>
 <body data-app-release="139">
 <div class="app-shell">
@@ -193,7 +193,9 @@ fbq('track','PageView',{content_name:'Mehirli'});
     <div id="jobPanel1" class="form-step" data-job-panel="1" hidden>
       <div class="form-step-title"><b>2</b><div><h3>מה העבודה?</h3><p>תאר בקצרה מה הלקוח ביקש.</p></div></div>
       <input id="proJobTrade" type="hidden" value="handyman" />
-      <label>סוג העבודה<input id="proJobType" required placeholder="לדוגמה: ייעוץ, תיקון, צילום או כל שירות אחר" /></label>
+      <label>סוג העבודה<input id="proJobType" required autocomplete="off" placeholder="למשל: נקודת חשמל, צביעת חדר, תליית מדף" /></label>
+      <div id="jobSuggestionResults" class="job-suggestion-list hidden" aria-label="עבודות מוצעות"></div>
+      <div id="jobSuggestionSelected" class="job-suggestion-selected hidden"><span id="jobSuggestionPrice"></span><label id="jobSuggestionQuantityLabel" class="hidden"><span id="jobSuggestionQuantityTitle">כמות</span><input id="jobSuggestionQuantity" type="number" min="0.01" step="0.01" value="1" inputmode="decimal" /></label><button id="useJobSuggestionPrice" type="button" class="secondary">השתמש במחיר כבסיס</button><small id="jobSuggestionHint">המחיר הוא אינדיקציה בלבד. הוצאות נוספות שהזנת יתווספו בשלב התמחור, ואפשר לשנות את המחיר.</small></div>
       <label>תבנית מהמחירון — אופציונלי<select id="proServiceTemplate"><option value="">ללא תבנית</option></select></label>
       <label>מה הלקוח ביקש?<textarea id="proJobDescription" required placeholder="אפשר לכתוב או להקליט את הודעת הלקוח"></textarea></label>
       <button id="proVoiceBtn" type="button" class="voice">🎤 הקלט את פרטי הפנייה</button><p id="proVoiceStatus" class="note"></p>
@@ -205,7 +207,7 @@ fbq('track','PageView',{content_name:'Mehirli'});
       <div class="form-step-title"><b>3</b><div><h3>כמה לגבות?</h3><p>מחירלי מחשבת אם העבודה משתלמת לך.</p></div></div>
       <div class="pricing-title"><div><span class="eyebrow">מחשבון אישי</span><h3>עלויות העבודה</h3></div></div>
       <label>אופן תמחור<select id="proPricingMode"><option value="hourly">לפי שעה</option><option value="fixed">מחיר קבוע</option><option value="half_day">חצי יום</option><option value="full_day">יום עבודה</option></select></label>
-      <div class="two-cols"><label><span id="proLaborQuantityLabel">שעות מתוכננות</span><input id="proLaborHours" type="number" min="0.25" step="0.25" value="1" /></label><label><span id="proBasePriceLabel">מחיר לשעה</span><input id="proBasePrice" type="number" min="0" step="10" /></label></div>
+      <div class="two-cols"><label><span id="proLaborQuantityLabel">שעות מתוכננות</span><input id="proLaborHours" type="number" min="0.25" step="0.25" value="1" /></label><label><span id="proBasePriceLabel">מחיר לשעה</span><input id="proBasePrice" type="number" min="0" step="1" /></label></div>
       <p id="pricingModeHint" class="field-hint"></p>
       <details class="pricing-extras"><summary>הוצאות נוספות <span>אופציונלי</span></summary>
       <div class="two-cols"><label>חומרים<input id="proMaterialsCost" type="number" min="0" step="10" value="0" /></label><label>נסיעה וחניה<input id="proTravelCost" type="number" min="0" step="10" /></label></div>
@@ -498,7 +500,8 @@ fbq('track','PageView',{content_name:'Mehirli'});
 </main><nav id="appNavigation" class="app-navigation hidden" aria-label="ניווט ראשי"><button type="button" data-app-nav="home">בית</button><button type="button" data-app-nav="customers">לקוחות</button><button type="button" data-app-nav="calendar">יומן</button><button type="button" data-app-nav="help">הדרכה</button><a href="about.html" target="_blank" rel="noopener noreferrer" aria-label="אודות מחירלי">אודות</a></nav><a id="developerSupportLink" class="developer-support-link hidden" href="#" target="_blank" rel="noopener" aria-label="דיווח תקלה או שיחה עם המפתח ב־WhatsApp">💬 דיווח תקלה / שיחה עם המפתח</a><div id="postSignupInstall" class="post-signup-install hidden" role="dialog" aria-modal="true" aria-labelledby="postSignupInstallTitle"><div class="post-signup-install-card"><span>📲</span><b>ההרשמה הסתיימה</b><h2 id="postSignupInstallTitle">עכשיו מוסיפים את מחירלי לטלפון</h2><p id="postSignupInstallText">המערכת תציג את דרך ההתקנה המתאימה לטלפון שלך. לאחר ההתקנה פותחים את מחירלי מהסמל במסך הבית.</p><button id="postSignupInstallBtn" class="primary big" type="button">הוספת מחירלי לטלפון</button><button id="postSignupEditBtn" class="secondary big install-edit-btn" type="button">חזרה לתיקון פרטי ההרשמה</button><small>אם תצא לפני ההתקנה, המסך הזה יוצג שוב בכניסה הבאה.</small></div></div><div id="firstQuoteWelcome" class="post-signup-install hidden" role="dialog" aria-modal="true" aria-labelledby="firstQuoteWelcomeTitle"><div class="post-signup-install-card first-quote-welcome-card"><button id="firstQuoteWelcomeClose" class="welcome-close secondary" type="button" aria-label="סגירת ההזמנה להצעת מחיר">×</button><span>✅</span><b>מחירלי מותקנת ומוכנה</b><h2 id="firstQuoteWelcomeTitle">רוצה להכין הצעת מחיר ראשונה?</h2><p>נכניס את פרטי הלקוח והעבודה, נחשב מחיר ונשלח הצעה מקצועית.</p><button id="firstQuoteWelcomeBtn" class="primary big" type="button">הכנת הצעת המחיר הראשונה</button><button id="firstQuoteWelcomeLater" class="secondary big" type="button">לא עכשיו, מעבר למסך הבית</button></div></div><div id="toast" class="toast"></div></div>
 <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"></script>
 <script src="traffic.js?v=113"></script>
-<script src="app.js?v=141"></script>
+<script src="job-suggestions.js?v=142"></script>
+<script src="app.js?v=142"></script>
 <script src="home-dashboard.js?v=139"></script>
 <script src="finance-core.js?v=140"></script>
 <script src="finance.js?v=140"></script>

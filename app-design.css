@@ -76,3 +76,10 @@ button:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid #9c
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}.view,.home-action-card{animation:none!important;transition:none!important}}
 
 .auth-showcase h2 span,.auth-showcase h2 em,.auth-showcase h2 strong{color:#195657}.auth-product-visual{object-position:center center}.auth-kicker{background:#edf3ef;border-color:#d5e3dc}.auth-mode-switch{background:#edf3ef}.auth-mode-switch button.active{background:#195657;color:#fff}
+.job-suggestion-list{display:grid;gap:6px;margin:0 0 12px}
+.job-suggestion-list button{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;padding:12px 14px;text-align:right;border:1px solid #d1ded8;border-radius:12px;background:#fff;color:#183a37;font:inherit;cursor:pointer}
+.job-suggestion-list button b{white-space:nowrap;color:#116d58}
+.job-suggestion-selected{display:grid;gap:10px;margin:0 0 14px;padding:14px;border:1px solid #add9c9;border-radius:14px;background:#f2faf6}
+.job-suggestion-selected>span{font-weight:700;color:#145c4d}
+.job-suggestion-selected>small{line-height:1.5;color:#52635e}
+.job-suggestion-selected label{max-width:180px}
