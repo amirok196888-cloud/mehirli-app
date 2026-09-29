@@ -8,6 +8,8 @@ function setup(){
  const window={supabase:{createClient:()=>db},matchMedia:()=>({matches:false}),scrollTo(){},addEventListener:(n,f)=>events[n]=f,navigator:{},location,open:url=>opened.push(url),MehirliTraffic:{event:async()=>{},visitor:()=>'',attribution:()=>({}),trackVisit(){}}};
  const context=vm.createContext({window,document,navigator:{userAgent:'qa'},location,URL,URLSearchParams,console,setTimeout:()=>0,clearTimeout(){},setInterval:()=>0,clearInterval(){},localStorage:{getItem:()=>null,setItem(){},removeItem(){}},Notification:{permission:'denied'},history:{replaceState(){}},confirm:()=>false});
  for(const x of document.querySelectorAll('input,select,textarea')){x.checkValidity=()=>true;x.reportValidity=()=>{};x.willValidate=false;x.scrollIntoView=()=>{};}
+ for(const x of document.querySelectorAll('select')){let value=x.querySelector('option')?.getAttribute('value')||'';Object.defineProperty(x,'value',{get:()=>value,set:v=>{value=String(v)},configurable:true});}
+ for(const form of document.querySelectorAll('form'))form.reset=()=>{};
  for(const x of document.querySelectorAll('[data-job-step]'))x.scrollIntoView=()=>{};
  for(const file of ['app.js','home-dashboard.js','finance-core.js','finance.js'])vm.runInContext(fs.readFileSync(path.join(root,file),'utf8'),context);
  const run=code=>vm.runInContext(code,context),q=selector=>document.querySelector(selector);
@@ -53,6 +55,47 @@ test('manifest and offline cache point to existing versioned app assets',()=>{
  const manifest=JSON.parse(fs.readFileSync(path.join(root,'manifest.webmanifest'),'utf8'));assert.equal(manifest.display,'standalone');assert.equal(manifest.start_url,'/mehirli-app/app.html');for(const icon of manifest.icons)assert.ok(fs.existsSync(path.join(root,icon.src)));
  const sw=fs.readFileSync(path.join(root,'sw.js'),'utf8');new vm.Script(sw);const assets=vm.runInNewContext(sw.slice(0,sw.indexOf('self.addEventListener'))+'ASSETS');for(const asset of assets){const f=asset.split('?')[0];if(f!=='./')assert.ok(fs.existsSync(path.join(root,f)),asset)}
  assert.ok(assets.includes('./app-design.css?v=139'));assert.ok(assets.includes('./home-dashboard.js?v=139'));
+});
+
+test('v139 finance: home, income, expense, draft edit, summary and back',async()=>{
+ const a=setup(),entries=[],period='2026-09',settings={professional_id:'user',business_type:'vat',advance_rate:10,reporting_months:1,quota_bytes:104857600};
+ a.run("state.user={id:'user'};state.isAdmin=true;loadProJobs=async()=>{state.proJobs=[]};openProWorkspace=async()=>show('#proWorkspaceView');show('#homeView')");
+ a.q('#financeMonth').value=period;
+ a.db.from=table=>{
+  let mutation=null,target=null;
+  const query={select(){return this},eq(key,value){if(key==='id')target=value;return this},order(){return this},range(){return Promise.resolve({data:table==='finance_entries'?entries.map(x=>({...x})):[],error:null})},maybeSingle(){return Promise.resolve({data:settings,error:null})},insert(row){mutation={...row};return this},update(row){mutation={...row};return this},single(){
+   if(table!=='finance_entries')throw Error('Unexpected table '+table);
+   const old=entries.find(x=>x.id===target),saved={...old,...mutation,id:target||`entry-${entries.length+1}`,professional_id:'user',source:'manual',updated_at:'fixed',approved_at:mutation.review_required===false?'fixed':old?.approved_at||null};
+   if(old)Object.assign(old,saved);else entries.push(saved);
+   return Promise.resolve({data:{...saved},error:null});
+  }};
+  return query;
+ };
+ const active=id=>a.q(id).classList.contains('active');
+ await a.q('#homeFinanceBtn').onclick();assert.ok(active('#financeView'));assert.equal(a.q('[data-finance-tab="income"]').getAttribute('aria-pressed'),'true');assert.ok(a.q('#financeSummaryPanel').classList.contains('hidden'));
+ await a.q('#financeAdd').onclick();assert.ok(active('#financeEntryView'));assert.equal(a.q('#financeKind').value,'income');assert.equal(a.q('#financeSave').textContent,'שמירת ההכנסה');
+ Object.assign(a.q('#financeCounterparty'),{value:'לקוח א'});a.q('#financeAmount').value='118';a.q('#financeVat').value='18';a.q('#financePaid').checked=true;a.q('#financePaidDate').value='2026-09-15';a.q('#financeVerified').checked=true;
+ await a.q('#financeForm').onsubmit({preventDefault(){}});assert.ok(active('#financeView'));assert.equal(entries.length,1);assert.equal(entries[0].review_required,false);
+ a.q('[data-finance-tab="expense"]').onclick();assert.equal(a.q('#financeAdd').textContent,'הוספת הוצאה');
+ await a.q('#financeAdd').onclick();assert.equal(a.q('#financeKind').value,'expense');assert.equal(a.q('#financeSave').textContent,'שמירת ההוצאה');
+ a.q('#financeCounterparty').value='ספק ב';a.q('#financeAmount').value='59';a.q('#financeVat').value='9';a.q('#financeDeductible').value='9';a.q('#financePaid').checked=true;a.q('#financePaidDate').value='2026-09-16';a.q('#financeVerified').checked=true;
+ await a.q('#financeForm').onsubmit({preventDefault(){}});assert.equal(entries.length,2);assert.equal(entries[1].review_required,false);
+ await a.q('#financeAdd').onclick();a.q('#financeCounterparty').value='ספק טיוטה';a.q('#financeAmount').value='25';await a.q('#financeDraft').onclick();assert.equal(entries.length,3);assert.equal(entries[2].review_required,true);
+ await a.q('[data-finance-edit="entry-3"]').onclick();assert.ok(active('#financeEntryView'));assert.equal(a.q('#financeCounterparty').value,'ספק טיוטה');a.q('#financeVat').value='0';a.q('#financeVerified').checked=true;await a.q('#financeForm').onsubmit({preventDefault(){}});assert.equal(entries[2].review_required,false);
+ a.q('[data-finance-tab="summary"]').onclick();assert.ok(!a.q('#financeSummaryPanel').classList.contains('hidden'));assert.ok(a.q('#financeRecordsPanel').classList.contains('hidden'));
+ const figures=[...a.q('#financeSummary').querySelectorAll('strong')].map(x=>x.textContent.replace(/[^\d.-]/g,''));assert.deepEqual(figures,['118.00','59.00','0.00','59.00','9.00','10.00','19.00']);
+ a.q('[data-finance-tab="expense"]').onclick();await a.q('[data-finance-edit="entry-2"]').onclick();a.q('#financeBack').onclick();assert.ok(active('#financeView'));await a.q('#financeView .back').onclick();assert.ok(active('#proWorkspaceView'));
+});
+
+test('v139 service worker pre-caches finance assets, replaces old cache and serves offline app',async()=>{
+ const events={},buckets=new Map(),removed=[],cache={addAll:async assets=>{for(const asset of assets)assert.ok(fs.existsSync(path.join(root,asset.split('?')[0]))||asset==='./')},put:async()=>{}};
+ const caches={open:async name=>{buckets.set(name,cache);return cache},keys:async()=>['mehirli-v138',...buckets.keys()],delete:async name=>{removed.push(name);return true},match:async asset=>asset==='./app.html'?'offline app':undefined};
+ const self={location:{origin:'https://example.test'},addEventListener:(name,fn)=>events[name]=fn,skipWaiting:async()=>{},clients:{claim:async()=>{}}};
+ vm.runInNewContext(fs.readFileSync(path.join(root,'sw.js'),'utf8'),{self,caches,URL,fetch:async()=>{throw Error('offline')}});
+ let work;events.install({waitUntil:p=>work=p});await work;assert.ok(buckets.has('mehirli-v139'));
+ events.activate({waitUntil:p=>work=p});await work;assert.deepEqual(removed,['mehirli-v138']);
+ let response;events.fetch({request:{method:'GET',url:'https://example.test/mehirli-app/app.html',mode:'navigate',destination:'document'},respondWith:p=>response=p});assert.equal(await response,'offline app');
+ response=null;events.fetch({request:{method:'GET',url:'https://api.other.test/private',mode:'cors'},respondWith:p=>response=p});assert.equal(response,null);
 });
 
 test('money displays cents in quotes and payment messages',()=>{const a=setup();assert.equal(a.run('money(1200.5)'), '1,200.5 ₪')});
