@@ -1,0 +1,78 @@
+/* Approved warm ivory / petrol design. Existing forms and data flows are retained. */
+:root{--bg:#faf7f0;--bg2:#f2eee5;--panel:#fff;--panel-solid:#fff;--panel2:#edf3ef;--text:#183d3f;--muted:#596b68;--accent:#195657;--accent-dark:#103e40;--accent2:#226b68;--border:#e1e6df;--border-strong:#bdccc5;--shadow:0 7px 25px #183d3f08;--radius:20px}
+html,body{background:#faf7f0;color:var(--text)}
+body{font-family:Arial,"Segoe UI",sans-serif;line-height:1.55}
+.app-shell{max-width:800px;padding:16px 18px 110px}
+.topbar{padding:6px 0 20px;border-bottom:1px solid #e4e4d9;gap:12px}
+.brand h1{color:var(--text);font-size:28px}.brand p{color:var(--muted);font-size:12px}
+.logo-img{width:48px;height:48px;border-radius:14px;box-shadow:none}
+.section-head,.section-head h2{color:var(--text)}.section-head .eyebrow,.eyebrow{color:#446b66}
+.card,.item,.job-card,.stat-card,.payment-card,.pro-command,.admin-funnel{background:#fff;color:var(--text);border:1px solid var(--border);box-shadow:var(--shadow);border-radius:20px}
+.card p,.item p,.job-card p,.payment-card p,.pro-command p{color:var(--muted)}
+button,a,input,textarea,select{touch-action:manipulation}
+button{cursor:pointer}button,a{overflow-wrap:anywhere}button:disabled{cursor:wait;opacity:.65}
+button:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid #9c6c29;outline-offset:3px}
+.primary,.auth-hero-cta{background:#195657;color:#fff;border:1px solid #195657;box-shadow:none}
+.secondary,.ghost,.back,.section-head .back,.notification-btn,.notification-permission,.install-app-btn{background:#fff;color:#195657;border:1px solid var(--border-strong);box-shadow:none}
+.primary,.secondary,.ghost,.back,.voice,.install-app-btn{min-height:44px;border-radius:14px}
+.voice{background:#edf3ef;color:#195657;border-color:var(--border-strong)}
+.tiny{font-size:14px}.note,.field-hint,.muted{font-size:13px;color:var(--muted)!important}
+.form-card label,.search-card,.inline-select{color:var(--text)}
+.form-card input,.form-card select,.form-card textarea,.search-card input,.filter-row select,.list-toolbar select,.inline-select select{background:#fff;color:var(--text);border-color:var(--border-strong);border-radius:12px;min-height:46px;min-width:0;max-width:100%;font-size:16px}
+.form-card input:focus,.form-card select:focus,.form-card textarea:focus{background:#fff;border-color:#195657;box-shadow:0 0 0 3px #19565715}
+.form-card :is(input[type=checkbox],input[type=radio]){min-height:22px;accent-color:#195657}
+.auth-showcase{background:#fff;border-color:var(--border);box-shadow:var(--shadow)}
+.auth-showcase h2,.auth-showcase p,.auth-kicker,.auth-no-card{color:var(--text)}
+.auth-proof-row span,.auth-benefit,.auth-workflow div{background:#edf3ef;color:var(--text);border-color:var(--border)}
+.auth-benefit b,.auth-benefit small{color:var(--text)}.auth-benefit small{font-size:12px}
+.auth-mode-tabs button,.role{color:var(--muted)}.auth-mode-tabs button.active,.role.active{background:#195657;color:#fff}
+.home-hero{padding:22px 0 8px;margin:0;border:0;background:transparent;box-shadow:none;overflow:visible}
+.home-hero:before,.home-hero:after{display:none}.home-kicker{padding:0;background:none;border:0;color:#61756d}
+.home-hero h2{font-size:30px;color:var(--text);line-height:1.3}.home-hero p{color:var(--muted);font-size:15px}
+.home-utility-row{margin-top:16px}.logout-link{color:var(--muted);min-height:44px}
+#homeView .home-action-grid{gap:12px;margin:12px 0 20px}
+#homeView .home-action-card{min-height:120px;padding:17px 16px 25px;background:#fff;color:var(--text);border:1px solid var(--border);box-shadow:var(--shadow);border-radius:20px;gap:7px}
+#homeView .home-action-card strong{font-size:19px}#homeView .home-action-card small{font-size:13px;color:var(--muted)}
+#homeView .home-action-icon{width:36px;height:36px;border-radius:12px;background:#edf3ef;color:#195657;font-size:23px}
+#homeView .home-action-arrow{color:#195657;font-size:20px;bottom:10px}
+#homeView .home-action-featured{grid-column:1/-1;display:grid;grid-template-columns:42px 1fr;min-height:106px;padding:20px;background:#195657;color:#fff;border-color:#195657}
+#homeView .home-action-featured .home-action-icon{grid-row:1/3;background:#ffffff20;color:#fff}
+#homeView .home-action-featured strong{font-size:23px}#homeView .home-action-featured small{color:#fff}
+#homeView .home-action-featured .home-action-arrow{color:#fff;left:20px;top:30px;bottom:auto}
+.home-summary{margin:24px 0}.home-summary-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.home-summary h3{margin:0;font-size:21px}.home-summary-heading button{background:none;border:0;color:#195657;min-height:44px;font:inherit}
+.home-job{display:block;width:100%;text-align:right;padding:17px;margin:10px 0;background:#fff;color:var(--text);border:1px solid var(--border);border-radius:18px;font:inherit}
+.home-job-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.home-job strong{font-size:17px}.home-job p{margin:8px 0;color:var(--muted)}.home-job small{font-size:13px;color:#226b68}
+.home-empty{padding:18px;border:1px dashed #bdccc5;border-radius:18px;color:var(--muted);font-size:14px}
+.app-navigation{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(100%,800px);display:grid;grid-template-columns:repeat(4,1fr);padding:8px 10px calc(8px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid #dce4dc;z-index:900;box-shadow:0 -4px 20px #183d3f06}
+.app-navigation button{border:0;border-radius:14px;background:transparent;color:#596b68;min-height:48px;font:inherit;font-size:14px}.app-navigation button[aria-current=page]{background:#edf3ef;color:#164f50;font-weight:700}
+.developer-support-link{bottom:calc(82px + env(safe-area-inset-bottom));background:#fff;color:#195657;border-color:var(--border);font-size:12px;max-width:calc(100% - 32px)}
+.workspace-tools button{background:#fff;color:var(--text);border-color:var(--border);box-shadow:none}.workspace-tools span{background:#edf3ef}.workspace-tools small{color:var(--muted)}
+.stat-card strong,.price,.job-card-bottom strong,.detail-price-grid strong,.funnel-stat strong{color:#195657}
+.customer-job-files{background:transparent;border:0;padding:0;margin:22px 0}.customer-job-files>header h3{color:var(--text);font-size:22px}.customer-job-files>header span{color:var(--muted)}
+.customer-job-files-list .job-card{background:#fff;border-color:var(--border);padding:19px;border-radius:18px}.customer-job-files-list .job-card small{color:#195657}
+.customer-history-row{width:100%;text-align:right;background:#fff;border:0;border-bottom:1px solid var(--border);font:inherit;min-height:54px;color:var(--text);align-items:center}.customer-history-row span{min-width:0;overflow-wrap:anywhere}.customer-history-row strong{color:#195657;white-space:nowrap;font-size:14px}
+.customer-card .customer-card-head{flex-wrap:wrap}.customer-card .customer-card-head span{color:var(--muted)}
+.status-pill,.badge{background:#edf3ef;color:#28534c;border-color:#d6e4dc}.status-in_progress,.status-quoted{background:#faf0da;color:#755719;border-color:#efe0bd}
+#proJobForm .job-step-button{background:#fff;color:var(--text);border:1px solid var(--border);padding:16px;border-radius:14px;font-size:17px;min-height:56px}
+#proJobForm .job-step-button.active{background:#e5efea;color:#164f50;border-color:#8db1a5}
+#proJobForm .job-step-next,#proJobSubmitBtn,#proJobForm .job-step-next:hover,#proJobSubmitBtn:hover{background:#195657;color:#fff;border-color:#195657}
+#proJobForm .secondary:not(.job-step-next){background:#fff;color:#195657;border-color:var(--border-strong)}
+.form-step-title b,.trade-choice.active{background:#195657;color:#fff}.form-step-title h3{color:var(--text)}.form-step-title p{color:var(--muted)}
+.form-step{border-color:var(--border)}.price-result>div,.quote-description,.quote-items-panel,.pricing-extras,.optional-fields{background:#f6f7f2;border-color:var(--border);color:var(--text)}
+.job-review>div,.discount-summary,.terms-box,.smart-analysis{background:#edf3ef;border-color:var(--border);color:var(--text)}
+#proJobDetailView .job-file-heading{background:#edf3ef;border:1px solid var(--border);border-radius:20px}
+#proJobDetailView #jobDetailTitle,#jobDetailCustomer{color:var(--text)}
+#jobDetailContent .job-tool-fold>summary,#proJobDetailView>.job-tool-fold>summary,#jobDetailContent .job-tool-fold[open]>summary{background:#edf3ef;color:var(--text)}
+#jobDetailContent .job-tool-fold .secondary,.quote-send-callout .quote-preview-action,.quote-send-callout [data-job-action=edit-quote],.job-ledger-actions button{color:#195657;border-color:var(--border-strong)}
+.detail-price-grid .featured,.public-price{background:#edf3ef;border-color:#9dbfb0}.detail-price-grid .featured strong,.public-price strong{color:#164f50}
+.timeline-item{background:#fff;border-color:var(--border);border-radius:20px;padding:18px;gap:14px;min-width:0}.timeline-item>div{min-width:0}.timeline-date{color:#195657}.timeline-item p{font-size:14px;color:var(--muted);overflow-wrap:anywhere}.timeline-item h3{color:var(--text);overflow-wrap:anywhere}.timeline-item .appointment-note{margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+.timeline-date strong{font-size:17px}.timeline-date small{font-size:14px}.timeline-item button{min-height:44px}
+.finance-summary .card{border-radius:18px}.finance-summary strong{color:#195657}.finance-tabs button[aria-pressed=true]{background:#195657;color:#fff}#financeSettings{border-color:#91b5a7;background:#f0f5ee}
+.post-signup-install-card,.ios-install-card{background:#fff;color:var(--text);border-color:var(--border);border-radius:24px}.post-signup-install-card p,.ios-install-card p{color:var(--muted)}
+.subscription-banner,.subscription-dates>div{background:#edf3ef;color:var(--text);border-color:var(--border)}.subscription-banner span{color:var(--muted)}
+@media(max-width:480px){.app-shell{padding:12px 14px 112px}.topbar{flex-wrap:wrap}.brand p{max-width:210px}.home-hero h2{font-size:27px}#homeView .home-action-card{min-height:120px;padding:15px 12px 26px}#homeView .home-action-featured{min-height:106px;padding:18px}#homeView .home-action-featured strong{font-size:21px}.two-cols{grid-template-columns:1fr}.timeline-item{grid-template-columns:56px minmax(0,1fr);padding:15px}.timeline-item>button{grid-column:1/-1}.form-card{padding:18px 14px}.form-actions{flex-wrap:wrap}.job-review{grid-template-columns:1fr}.customer-job-files>header{flex-wrap:wrap}.quote-item-row{grid-template-columns:minmax(0,1fr) 50px 70px 32px}}
+@media(max-width:360px){#homeView .home-action-card strong{font-size:17px}.brand h1{font-size:25px}.home-utility-row{flex-wrap:wrap}.app-navigation button{font-size:13px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}.view,.home-action-card{animation:none!important;transition:none!important}}
+
+.auth-showcase h2 span,.auth-showcase h2 em,.auth-showcase h2 strong{color:#195657}.auth-product-visual{object-position:center center}.auth-kicker{background:#edf3ef;border-color:#d5e3dc}.auth-mode-switch{background:#edf3ef}.auth-mode-switch button.active{background:#195657;color:#fff}

@@ -13,13 +13,16 @@ let adminAnalyticsRange='today',adminAnalyticsTimer=null;
 function analyticsVisitorId(){return window.MehirliTraffic.visitor()}
 function analyticsAttribution(){return window.MehirliTraffic.attribution()}
 async function trackAppEvent(eventName){
+  try{
+  if(!window.MehirliTraffic)return;
   if(state.isAdmin&&eventName!=='account_active')return;
   if(eventName==='app_open')window.MehirliTraffic.trackVisit(db);
   // account_active links identified admins to their earlier anonymous visitor ID.
   if(eventName==='account_active'){
     const a=analyticsAttribution();await db.rpc('track_app_event_v40',{p_visitor_id:analyticsVisitorId(),p_event_name:eventName,p_source:a.source,p_campaign:a.campaign});return;
   }
-  return window.MehirliTraffic.event(eventName,db);
+  return await window.MehirliTraffic.event(eventName,db);
+  }catch{console.warn('Mehirli analytics unavailable; app flow continues')}
 }
 
 function authErrorMessage(error){
@@ -127,11 +130,11 @@ const ANALYSIS_RULES={
   }
 };
 function toast(t){const x=$('#toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),2600)}
-function show(id){if(id!=='#proJobDetailView'&&state.timerInterval){clearInterval(state.timerInterval);state.timerInterval=null}$$('.view').forEach(v=>v.classList.remove('active'));$(id).classList.add('active');window.scrollTo({top:0,behavior:'smooth'})}
+function show(id){if(id!=='#proJobDetailView'&&state.timerInterval){clearInterval(state.timerInterval);state.timerInterval=null}$$('.view').forEach(v=>v.classList.remove('active'));$(id).classList.add('active');if(typeof updateAppNavigation==='function')updateAppNavigation(id);if(id==='#homeView'&&typeof refreshHomeDashboard==='function')refreshHomeDashboard();window.scrollTo({top:0,behavior:'smooth'})}
 function esc(s=''){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function icon(c){return({רכב:'🚗',מיזוג:'❄️',לבית:'🏠',הנדימן:'🔨',היינדמן:'🔨',חשמלאי:'⚡'})[c]||'🧰'}
 function tradeIcon(trade){return ({handyman:'🔨',electrician:'⚡',home:'🏠',air_conditioning:'❄️'})[trade]||'🧰'}
-function money(n){return `${Math.round(Number(n)||0).toLocaleString('he-IL')} ₪`}
+function money(n){return `${(Number(n)||0).toLocaleString('he-IL',{maximumFractionDigits:2})} ₪`}
 function numberValue(selector){return Number($(selector)?.value)||0}
 function normalizedPhone(value=''){return String(value).replace(/\D/g,'')}
 function round10(n){return Math.ceil(Math.max(0,n)/10)*10}
@@ -397,6 +400,13 @@ $('#passwordResetForm').onsubmit=async e=>{
   $('#authPassword').value='';$('#newPassword').value='';$('#confirmNewPassword').value='';show('#authView');$('#authNote').textContent='הסיסמה שונתה בהצלחה. אפשר להתחבר עם הסיסמה החדשה.'
 };
 $('#signupBtn').onclick=async()=>{const name=$('#authName').value.trim();if($('#signupBtn').dataset.mode==='edit'){if(!name){toast('יש להזין את השם שלך');return}const {data,error}=await db.auth.updateUser({data:{...state.user.user_metadata,full_name:name}});if(error){toast('לא ניתן לשמור את השינוי כרגע');return}state.user=data.user;await db.from('profiles').update({full_name:name}).eq('id',state.user.id);resetPendingSignupEdit();showPostSignupInstall();toast('פרטי ההרשמה עודכנו');return}const email=$('#authEmail').value.trim(),password=$('#authPassword').value,role='professional';if(!name){toast('יש להזין את השם שלך');return}if(!email||password.length<6){toast('הזן אימייל וסיסמה של לפחות 6 תווים');return}if(!$('#signupLegalConsent').checked){toast('כדי להירשם יש לאשר את תנאי השימוש ומדיניות הפרטיות');return}trackAppEvent('signup_attempt');const {data,error}=await db.auth.signUp({email,password,options:{data:{role,full_name:name,legal_version:LEGAL_VERSION,legal_accepted_at:new Date().toISOString()}}});if(error){const message=authErrorMessage(error);toast(message);if(isExistingAccountError(error))showExistingAccountLogin();else $('#authNote').textContent=message;return}const isNewSignup=!!data.user&&(!Array.isArray(data.user.identities)||data.user.identities.length>0);if(isNewSignup){trackMetaLifecycle('CompleteRegistration',data.user);await trackAppEvent('trial_signup');}if(data.session){state.user=data.user;await loadMe();const {error:consentError}=await db.rpc('accept_legal_terms_v40',{p_document_version:LEGAL_VERSION,p_accepted_via:'signup'});if(consentError){toast('ההרשמה נשמרה, אך אישור התנאים לא נשמר. נסה להתחבר מחדש.');return}await routeAfterLogin()}else{$('#authNote').textContent='נשלח אליך אימייל לאישור ההרשמה. לאחר האישור חזור והתחבר.'}};
+const submitSignup=$('#signupBtn').onclick;
+$('#signupBtn').onclick=async()=>{
+  const button=$('#signupBtn');if(button.disabled)return;
+  if(button.dataset.mode!=='edit'&&!$('#authEmail').checkValidity()){$('#authEmail').reportValidity();return}
+  button.disabled=true;
+  try{await submitSignup()}catch{$('#authNote').textContent='החיבור נקטע במהלך ההרשמה. אם החשבון כבר נוצר, עברו לכניסה לחשבון קיים.'}finally{button.disabled=false}
+};
 let legalReturnView='#authView';
 $$('[data-open-legal]').forEach(button=>button.onclick=()=>{const active=$('.view.active');legalReturnView=active?.id?`#${active.id}`:(state.user?'#homeView':'#authView');show('#legalInfoView')});
 $('#legalInfoBackBtn').onclick=()=>show(legalReturnView||'#authView');
@@ -587,6 +597,7 @@ function renderJobReview(){
   $('#proJobReview').innerHTML=`<div><small>לקוח</small><strong>${esc(name)}</strong><span>${esc(phone)}</span></div><div><small>עבודה</small><strong>${esc(description)}</strong></div><div><small>מחיר ההצעה</small><strong>${money(numberValue('#proQuotedPrice'))}</strong></div>`;
 }
 $$('#proJobForm [data-job-step]').forEach(button=>button.onclick=()=>{const target=Number(button.dataset.jobStep);setJobStep(button.getAttribute('aria-expanded')==='true'?-1:target)});
+$$('#proJobForm [data-job-next]').forEach(button=>button.onclick=()=>{const panel=button.closest('[data-job-panel]'),invalid=[...panel.querySelectorAll('input,select,textarea')].find(x=>x.willValidate&&!x.checkValidity());if(invalid){invalid.reportValidity();return}setJobStep(Number(button.dataset.jobNext))});
 function proJobDraftKey(){return state.user?.id?`mehirli_pro_job_draft_v1:${state.user.id}`:''}
 function saveProJobDraft(){if(state.editingProJob||state.quoteRevisionSource)return;const key=proJobDraftKey(),form=$('#proJobForm');if(!key||!form)return;const fields={};[...form.elements].forEach(el=>{if(el.id&&['INPUT','TEXTAREA','SELECT'].includes(el.tagName)&&el.type!=='file')fields[el.id]=el.type==='checkbox'?el.checked:el.value});try{localStorage.setItem(key,JSON.stringify({pricingQuantityVersion:2,fields,quoteItems:state.quoteItems,manualFloor:$('#priceFloor').dataset.manualOverride==='true',manualPrice:$('#proQuotedPrice').dataset.manualOverride==='true',savedAt:new Date().toISOString()}))}catch{}}
 function restoreProJobDraft(){const key=proJobDraftKey();if(!key)return false;let draft=null;try{draft=JSON.parse(localStorage.getItem(key)||'null')}catch{}if(!draft?.fields)return false;const trade=ANALYSIS_RULES[draft.fields.proJobTrade]&&draft.fields.proJobTrade!=='general'?draft.fields.proJobTrade:'handyman';setTrade(trade);Object.entries(draft.fields).forEach(([id,value])=>{if(id==='proJobTrade')return;const el=document.getElementById(id);if(!el)return;if(el.type==='checkbox')el.checked=Boolean(value);else el.value=value});if(draft.pricingQuantityVersion!==2)$('#proLaborHours').value=numberValue('#proLaborHours')/pricingUnitHours($('#proPricingMode').value);state.quoteItems=Array.isArray(draft.quoteItems)?draft.quoteItems:[];renderQuoteItemsEditor();$('#priceFloor').dataset.manualOverride=String(draft.manualFloor??Boolean(draft.fields.priceFloor));$('#proQuotedPrice').dataset.manualOverride=String(draft.manualPrice??Boolean(draft.fields.proQuotedPrice));setPricingMode($('#proPricingMode').value||'hourly',false);calculateProPrice(false);return true}
@@ -623,12 +634,19 @@ function resetServiceForm(){const form=$('#serviceForm');form.reset();$('#servic
 function renderServices(){const box=$('#servicesList');box.innerHTML=state.proServices.length?state.proServices.map(s=>`<div class="item service-card"><h3>${tradeIcon(s.trade)} ${esc(s.name)}</h3><p>${esc(s.quote_scope||'ללא פירוט קבוע')}</p><div class="service-meta"><span class="badge">${PRICING_MODE_HE[s.pricing_mode]||''}</span><span class="badge">${money(s.base_price)}</span><span class="badge">${Number(s.default_hours)} שעות</span></div><div class="item-actions"><button class="secondary" data-edit-service="${s.id}">ערוך</button><button class="ghost" data-delete-service="${s.id}">מחק</button></div></div>`).join(''):'<div class="card empty-state"><span>🏷️</span><h3>עדיין אין תבניות אישיות</h3><p>התבניות המובנות כבר זמינות בפתיחת עבודה. כאן אפשר להוסיף את השירותים והמחירים שלך.</p></div>';box.querySelectorAll('[data-edit-service]').forEach(b=>b.onclick=()=>{const s=state.proServices.find(x=>x.id===b.dataset.editService);if(!s)return;$('#serviceId').value=s.id;$('#serviceName').value=s.name;$('#serviceTrade').value=s.trade;$('#servicePricingMode').value=s.pricing_mode;$('#serviceBasePrice').value=s.base_price;$('#serviceDefaultHours').value=s.default_hours;$('#serviceMaterialsCost').value=s.default_materials_cost;$('#serviceScope').value=s.quote_scope||'';$('#cancelServiceEditBtn').classList.remove('hidden');window.scrollTo({top:0,behavior:'smooth'})});box.querySelectorAll('[data-delete-service]').forEach(b=>b.onclick=async()=>{if(!confirm('למחוק את התבנית מהמחירון?'))return;const {error}=await db.from('pro_services').delete().eq('id',b.dataset.deleteService).eq('professional_id',state.user.id);if(error){toast(error.message);return}await loadProServices();renderServices();toast('התבנית נמחקה')})}
 async function openPriceBook(){if(!requireServiceAccess())return;await Promise.all([loadProSettings(),loadProServices()]);resetServiceForm();renderServices();show('#priceBookView')}
 $('#serviceForm').onsubmit=async e=>{e.preventDefault();const id=$('#serviceId').value,row={professional_id:state.user.id,name:$('#serviceName').value.trim(),trade:$('#serviceTrade').value,pricing_mode:$('#servicePricingMode').value,base_price:numberValue('#serviceBasePrice'),default_hours:numberValue('#serviceDefaultHours'),default_materials_cost:numberValue('#serviceMaterialsCost'),quote_scope:$('#serviceScope').value.trim()||null};const query=id?db.from('pro_services').update(row).eq('id',id).eq('professional_id',state.user.id):db.from('pro_services').insert(row);const {error}=await query;if(error){toast(error.message);return}await loadProServices();resetServiceForm();renderServices();toast(id?'התבנית עודכנה':'התבנית נוספה למחירון')};$('#cancelServiceEditBtn').onclick=resetServiceForm;
-function renderCustomers(){const search=$('#customerSearch').value.trim().toLowerCase(),rows=state.proCustomers.filter(c=>[c.name,c.phone,c.city].some(v=>String(v||'').toLowerCase().includes(search))),box=$('#customersList');box.innerHTML=rows.length?rows.map(c=>{const jobs=state.proJobs.filter(j=>j.customer_id===c.id||normalizedPhone(j.customer_phone)===c.normalized_phone).slice(0,4);return `<div class="item customer-card"><div class="customer-card-head"><div><h3>${esc(c.name)}</h3><span>${esc(c.phone)}${c.city?` · ${esc(c.city)}`:''}</span></div><a class="secondary tiny" href="https://wa.me/${waNumber(c.phone)}" target="_blank" rel="noopener">WhatsApp</a></div><div class="customer-history"><b>${jobs.length} עבודות אחרונות</b>${jobs.length?jobs.map(j=>`<div class="customer-history-row"><span>${esc(j.description)}</span><strong>${money(jobBalance(j).total)}</strong></div>`).join(''):'<p class="muted">עדיין אין היסטוריה.</p>'}</div></div>`}).join(''):'<div class="card empty-state"><span>👥</span><h3>לא נמצאו לקוחות</h3><p>לקוח נשמר אוטומטית כשפותחים עבורו עבודה.</p></div>'}
+function renderCustomers(){
+  const search=$('#customerSearch').value.trim().toLowerCase(),rows=state.proCustomers.filter(c=>[c.name,c.phone,c.city].some(v=>String(v||'').toLowerCase().includes(search))),box=$('#customersList');
+  box.innerHTML=rows.length?rows.map(c=>{
+    const phone=normalizedPhone(c.phone),jobs=state.proJobs.filter(j=>j.customer_id===c.id||(!j.customer_id&&phone&&normalizedPhone(j.customer_phone)===phone));
+    return `<div class="item customer-card"><div class="customer-card-head"><div><h3>${esc(c.name)}</h3><span>${esc(c.phone)}${c.city?` · ${esc(c.city)}`:''}</span></div>${waNumber(c.phone)?`<a class="secondary tiny" href="${esc(whatsappUrl(c.phone,''))}" target="_blank" rel="noopener noreferrer">WhatsApp</a>`:''}</div><div class="customer-history"><b>העבודות של הלקוח · ${jobs.length}</b>${jobs.length?jobs.map(j=>`<button type="button" class="customer-history-row" data-customer-job="${esc(j.id)}"><span>${esc(j.description)}<small> · ${esc(jobStatusHe[j.status]||j.status)}</small></span><strong>${money(jobBalance(j).total)} ←</strong></button>`).join(''):'<p class="muted">עדיין אין עבודות שמורות.</p>'}</div></div>`
+  }).join(''):'<div class="card empty-state"><span>👥</span><h3>לא נמצאו לקוחות</h3><p>לקוח נשמר אוטומטית כשפותחים עבורו עבודה.</p></div>';
+  box.querySelectorAll('[data-customer-job]').forEach(b=>b.onclick=()=>openProJobDetail(b.dataset.customerJob));
+}
 async function openCustomers(){if(!requireServiceAccess())return;await Promise.all([loadProCustomers(),loadProJobs()]);$('#customerSearch').value='';renderCustomers();show('#customersView')}
 $('#customerSearch').oninput=renderCustomers;
-function calendarEntries(){const jobs=state.proJobs.filter(j=>j.scheduled_at&&!['cancelled','paid'].includes(j.status)).map(j=>({id:`job:${j.id}`,date:j.scheduled_at,title:j.customer_name,body:j.description,kind:'job'})),reminders=state.proReminders.map(r=>({id:r.id,date:r.remind_at,title:r.message,body:'תזכורת',kind:'reminder'})),appointments=state.proAppointments.map(a=>({id:a.id,date:a.appointment_at,title:a.customer_name,body:[a.title,a.address].filter(Boolean).join(' · '),address:a.address,kind:'appointment'}));return [...jobs,...appointments,...reminders].sort((a,b)=>new Date(a.date)-new Date(b.date))}
+function calendarEntries(){const jobs=state.proJobs.filter(j=>j.scheduled_at&&!['cancelled','paid'].includes(j.status)).map(j=>({id:`job:${j.id}`,date:j.scheduled_at,title:j.customer_name,body:j.description,kind:'job'})),reminders=state.proReminders.map(r=>({id:r.id,date:r.remind_at,title:r.message,body:'תזכורת',kind:'reminder'})),appointments=state.proAppointments.map(a=>({id:a.id,date:a.appointment_at,title:a.customer_name,body:[a.title,a.address].filter(Boolean).join(' · '),address:a.address,notes:a.notes,kind:'appointment'}));return [...jobs,...appointments,...reminders].sort((a,b)=>new Date(a.date)-new Date(b.date))}
 function appointmentWazeLink(address){const value=String(address||'').trim();return value?'https://waze.com/ul?q='+encodeURIComponent(value)+'&navigate=yes':''}
-function renderCalendar(){const box=$('#calendarList'),rows=calendarEntries();box.innerHTML=rows.length?rows.map(x=>{const d=new Date(x.date),icon=x.kind==='job'?'🧰':x.kind==='appointment'?'📅':'🔔';return `<div class="timeline-item ${d<Date.now()?'due':''}"><div class="timeline-date"><strong>${d.toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit'})}</strong><small>${d.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'})}</small></div><div><h3>${icon} ${esc(x.title)}</h3><p>${esc(x.body)}</p>${x.kind==='appointment'&&appointmentWazeLink(x.address)?`<a class="ghost tiny" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;margin-top:6px" href="${esc(appointmentWazeLink(x.address))}" target="_blank" rel="noopener noreferrer" aria-label="ניווט ב־Waze לכתובת ${esc(x.address)}">📍 ניווט ב־Waze</a>`:''}</div>${x.kind==='reminder'?`<button class="ghost tiny" data-done-reminder="${x.id}">בוצע</button>`:x.kind==='appointment'?`<button class="ghost tiny" data-cancel-appointment="${x.id}">ביטול פגישה</button>`:''}</div>`}).join(''):'<div class="card empty-state"><span>📅</span><h3>היומן פנוי</h3><p>לחץ על „פגישה חדשה” כדי לקבוע את הפגישה הראשונה.</p></div>';box.querySelectorAll('[data-done-reminder]').forEach(b=>b.onclick=async()=>{const {error}=await db.from('pro_reminders').update({is_done:true}).eq('id',b.dataset.doneReminder).eq('professional_id',state.user.id);if(error){toast(error.message);return}await loadProReminders();renderCalendar();toast('התזכורת הושלמה')});box.querySelectorAll('[data-cancel-appointment]').forEach(b=>b.onclick=async()=>{if(!confirm('לבטל את הפגישה?'))return;const {error}=await db.from('pro_appointments').update({status:'cancelled'}).eq('id',b.dataset.cancelAppointment).eq('professional_id',state.user.id);if(error){toast(error.message);return}await loadProAppointments();renderCalendar();toast('הפגישה בוטלה')})}
+function renderCalendar(){const box=$('#calendarList'),rows=calendarEntries();box.innerHTML=rows.length?rows.map(x=>{const d=new Date(x.date),icon=x.kind==='job'?'🧰':x.kind==='appointment'?'📅':'🔔';return `<div class="timeline-item ${d<Date.now()?'due':''}"><div class="timeline-date"><strong>${d.toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit'})}</strong><small>${d.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'})}</small></div><div><h3>${icon} ${esc(x.title)}</h3><p>${esc(x.body)}</p>${x.notes?`<p class="appointment-note">${esc(x.notes)}</p>`:''}${x.kind==='appointment'&&appointmentWazeLink(x.address)?`<a class="ghost tiny" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;margin-top:6px" href="${esc(appointmentWazeLink(x.address))}" target="_blank" rel="noopener noreferrer" aria-label="ניווט ב־Waze לכתובת ${esc(x.address)}">📍 ניווט ב־Waze</a>`:''}</div>${x.kind==='reminder'?`<button class="ghost tiny" data-done-reminder="${x.id}">בוצע</button>`:x.kind==='appointment'?`<button class="ghost tiny" data-cancel-appointment="${x.id}">ביטול פגישה</button>`:''}</div>`}).join(''):'<div class="card empty-state"><span>📅</span><h3>היומן פנוי</h3><p>לחץ על „פגישה חדשה” כדי לקבוע את הפגישה הראשונה.</p></div>';box.querySelectorAll('[data-done-reminder]').forEach(b=>b.onclick=async()=>{const {error}=await db.from('pro_reminders').update({is_done:true}).eq('id',b.dataset.doneReminder).eq('professional_id',state.user.id);if(error){toast(error.message);return}await loadProReminders();renderCalendar();toast('התזכורת הושלמה')});box.querySelectorAll('[data-cancel-appointment]').forEach(b=>b.onclick=async()=>{if(!confirm('לבטל את הפגישה?'))return;const {error}=await db.from('pro_appointments').update({status:'cancelled'}).eq('id',b.dataset.cancelAppointment).eq('professional_id',state.user.id);if(error){toast(error.message);return}await loadProAppointments();renderCalendar();toast('הפגישה בוטלה')})}
 function appointmentDefaultTime(){const d=new Date(Date.now()+60*60*1000);d.setMinutes(Math.ceil(d.getMinutes()/15)*15,0,0);return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16)}
 function renderAppointmentCustomers(){const select=$('#appointmentCustomerSelect');select.innerHTML='<option value="">לקוח חדש</option>'+state.proCustomers.map(c=>`<option value="${c.id}">${esc(c.name)} · ${esc(c.phone)}</option>`).join('')}
 function closeAppointmentForm(){const form=$('#appointmentForm');form.reset();form.classList.add('hidden');$('#newAppointmentBtn').classList.remove('hidden')}
@@ -947,7 +965,7 @@ async function renderProJobDetail({readyToSend=false}={}){
   $('#jobStatusSelect').onchange=async e=>{if(!requireServiceAccess())return;const status=e.target.value;const {error}=await db.from('pro_jobs').update({status}).eq('id',j.id).eq('professional_id',state.user.id);if(error){toast(error.message);return}j.status=status;toast('מצב העבודה עודכן');await loadProJobs();await renderProJobDetail()};
   if(state.timerInterval){clearInterval(state.timerInterval);state.timerInterval=null}compactJobDetail();prepareJobQuotePdf(j).catch(()=>{});await loadJobMedia(j.id)
 }
-async function openProJobDetail(id){if(!requireServiceAccess())return;state.selectedProJob=state.proJobs.find(j=>j.id===id);if(!state.selectedProJob){const {data}=await db.from('pro_jobs').select('*').eq('id',id).eq('professional_id',state.user.id).single();state.selectedProJob=data}await renderProJobDetail();show('#proJobDetailView')}
+async function openProJobDetail(id){if(!requireServiceAccess())return;await loadProSettings();state.selectedProJob=state.proJobs.find(j=>j.id===id);if(!state.selectedProJob){const {data}=await db.from('pro_jobs').select('*').eq('id',id).eq('professional_id',state.user.id).single();state.selectedProJob=data}await renderProJobDetail();show('#proJobDetailView')}
 function jobBalance(job){
   const cents=x=>Math.round(Number(x||0)*100),total=cents(job.quoted_price)+cents(job.addition_total)-cents(job.adjustment_discount_total),paid=cents(job.actual_paid);
   return {total:total/100,paid:paid/100,remaining:Math.max(0,total-paid)/100};
@@ -1227,11 +1245,13 @@ $('#subscriptionBackBtn').onclick=()=>hasServiceAccess()?show('#homeView'):openS
 $('#subscriptionLogoutBtn').onclick=async()=>{stopNotificationPolling();await db.auth.signOut();state.user=null;refreshDeveloperSupportLink();show('#authView')};
 $('#subscriptionPayBtn').onclick=async()=>{
   const s=state.subscription||{},button=$('#subscriptionPayBtn');
+  if(button.disabled)return;
   if(s.payment_mode!=='cardcom'){
     const url=safeHttpUrl(s.payment_url);if(url)window.open(url,'_blank','noopener,noreferrer');else toast('קישור התשלום עדיין לא הוגדר');return
   }
   trackAppEvent('payment_started');
   button.disabled=true;const old=button.textContent;button.textContent='פותח תשלום מאובטח…';
+  try{
   const {data,error}=await db.functions.invoke('mehirli-cardcom-checkout',{body:{product:'MEHIRLI-MONTHLY'}});
   if(error||!safePaymentUrl(data?.checkout_url)){
     button.disabled=false;button.textContent=old;
@@ -1239,6 +1259,7 @@ $('#subscriptionPayBtn').onclick=async()=>{
     toast(code==='cardcom_waiting_for_approval'?'החיבור לקארדקום עדיין ממתין לאישור':'לא ניתן לפתוח כרגע את דף התשלום');return
   }
   location.assign(data.checkout_url)
+  }catch{toast('החיבור לתשלום נקטע. אפשר לנסות לפתוח שוב.')}finally{button.disabled=false;button.textContent=old}
 };
 $('#subscriptionPaidBtn').onclick=async()=>{
   const button=$('#subscriptionPaidBtn');button.disabled=true;button.textContent='שולח לאישור…';
@@ -1282,7 +1303,7 @@ function updateInstallButton(){
   if(!isStandalone())installBtn.textContent=isIosDevice()?' התקנה באייפון':'⬇ התקן אפליקציה';
 }
 async function requestAppInstall(){
-  await markOnboardingStep('install_clicked');
+  markOnboardingStep('install_clicked').catch(()=>{});
   if(isAndroidInAppBrowser()){openInChrome();return}
   if(isStandalone()){
     if(state.subscription?.failure_reason==='installation_required')await activateTrialAfterInstall();
@@ -1326,8 +1347,10 @@ boot();
 
 if('serviceWorker' in navigator){
   let reloadingForUpdate=false;
+  const hadServiceWorkerController=Boolean(navigator.serviceWorker.controller);
   navigator.serviceWorker.addEventListener('controllerchange',()=>{
-    if(reloadingForUpdate)return;
+    if(reloadingForUpdate||!hadServiceWorkerController)return;
+    if(document.querySelector('.view.active form')){toast('עדכון מוכן. הוא יופיע בפתיחה הבאה של האפליקציה.');return}
     reloadingForUpdate=true;
     location.reload();
   });
