@@ -900,12 +900,11 @@ async function sendDigitalQuoteToWhatsapp(job){
   if(!requireServiceAccess())return;
   if(!waNumber(job.customer_phone)){toast('חסר מספר טלפון ללקוח');return}
   trackAppEvent('quote_send_opened');
-  await markOnboardingStep('first_quote_sent');
+  markOnboardingStep('first_quote_sent').catch(()=>{});
   if(openWhatsapp(job.customer_phone,quoteMessage(job))){
     const panel=$('#jobDetailContent .quote-send-callout');
-    panel?.querySelector('[data-job-action="quote-whatsapp"]')?.remove();
     const status=panel?.querySelector('#quoteStorageStatus');if(status)status.textContent='הצעת המחיר';
-    const note=panel?.querySelector('p');if(note)note.textContent='אפשר לצפות בהצעה או לערוך אותה.';
+    const note=panel?.querySelector('p');if(note)note.textContent='אפשר לצפות בהצעה, לשלוח אותה בוואטסאפ או לערוך אותה.';
   }
 }
 async function openStoredQuotePdf(job,button){
@@ -943,7 +942,7 @@ function compactJobDetail(){
 async function renderProJobDetail({readyToSend=false}={}){
   const j=state.selectedProJob;if(!j)return;await loadProSettings();if(!j.items)await loadJobExtras(j);$('#jobDetailTitle').textContent='תיק עבודה — '+(j.customer_name||'לקוח ללא שם');$('#jobDetailCustomer').textContent='תיק מס׳ '+jobFileNumber(j);
   const balance=jobBalance(j),remaining=balance.remaining;
-  $('#jobDetailContent').innerHTML=`<div class="quote-send-callout card"><span id="quoteStorageStatus" class="quote-send-status stored">${readyToSend?'ההצעה נשמרה ומוכנה לשליחה':'הצעת המחיר'}</span><h3>ההצעה ל־${esc(j.customer_name)}</h3><p>${readyToSend?'אפשר לשלוח כעת את ההצעה ללקוח.':'אפשר לצפות בהצעה או לערוך אותה.'}</p><a class="secondary quote-preview-action" href="${esc(quoteUrl(j))}" target="_blank" rel="noopener">צפייה בהצעה</a>${readyToSend?'<button class="primary big whatsapp-action" data-job-action="quote-whatsapp">💬 שלח הצעה דיגיטלית ב־WhatsApp</button>':''}</div>
+  $('#jobDetailContent').innerHTML=`<div class="quote-send-callout card"><span id="quoteStorageStatus" class="quote-send-status stored">${readyToSend?'ההצעה נשמרה ומוכנה לשליחה':'הצעת המחיר'}</span><h3>ההצעה ל־${esc(j.customer_name)}</h3><p>${readyToSend?'אפשר לשלוח כעת את ההצעה ללקוח.':'אפשר לצפות בהצעה, לשלוח אותה בוואטסאפ או לערוך אותה.'}</p><a class="secondary quote-preview-action" href="${esc(quoteUrl(j))}" target="_blank" rel="noopener">צפייה בהצעה</a><button class="primary big whatsapp-action" data-job-action="quote-whatsapp">💬 שלח הצעה דיגיטלית ב־WhatsApp</button></div>
   <div class="job-hero card"><div class="job-card-top"><span class="status-pill status-${j.status}">${jobStatusHe[j.status]||j.status}</span></div><span class="quote-number">הצעה מס׳ ${esc(j.quote_number||String(j.id).slice(0,8))} · ${PRICING_MODE_HE[j.pricing_mode]||'תמחור'}</span><h3>${esc(j.description)}</h3><p>👤 ${esc(j.customer_name)} · 📍 ${esc(j.city||'לא צוין')} · 🗓️ ${esc(formatDateTime(j.scheduled_at))}</p><div class="contact-actions"><a class="secondary" href="tel:${esc(j.customer_phone)}">📞 התקשר</a><button class="secondary" data-job-action="questions">💬 שלח שאלות</button></div></div>
   <div class="detail-price-grid"><div class="card"><small>סכום כולל</small><strong>${money(balance.total)}</strong></div><div class="card"><small>התקבל עד עכשיו</small><strong>${money(balance.paid)}</strong></div><div class="card featured"><small>יתרה לתשלום</small><strong>${money(remaining)}</strong></div></div><div id="jobLedgerPanel"></div>
   <div class="card"><h3>הצעת המחיר</h3><button class="secondary" data-job-action="edit-quote">✏️ ${quoteCanEdit(j)?'עריכת הצעת המחיר':'עריכת עותק חדש'}</button><p>${esc(j.quote_scope||'לא נוסף פירוט להצעה.')}</p>${quoteItemsView(j)}<div class="quote-totals">${Number(j.discount_amount)>0?`<div><span>לפני הנחה</span><b>${money(j.subtotal)}</b></div><div><span>הנחה</span><b>− ${money(j.discount_amount)}</b></div>`:''}<div class="final"><span>סה״כ</span><b>${money(j.quoted_price)}</b></div></div>${j.warranty_text?`<p><b>אחריות:</b> ${esc(j.warranty_text)}</p>`:''}${j.quote_terms?`<div class="terms-box">${esc(j.quote_terms)}</div>`:''}<div class="action-grid"><button class="secondary" data-job-action="quote-pdf" disabled>⏳ מכין PDF…</button><button class="secondary" data-job-action="copy">העתק קישור להצעה</button>${safePaymentUrl(state.proSettings?.payment_link)?'<button class="secondary" data-job-action="payment">שלח קישור לתשלום</button>':''}</div><p class="stored-pdf-note">אפשר ליצור ולשמור PDF גם מתיק העבודה. הלקוח יכול להוריד עותק משלו ישירות מההצעה הדיגיטלית.</p></div>

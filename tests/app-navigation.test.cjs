@@ -52,7 +52,15 @@ test('install prompt is not delayed by a network tracking call',async()=>{
 test('manifest and offline cache point to existing versioned app assets',()=>{
  const manifest=JSON.parse(fs.readFileSync(path.join(root,'manifest.webmanifest'),'utf8'));assert.equal(manifest.display,'standalone');assert.equal(manifest.start_url,'/mehirli-app/app.html');for(const icon of manifest.icons)assert.ok(fs.existsSync(path.join(root,icon.src)));
  const sw=fs.readFileSync(path.join(root,'sw.js'),'utf8');new vm.Script(sw);const assets=vm.runInNewContext(sw.slice(0,sw.indexOf('self.addEventListener'))+'ASSETS');for(const asset of assets){const f=asset.split('?')[0];if(f!=='./')assert.ok(fs.existsSync(path.join(root,f)),asset)}
- assert.ok(assets.includes('./app-design.css?v=137'));assert.ok(assets.includes('./home-dashboard.js?v=137'));
+ assert.ok(assets.includes('./app-design.css?v=138'));assert.ok(assets.includes('./home-dashboard.js?v=138'));
 });
 
 test('money displays cents in quotes and payment messages',()=>{const a=setup();assert.equal(a.run('money(1200.5)'), '1,200.5 ₪')});
+
+
+test('saved proposals keep a WhatsApp button when reopened and after opening share',async()=>{
+ const a=setup();a.run(`state.selectedProJob={id:'job',customer_name:'בדיקה',customer_phone:'0552715782',status:'quoted',quoted_price:1170,items:[]};loadProSettings=async()=>{};renderJobLedger=async()=>{};prepareJobQuotePdf=async()=>{};loadJobMedia=async()=>{};requireServiceAccess=()=>true;markOnboardingStep=()=>new Promise(()=>{});openWhatsapp=()=>true;`);
+ await a.run('renderProJobDetail()');assert.ok(a.q('[data-job-action="quote-whatsapp"]'));
+ await a.run('sendDigitalQuoteToWhatsapp(state.selectedProJob)');assert.ok(a.q('[data-job-action="quote-whatsapp"]'));
+ await a.run('renderProJobDetail()');assert.ok(a.q('[data-job-action="quote-whatsapp"]'));
+});
