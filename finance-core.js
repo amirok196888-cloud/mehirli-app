@@ -30,7 +30,7 @@
   const advanceBalance=advance===null?null:advance-withholding-advancePaid;
   return {income:income/100,expense:expense/100,balance:(income-expense-advancePaid-vatPaid)/100,unpaid:unpaid/100,outputVat:outputVat/100,inputVat:inputVat/100,vatBalance:vatBalance/100,vat:vat===null||unconfirmedCash?null:vat/100,turnover:turnover/100,withholding:withholding/100,advance:advance===null?null:advance/100,advancePaid:advancePaid/100,vatPaid:vatPaid/100,advanceBalance:advanceBalance===null?null:advanceBalance/100,advanceRemaining:advanceBalance===null||unconfirmedCash?null:Math.max(0,advanceBalance)/100,reserve:vat===null||advanceBalance===null||unconfirmedCash?null:(vat+Math.max(0,advanceBalance))/100,pending,unconfirmedCash};
  }
- function parseOcr(text){
+ function parseOcr(text,kind='expense'){
   const lines=String(text).split(/\n/).map(s=>s.trim()).filter(Boolean),r={};
   const dt=String(text).match(/\b(\d{1,2})[./-](\d{1,2})[./-](20\d{2})\b/);
   if(dt){const iso=`${dt[3]}-${dt[2].padStart(2,'0')}-${dt[1].padStart(2,'0')}`;if(!isNaN(Date.parse(iso))&&new Date(iso).toISOString().slice(0,10)===iso)r.document_date=iso;}
@@ -39,7 +39,13 @@
    if(/(?:מע[״"']?מ|VAT)/i.test(line)&&!/(?:כולל|לפני|ללא|before|including)/i.test(line))r.vat_amount=n;
   }
   const num=String(text).match(/(?:חשבונית(?:\s*מס)?|invoice)\s*(?:מס[׳'״".]?|number|no[.]?|#)?\s*[:#]?\s*(\d[\d/-]{1,30})/i);if(num)r.document_number=num[1];
-  // Names are not guessed from addresses or account numbers.
+  // Only an explicitly labeled name is proposed; an issuer and a customer are different parties.
+  const nameLabel=kind==='income'?/^(?:לכבוד|שם\s*לקוח|לקוח|customer)\s*[:：-]\s*(.+)$/i:/^(?:שם\s*(?:העסק|הספק|החנות)|ספק|בית\s*עסק|supplier|merchant)\s*[:：-]\s*(.+)$/i;
+  for(const line of lines){const match=line.match(nameLabel);if(!match)continue;const name=match[1].trim().replace(/[.,;]+$/,'');if(name.length>=2&&name.length<=80&&!/(?:https?:|@|₪|\b\d{2,}\b|סה[״"']?כ|מע[״"']?מ)/i.test(name)){r.counterparty=name;break;}}
+  if(kind==='expense'){
+   const categoryHints={materials:/(?:חומרי\s*(?:בניין|עבודה)|צבעים?\s*לקיר|צנרת|ברגים?)/,tools:/(?:כלי\s*עבודה|מקדחה|מברגה)/,travel:/(?:דלק|תדלוק|חניה|חניון)/,office:/(?:ציוד\s*משרדי|נייר\s*למדפסת)/};
+   const matches=Object.entries(categoryHints).filter(([,pattern])=>pattern.test(text));if(matches.length===1)r.category=matches[0][0];
+  }
   if(r.amount!==undefined&&r.vat_amount!==undefined&&Math.abs(r.vat_amount)>Math.abs(r.amount))delete r.vat_amount;
   return r;
  }
