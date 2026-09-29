@@ -10,6 +10,12 @@ test('OCR accepts whole shekels, decimal commas and thousands without treating V
  assert.deepEqual(F.parseOcr('VAT 18% 18,00\nTOTAL DUE 118,00'),{vat_amount:18,amount:118});
  assert.equal(F.parseOcr('מע״מ 18%\n25/09/2026').vat_amount,undefined);
 });
+test('OCR proposes only labeled parties and unambiguous expense category',()=>{
+ const expense=F.parseOcr('שם הספק: חנות חומרי בניין\nחשבונית מס 12345\nחומרי בניין\nסה״כ לתשלום 118.00','expense');assert.equal(expense.counterparty,'חנות חומרי בניין');assert.equal(expense.category,'materials');
+ const income=F.parseOcr('שם העסק: העסק שלי\nלכבוד: לקוח לדוגמה\nסה״כ לתשלום 118.00','income');assert.equal(income.counterparty,'לקוח לדוגמה');assert.equal(income.category,undefined);
+ assert.equal(F.parseOcr('הרצל 12\nטלפון 0501234567\nסה״כ לתשלום 118.00').counterparty,undefined);
+ assert.equal(F.parseOcr('שם הספק: 123456789\nדלק ומקדחה').category,undefined);
+});
 test('CSV neutralizes spreadsheet formulas and escapes quotes',()=>{assert.ok(F.csv([['=HYPERLINK("bad")','+cmd','ספק']]).includes("'=HYPERLINK"));});
 test('ZIP preserves Hebrew names and file bytes',async()=>{const zip=F.zip([{name:'מסמך.txt',data:new TextEncoder().encode('שלום')},{name:'entries.csv',data:new TextEncoder().encode('123')}]);fs.writeFileSync('/tmp/mehirli-finance-test.zip',Buffer.from(await zip.arrayBuffer()));assert.equal(new DataView(await zip.arrayBuffer()).getUint32(0,true),0x04034b50);});
 test('workflow excludes drafts and separates withholding from cash and turnover',()=>{const e={kind:'income',amount:23600,vat_amount:3600,withholding:1500,paid_on:'2026-09-20',report_month:'2026-09-01',approved_at:'now',review_required:false};const s=F.workflowSummary([e,{...e,amount:9999,review_required:true}],'2026-09',{business_type:'vat',advance_rate:25,reporting_months:1});assert.equal(s.turnover,20000);assert.equal(s.income,22100);assert.equal(s.advanceRemaining,3500);assert.equal(s.pending,1);assert.equal(s.reserve,7100);});
