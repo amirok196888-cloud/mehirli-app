@@ -53,6 +53,14 @@ test('manifest and offline cache point to existing versioned app assets',()=>{
  const manifest=JSON.parse(fs.readFileSync(path.join(root,'manifest.webmanifest'),'utf8'));assert.equal(manifest.display,'standalone');assert.equal(manifest.start_url,'/mehirli-app/app.html');for(const icon of manifest.icons)assert.ok(fs.existsSync(path.join(root,icon.src)));
  const sw=fs.readFileSync(path.join(root,'sw.js'),'utf8');new vm.Script(sw);const assets=vm.runInNewContext(sw.slice(0,sw.indexOf('self.addEventListener'))+'ASSETS');for(const asset of assets){const f=asset.split('?')[0];if(f!=='./')assert.ok(fs.existsSync(path.join(root,f)),asset)}
  assert.ok(assets.includes('./app-design.css?v=139'));assert.ok(assets.includes('./home-dashboard.js?v=139'));
+ assert.ok(assets.includes('./finance.js?v=141'));assert.ok(assets.includes('./finance-core.js?v=141'));
+ assert.match(sw,/mehirli-v141/);
+ const {document}=parseHTML(fs.readFileSync(path.join(root,'app.html'),'utf8'));assert.equal(document.querySelector('.finance-document-box').hasAttribute('open'),true);
+});
+test('finance approval without a document stops before a database write',async()=>{
+ const a=setup();a.run("state.user={id:'user'};state.isAdmin=true");let writes=0;a.db.from=()=>{writes++;throw Error('Unexpected write')};
+ a.q('#financeCounterparty').value='ספק לדוגמה';a.q('#financeAmount').value='118';a.q('#financeVat').value='18';a.q('#financeDeductible').value='18';a.q('#financeDocDate').value='2026-09-29';a.q('#financeVatMonth').value='2026-09';a.q('#financeVerified').checked=true;
+ await a.q('#financeForm').onsubmit({preventDefault(){}});assert.equal(writes,0);assert.match(a.q('#financeFormError').textContent,/לצרף צילום או קובץ/);assert.match(a.q('#financeUploadPolicy').textContent||a.q('.finance-document-box summary').textContent,/צילום|קובץ/);
 });
 
 test('money displays cents in quotes and payment messages',()=>{const a=setup();assert.equal(a.run('money(1200.5)'), '1,200.5 ₪')});
