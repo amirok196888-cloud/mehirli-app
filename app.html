@@ -43,9 +43,9 @@ fbq('track','PageView',{content_name:'Mehirli'});
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="finance.css?v=119" />
-<link rel="stylesheet" href="app-design.css?v=138" />
+<link rel="stylesheet" href="app-design.css?v=139" />
 </head>
-<body data-app-release="138">
+<body data-app-release="139">
 <div class="app-shell">
 <header class="topbar"><div class="brand"><img class="logo logo-img" src="icon-192.png" alt="מחירלי" /><div><h1>מחירלי</h1><p>מנהלים עבודה. מתמחרים נכון. מרוויחים.</p></div></div><button id="installAppBtn" class="install-app-btn hidden" type="button">⬇ התקן אפליקציה</button></header>
 <main>
@@ -141,7 +141,7 @@ fbq('track','PageView',{content_name:'Mehirli'});
     <div class="home-action-grid" aria-label="מה תרצו לעשות?">
       <button id="homeNewJobBtn" class="home-action-card home-action-featured" type="button"><span class="home-action-icon" aria-hidden="true">＋</span><strong>עבודה חדשה</strong><small>פרטי לקוח, תמחור והצעה לשליחה</small><span class="home-action-arrow" aria-hidden="true">←</span></button>
       <button id="proWorkspaceBtn" class="home-action-card" type="button"><span class="home-action-icon" aria-hidden="true">📋</span><strong>העבודות שלי</strong><small>כל העבודות, הסטטוסים והתשלומים</small><span class="home-action-arrow" aria-hidden="true">←</span></button>
-      <button id="homeFinanceBtn" class="home-action-card" type="button"><span class="home-action-icon" aria-hidden="true">🧾</span><strong>הכנסות והוצאות</strong><small>סיכום הכנסות והוצאות חודשי</small><span class="home-action-arrow" aria-hidden="true">←</span></button>
+      <button id="homeFinanceBtn" class="home-action-card" type="button"><span class="home-action-icon" aria-hidden="true">🧾</span><strong>הכנסות והוצאות</strong><small>רישום הכנסות והוצאות וסיכום חודשי</small><span class="home-action-arrow" aria-hidden="true">←</span></button>
       <button id="profileBtn" class="home-action-card" type="button"><span class="home-action-icon" aria-hidden="true">🏪</span><strong>פרופיל העסק</strong><small>פרטי העסק והגדרות הגבייה</small><span class="home-action-arrow" aria-hidden="true">←</span></button>
       <button id="sampleQuoteBtn" class="home-action-card" type="button"><span class="home-action-icon" aria-hidden="true">▶</span><strong>מרכז הדרכה</strong><small>מדריכים לכל מסך, צעד אחר צעד</small><span class="home-action-arrow" aria-hidden="true">←</span></button>
       <button id="subscriptionBtn" class="home-action-card" type="button"><span class="home-action-icon" aria-hidden="true">💳</span><strong>המנוי שלי</strong><small>מצב המנוי וחידוש השימוש</small><span class="home-action-arrow" aria-hidden="true">←</span></button>
@@ -418,7 +418,8 @@ fbq('track','PageView',{content_name:'Mehirli'});
   </div>
 </section>
 <section id="financeView" class="view">
- <div class="section-head"><button class="back" data-back-to="workspace">‹</button><div><span class="eyebrow">מעקב אישי לעסק</span><h2>סיכום הכנסות והוצאות חודשי</h2></div></div>
+ <div class="section-head"><button class="back" data-back-to="workspace">‹</button><div><span class="eyebrow">מעקב אישי לעסק</span><h2>הכנסות והוצאות</h2></div></div>
+ <p class="note">מוסיפים הכנסות, מוסיפים הוצאות — ובסיכום רואים מה נכנס ומה יצא.</p>
  <div id="financeSetupStatus" class="finance-notice" role="status"></div>
  <details id="financeSettings" class="card finance-options"><summary>⚙ הגדרות החישובים — מתחילים כאן</summary>
   <p class="note">מגדירים פעם אחת כדי שהאומדנים יתאימו לעסק שלכם. אפשר לעדכן בהמשך.</p>
@@ -427,19 +428,19 @@ fbq('track','PageView',{content_name:'Mehirli'});
   <label>תקופת הסיכום<select id="financeReportingMonths"><option value="1">חודש</option><option value="2">חודשיים</option></select></label>
   <button id="financeSaveSettings" class="primary big" type="button">שמירת ההגדרות</button>
  </details>
- <nav class="finance-tabs" aria-label="מסכי הכספים"><button type="button" data-finance-tab="income">הכנסות</button><button type="button" data-finance-tab="expense">הוצאות</button><button type="button" data-finance-tab="summary">סיכום</button></nav>
+ <nav class="finance-tabs" aria-label="מסכי הכספים"><button type="button" data-finance-tab="income">1. הכנסות</button><button type="button" data-finance-tab="expense">2. הוצאות</button><button type="button" data-finance-tab="summary">3. סיכום</button></nav>
  <div id="financeError" class="finance-notice hidden" role="alert"></div>
  <div class="finance-toolbar"><label>החודש להצגה<input id="financeMonth" type="month" /></label><button id="financeRefresh" class="secondary" type="button">רענון</button></div>
  <p id="financePeriodLabel" class="note"></p><p id="financeClosureStatus" class="finance-notice hidden"></p>
  <div id="financeReview" class="finance-notice hidden" role="status"></div><div id="financeExpiry" class="finance-notice hidden"></div>
  <div id="financeRecordsPanel">
   <h3 id="financeRecordsTitle">הכנסות</h3>
-  <button id="financeAdd" class="primary big" type="button">📷 הוספת מסמך</button>
+  <button id="financeAdd" class="primary big" type="button">הוספת הכנסה</button>
   <p id="financeRecordsHelp" class="note"></p>
   <div class="finance-toolbar"><label>חיפוש<input id="financeSearch" type="search" placeholder="לקוח, ספק או מספר מסמך" /></label><label>הצגה<select id="financeFilter"><option value="all">התקופה שנבחרה</option><option value="review">ממתינים לבדיקה — כל התקופות</option><option value="history">כל התקופות</option></select></label></div>
   <div id="financeList" class="stack"></div>
  </div>
- <div id="financeSummaryPanel"><div id="financeSummary" class="finance-summary" aria-live="polite"></div>
+ <div id="financeSummaryPanel" class="hidden"><div id="financeSummary" class="finance-summary" aria-live="polite"></div>
   <p class="note">אומדנים לפי הפרטים שאישרתם בתקופה. הסיכום מיועד לעזר ואינו דיווח לרשויות.</p>
   <details class="card finance-options"><summary>פירוט החישוב</summary><div id="financeCalculation"></div></details>
   <div class="finance-actions"><button id="financeExportCsv" class="secondary" type="button">הורדת סיכום</button><button id="financeExportZip" class="secondary" type="button">הורדת עותק עם מסמכים</button></div>
@@ -468,13 +469,13 @@ fbq('track','PageView',{content_name:'Mehirli'});
    <button id="financeScan" class="secondary hidden" type="button">זיהוי פרטים מהצילום</button><button id="financeRemoveFile" class="ghost hidden" type="button">החלפת הקובץ שנבחר</button>
    <div id="financeExistingDocs" class="stack"></div>
   </details>
-  <h3>פרטי ההכנסה או ההוצאה</h3>
+  <h3>פרטי התשלום</h3>
   <label>סוג רישום<select id="financeKind"><option value="expense">הוצאה</option><option value="income">הכנסה</option></select></label>
-  <label>ספק / לקוח<input id="financeCounterparty" maxlength="200" autocomplete="off" /></label>
+  <label><span id="financeCounterpartyText">למי שילמתם?</span><input id="financeCounterparty" maxlength="200" autocomplete="off" /></label>
   <div class="finance-pair"><label>סכום כולל מע״מ (₪)<input id="financeAmount" type="number" step="0.01" inputmode="decimal" /></label><label>מע״מ לפי פרטי העסקה (₪)<input id="financeVat" type="number" step="0.01" inputmode="decimal" placeholder="0 אם אין מע״מ" /></label></div>
   <div class="finance-pair"><label>תאריך הרישום<input id="financeDocDate" type="date" /></label><label>מספר מסמך — אם קיים<input id="financeNumber" maxlength="100" /></label></div>
-  <label class="finance-check"><input id="financePaid" type="checkbox" /> הכסף התקבל / שולם</label><label id="financePaidDateLabel">תאריך התשלום<input id="financePaidDate" type="date" /></label>
-  <details class="finance-options"><summary>פרטים נוספים — ניכוי מס, שיוך והערות</summary>
+  <label class="finance-check"><input id="financePaid" type="checkbox" /> <span id="financePaidText">ההוצאה כבר שולמה</span></label><label id="financePaidDateLabel">תאריך התשלום<input id="financePaidDate" type="date" /></label>
+  <details class="finance-options"><summary>פרטים נוספים — לפי הצורך</summary>
    <label id="financeWithholdingLabel">מס שנוכה במקור מהתשלום (₪)<input id="financeWithholding" type="number" step="0.01" inputmode="decimal" value="0" /></label>
    <p id="financeNetPayment" class="note"></p>
    <label id="financeDeductibleLabel">מע״מ מההוצאה שייכלל באומדן (₪)<input id="financeDeductible" type="number" step="0.01" inputmode="decimal" value="0" /></label>
@@ -487,7 +488,7 @@ fbq('track','PageView',{content_name:'Mehirli'});
   <label class="finance-check"><input id="financeVerified" type="checkbox" /> בדקתי שהסכומים והפרטים נכונים.</label>
   <p id="financeFormError" class="finance-notice hidden" role="alert"></p>
   <button id="financeSave" class="primary big" type="submit">אישור והוספה לסיכום</button>
-  <button id="financeDraft" class="secondary big" type="button">שמירה לבדיקה אחר כך</button>
+  <button id="financeDraft" class="secondary big" type="button">חסרים פרטים? שמירה להשלמה</button>
   <button id="financeCredit" class="secondary hidden" type="button">הוספת מסמך זיכוי מקושר</button>
   <button id="financeVoid" class="ghost hidden" type="button">מחיקת ההוצאה והמסמך</button>
  </form>
@@ -496,8 +497,8 @@ fbq('track','PageView',{content_name:'Mehirli'});
 </main><nav id="appNavigation" class="app-navigation hidden" aria-label="ניווט ראשי"><button type="button" data-app-nav="home">בית</button><button type="button" data-app-nav="customers">לקוחות</button><button type="button" data-app-nav="calendar">יומן</button><button type="button" data-app-nav="help">הדרכה</button></nav><a id="developerSupportLink" class="developer-support-link hidden" href="#" target="_blank" rel="noopener" aria-label="דיווח תקלה או שיחה עם המפתח ב־WhatsApp">💬 דיווח תקלה / שיחה עם המפתח</a><div id="postSignupInstall" class="post-signup-install hidden" role="dialog" aria-modal="true" aria-labelledby="postSignupInstallTitle"><div class="post-signup-install-card"><span>📲</span><b>ההרשמה הסתיימה</b><h2 id="postSignupInstallTitle">עכשיו מוסיפים את מחירלי לטלפון</h2><p id="postSignupInstallText">המערכת תציג את דרך ההתקנה המתאימה לטלפון שלך. לאחר ההתקנה פותחים את מחירלי מהסמל במסך הבית.</p><button id="postSignupInstallBtn" class="primary big" type="button">הוספת מחירלי לטלפון</button><button id="postSignupEditBtn" class="secondary big install-edit-btn" type="button">חזרה לתיקון פרטי ההרשמה</button><small>אם תצא לפני ההתקנה, המסך הזה יוצג שוב בכניסה הבאה.</small></div></div><div id="firstQuoteWelcome" class="post-signup-install hidden" role="dialog" aria-modal="true" aria-labelledby="firstQuoteWelcomeTitle"><div class="post-signup-install-card first-quote-welcome-card"><button id="firstQuoteWelcomeClose" class="welcome-close secondary" type="button" aria-label="סגירת ההזמנה להצעת מחיר">×</button><span>✅</span><b>מחירלי מותקנת ומוכנה</b><h2 id="firstQuoteWelcomeTitle">רוצה להכין הצעת מחיר ראשונה?</h2><p>נכניס את פרטי הלקוח והעבודה, נחשב מחיר ונשלח הצעה מקצועית.</p><button id="firstQuoteWelcomeBtn" class="primary big" type="button">הכנת הצעת המחיר הראשונה</button><button id="firstQuoteWelcomeLater" class="secondary big" type="button">לא עכשיו, מעבר למסך הבית</button></div></div><div id="toast" class="toast"></div></div>
 <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"></script>
 <script src="traffic.js?v=113"></script>
-<script src="app.js?v=138"></script>
-<script src="home-dashboard.js?v=138"></script>
+<script src="app.js?v=139"></script>
+<script src="home-dashboard.js?v=139"></script>
 <script src="finance-core.js?v=130"></script>
-<script src="finance.js?v=130"></script>
+<script src="finance.js?v=139"></script>
 </body></html>
