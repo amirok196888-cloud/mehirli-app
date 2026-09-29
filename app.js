@@ -430,7 +430,7 @@ $('#enablePhoneNotificationsBtn').onclick=async()=>{
   if(!('Notification' in window)){toast('התראות מערכת אינן נתמכות כאן');return}
   const p=await Notification.requestPermission();
   $('#enablePhoneNotificationsBtn').classList.toggle('hidden',p!=='default');
-  toast(p==='granted'?'התראות בטלפון הופעלו ✅':'לא ניתנה הרשאה להתראות');
+  toast(p==='granted'?'התראות בזמן שהאפליקציה פתוחה הופעלו ✅':'לא ניתנה הרשאה להתראות');
 };
 
 const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;if(SpeechRecognition){const rec=new SpeechRecognition();rec.lang='he-IL';$('#voiceBtn').onclick=()=>{try{rec.start();$('#voiceStatus').textContent='מקשיב…'}catch{}};rec.onresult=e=>{$('#reqText').value=e.results[0][0].transcript||'';$('#voiceStatus').textContent='הטקסט נקלט.'}}else{$('#voiceBtn').disabled=true;$('#voiceStatus').textContent='הכתבה קולית אינה נתמכת בדפדפן הזה.'}

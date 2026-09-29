@@ -43,7 +43,7 @@ fbq('track','PageView',{content_name:'Mehirli'});
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="finance.css?v=119" />
-<link rel="stylesheet" href="app-design.css?v=139" />
+<link rel="stylesheet" href="app-design.css?v=141" />
 </head>
 <body data-app-release="139">
 <div class="app-shell">
@@ -134,7 +134,8 @@ fbq('track','PageView',{content_name:'Mehirli'});
     <div class="home-kicker">🏠 העסק שלך במקום אחד</div>
     <h2 id="homeGreeting">שלום, מתחילים מכאן</h2>
     <p>העבודות, הלקוחות והכסף — מסודרים במקום אחד.</p>
-    <div class="home-utility-row"><button id="notificationsBtn" class="notification-btn" type="button">🔔 התראות <span id="notificationBadge" class="notification-badge hidden">0</span></button><button id="enablePhoneNotificationsBtn" class="notification-permission hidden" type="button">אפשר התראות בטלפון</button></div><button id="logoutBtn" class="logout-link">התנתק</button>
+    <div class="home-utility-row"><button id="notificationsBtn" class="notification-btn" type="button">🔔 התראות <span id="notificationBadge" class="notification-badge hidden">0</span></button><button id="enablePhoneNotificationsBtn" class="notification-permission hidden" type="button">אפשר התראות כשהאפליקציה פתוחה</button></div>
+    <button id="logoutBtn" class="logout-link">התנתק</button>
   </div>
   <div id="proHome">
     <button id="subscriptionBanner" class="subscription-banner hidden" type="button"></button>
@@ -494,10 +495,10 @@ fbq('track','PageView',{content_name:'Mehirli'});
  </form>
 </section>
 
-</main><nav id="appNavigation" class="app-navigation hidden" aria-label="ניווט ראשי"><button type="button" data-app-nav="home">בית</button><button type="button" data-app-nav="customers">לקוחות</button><button type="button" data-app-nav="calendar">יומן</button><button type="button" data-app-nav="help">הדרכה</button></nav><a id="developerSupportLink" class="developer-support-link hidden" href="#" target="_blank" rel="noopener" aria-label="דיווח תקלה או שיחה עם המפתח ב־WhatsApp">💬 דיווח תקלה / שיחה עם המפתח</a><div id="postSignupInstall" class="post-signup-install hidden" role="dialog" aria-modal="true" aria-labelledby="postSignupInstallTitle"><div class="post-signup-install-card"><span>📲</span><b>ההרשמה הסתיימה</b><h2 id="postSignupInstallTitle">עכשיו מוסיפים את מחירלי לטלפון</h2><p id="postSignupInstallText">המערכת תציג את דרך ההתקנה המתאימה לטלפון שלך. לאחר ההתקנה פותחים את מחירלי מהסמל במסך הבית.</p><button id="postSignupInstallBtn" class="primary big" type="button">הוספת מחירלי לטלפון</button><button id="postSignupEditBtn" class="secondary big install-edit-btn" type="button">חזרה לתיקון פרטי ההרשמה</button><small>אם תצא לפני ההתקנה, המסך הזה יוצג שוב בכניסה הבאה.</small></div></div><div id="firstQuoteWelcome" class="post-signup-install hidden" role="dialog" aria-modal="true" aria-labelledby="firstQuoteWelcomeTitle"><div class="post-signup-install-card first-quote-welcome-card"><button id="firstQuoteWelcomeClose" class="welcome-close secondary" type="button" aria-label="סגירת ההזמנה להצעת מחיר">×</button><span>✅</span><b>מחירלי מותקנת ומוכנה</b><h2 id="firstQuoteWelcomeTitle">רוצה להכין הצעת מחיר ראשונה?</h2><p>נכניס את פרטי הלקוח והעבודה, נחשב מחיר ונשלח הצעה מקצועית.</p><button id="firstQuoteWelcomeBtn" class="primary big" type="button">הכנת הצעת המחיר הראשונה</button><button id="firstQuoteWelcomeLater" class="secondary big" type="button">לא עכשיו, מעבר למסך הבית</button></div></div><div id="toast" class="toast"></div></div>
+</main><nav id="appNavigation" class="app-navigation hidden" aria-label="ניווט ראשי"><button type="button" data-app-nav="home">בית</button><button type="button" data-app-nav="customers">לקוחות</button><button type="button" data-app-nav="calendar">יומן</button><button type="button" data-app-nav="help">הדרכה</button><a href="about.html" target="_blank" rel="noopener noreferrer" aria-label="אודות מחירלי">אודות</a></nav><a id="developerSupportLink" class="developer-support-link hidden" href="#" target="_blank" rel="noopener" aria-label="דיווח תקלה או שיחה עם המפתח ב־WhatsApp">💬 דיווח תקלה / שיחה עם המפתח</a><div id="postSignupInstall" class="post-signup-install hidden" role="dialog" aria-modal="true" aria-labelledby="postSignupInstallTitle"><div class="post-signup-install-card"><span>📲</span><b>ההרשמה הסתיימה</b><h2 id="postSignupInstallTitle">עכשיו מוסיפים את מחירלי לטלפון</h2><p id="postSignupInstallText">המערכת תציג את דרך ההתקנה המתאימה לטלפון שלך. לאחר ההתקנה פותחים את מחירלי מהסמל במסך הבית.</p><button id="postSignupInstallBtn" class="primary big" type="button">הוספת מחירלי לטלפון</button><button id="postSignupEditBtn" class="secondary big install-edit-btn" type="button">חזרה לתיקון פרטי ההרשמה</button><small>אם תצא לפני ההתקנה, המסך הזה יוצג שוב בכניסה הבאה.</small></div></div><div id="firstQuoteWelcome" class="post-signup-install hidden" role="dialog" aria-modal="true" aria-labelledby="firstQuoteWelcomeTitle"><div class="post-signup-install-card first-quote-welcome-card"><button id="firstQuoteWelcomeClose" class="welcome-close secondary" type="button" aria-label="סגירת ההזמנה להצעת מחיר">×</button><span>✅</span><b>מחירלי מותקנת ומוכנה</b><h2 id="firstQuoteWelcomeTitle">רוצה להכין הצעת מחיר ראשונה?</h2><p>נכניס את פרטי הלקוח והעבודה, נחשב מחיר ונשלח הצעה מקצועית.</p><button id="firstQuoteWelcomeBtn" class="primary big" type="button">הכנת הצעת המחיר הראשונה</button><button id="firstQuoteWelcomeLater" class="secondary big" type="button">לא עכשיו, מעבר למסך הבית</button></div></div><div id="toast" class="toast"></div></div>
 <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"></script>
 <script src="traffic.js?v=113"></script>
-<script src="app.js?v=139"></script>
+<script src="app.js?v=141"></script>
 <script src="home-dashboard.js?v=139"></script>
 <script src="finance-core.js?v=140"></script>
 <script src="finance.js?v=140"></script>
