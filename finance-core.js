@@ -34,8 +34,12 @@
   const lines=String(text).split(/\n/).map(s=>s.trim()).filter(Boolean),r={};
   const dt=String(text).match(/\b(\d{1,2})[./-](\d{1,2})[./-](20\d{2})\b/);
   if(dt){const iso=`${dt[3]}-${dt[2].padStart(2,'0')}-${dt[1].padStart(2,'0')}`;if(!isNaN(Date.parse(iso))&&new Date(iso).toISOString().slice(0,10)===iso)r.document_date=iso;}
-  for(const line of lines){const nums=[...line.matchAll(/-?\d[\d,]*\.\d{2}(?!\d)/g)].map(x=>amount(x[0])).filter(Number.isFinite);if(!nums.length)continue;const n=nums.at(-1);
-   if(/(?:לתשלום|סה[״"']?כ\s*(?:כולל|לתשלום)|grand\s*total|total\s*due)/i.test(line))r.amount=n;
+  // OCR often returns whole shekels or a comma decimal separator. Ignore percentages and
+  // dates, and only use amounts on lines that explicitly name the total or VAT.
+  const numbers=line=>[...line.matchAll(/(^|[^\d./-])(-?\d{1,3}(?:,\d{3})+(?:\.\d{1,2})?|-?\d+(?:[.,]\d{1,2})?)(?![\d./%-])/g)]
+   .map(m=>{const raw=m[2],normalized=/,\d{1,2}$/.test(raw)?raw.replace(',','.'):raw.replace(/,/g,'');return amount(normalized);}).filter(Number.isFinite);
+  for(const line of lines){const nums=numbers(line);if(!nums.length)continue;const n=nums.at(-1);
+   if(/(?:לתשלום|סה[״"']?כ(?:\s*(?:כולל|לתשלום))?|grand\s*total|total\s*due)/i.test(line)&&!/(?:לפני\s*מע[״"']?מ|before\s*vat)/i.test(line))r.amount=n;
    if(/(?:מע[״"']?מ|VAT)/i.test(line)&&!/(?:כולל|לפני|ללא|before|including)/i.test(line))r.vat_amount=n;
   }
   const num=String(text).match(/(?:חשבונית(?:\s*מס)?|invoice)\s*(?:מס[׳'״".]?|number|no[.]?|#)?\s*[:#]?\s*(\d[\d/-]{1,30})/i);if(num)r.document_number=num[1];
