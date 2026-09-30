@@ -531,7 +531,7 @@ function jobSearchText(job){
   const painting=/צביע|צבע|סיוד/.test(job.name);
   const category=painting?'צבעות צבעים צבעי צביעה סיוד':job.trade==='home'?'שיפוץ שיפוצים שיפוצניק':
     ({electrician:'חשמל חשמלאי חשמלאים',air_conditioning:'מזגן מזגנים מיזוג טכנאי מזגנים',handyman:'הנדימן הנדמן תיקונים בבית'})[job.trade]||'';
-  return `${job.name} ${category} ${job.trade==='handyman'?'הנדימן הנדמן':''}`;
+  return `${job.name} ${category} ${job.trade==='handyman'?'הנדימן הנדמן':''} ${job.category==='gypsum'?'גבס עבודות גבס':''}`;
 }
 function jobSearchWords(query){return query.trim().split(/\s+/).filter(Boolean).map(word=>/^(צבעות|צבעים|צבעי|צבע|לצבוע)$/.test(word)?'צב':word)}
 function renderJobSuggestions(){

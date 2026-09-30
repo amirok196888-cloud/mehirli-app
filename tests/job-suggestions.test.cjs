@@ -26,7 +26,7 @@ test('job lookup works across trades and only applies an indicative price when c
   const electricalIndex=vm.runInContext("jobSuggestions.findIndex(job=>job.name==='התקנת נקודת חשמל — כולל חציבה')",ctx);
   $('#proServiceTemplate').onchange({target:{value:`suggestion:${electricalIndex}`}});
   assert.equal($('#proJobTrade').value,'handyman');
-  assert.equal($('#proBasePrice').value,590);
+  assert.equal($('#proBasePrice').value,450);
   assert.equal($('#proPricingMode').value,'fixed');
   $('#proJobType').value='צביעת חדר';$('#proJobType').input();
   assert.match($('#proServiceTemplate').innerHTML,/צביעת דירת חדר/);
@@ -39,7 +39,7 @@ test('job lookup works across trades and only applies an indicative price when c
   const paintingIndex=vm.runInContext("jobSuggestions.findIndex(job=>job.name==='סיוד דירת 3 חדרים')",ctx);
   $('#proServiceTemplate').onchange({target:{value:`suggestion:${paintingIndex}`}});
   assert.equal($('#proJobTrade').value,'handyman');
-  assert.equal($('#proBasePrice').value,3750);
+  assert.equal($('#proBasePrice').value,3250);
   for(const [query,expected] of [['חשמלאי','החלפת שקע'],['שיפוצים','פירוק ריצוף'],['מזגנים','ביקור טכנאי'],['הנדימן','תליית טלוויזיה']]){
     $('#proJobType').value=query;$('#proJobType').input();
     assert.match($('#proServiceTemplate').innerHTML,new RegExp(expected),query);
@@ -50,7 +50,14 @@ test('job lookup works across trades and only applies an indicative price when c
   const flooringIndex=vm.runInContext("jobSuggestions.findIndex(job=>job.name==='הדבקת ריצוף')",ctx);
   $('#proServiceTemplate').onchange({target:{value:`suggestion:${flooringIndex}`}});
   $('#jobSuggestionQuantity').value='10';$('#jobSuggestionQuantity').input();
-  assert.equal($('#proBasePrice').value,2200);
+  assert.equal($('#proBasePrice').value,1500);
   assert.match($('#proQuoteScope').value,/10 מ״ר/);
+  $('#proJobType').value='גבס';$('#proJobType').input();
+  assert.match($('#proServiceTemplate').innerHTML,/עבודות עם מחיר מוצע \(8\)/);
+  assert.match($('#proServiceTemplate').innerHTML,/בניית תקרה אקוסטית · כ־140 ₪ למ״ר/);
+  const gypsumIndex=vm.runInContext("jobSuggestions.findIndex(job=>job.name==='בניית קיר גבס')",ctx);
+  $('#proServiceTemplate').onchange({target:{value:`suggestion:${gypsumIndex}`}});
+  $('#jobSuggestionQuantity').value='10';$('#jobSuggestionQuantity').input();
+  assert.equal($('#proBasePrice').value,3000);
   assert.doesNotMatch(fs.readFileSync(path.join(root,'app.html'),'utf8'),/id="jobSuggestionResults"|id="useJobSuggestionPrice"/);
 });
