@@ -193,11 +193,10 @@ fbq('track','PageView',{content_name:'Mehirli'});
     <div id="jobPanel1" class="form-step" data-job-panel="1" hidden>
       <div class="form-step-title"><b>2</b><div><h3>מה העבודה?</h3><p>כאן מחפשים עבודה ומקבלים מחיר מוצע לבחירה.</p></div></div>
       <input id="proJobTrade" type="hidden" value="handyman" />
-      <label>חיפוש עבודה ומחיר מוצע — לא חובה להשתמש במחיר<input id="proJobType" required autocomplete="off" placeholder="הקלד: נקודת חשמל, צביעה, תליית מדף..." /></label>
-      <p class="field-hint">מקלידים שם עבודה, בוחרים מהתוצאות שמתחת לשדה, ורואים מחיר משוער. אפשר גם לכתוב עבודה חופשית ולהמשיך בלי לבחור מחיר.</p>
-      <div id="jobSuggestionResults" class="job-suggestion-list hidden" aria-label="עבודות מוצעות"></div>
-      <div id="jobSuggestionSelected" class="job-suggestion-selected hidden"><span id="jobSuggestionPrice"></span><label id="jobSuggestionQuantityLabel" class="hidden"><span id="jobSuggestionQuantityTitle">כמות</span><input id="jobSuggestionQuantity" type="number" min="0.01" step="0.01" value="1" inputmode="decimal" /></label><button id="useJobSuggestionPrice" type="button" class="secondary">השתמש במחיר כבסיס</button><small id="jobSuggestionHint">המחיר הוא אינדיקציה בלבד. הוצאות נוספות שהזנת יתווספו בשלב התמחור, ואפשר לשנות את המחיר.</small></div>
+      <label>מה העבודה? אפשר להקליד גם לצורך סינון התבניות<input id="proJobType" required autocomplete="off" placeholder="הקלד: נקודת חשמל, צבעות, תליית מדף..." /></label>
+      <p class="field-hint">הקלד שם עבודה ופתח את „תבנית מהמחירון” לבחירה. אפשר גם לכתוב עבודה חופשית ולהמשיך בלי תבנית.</p>
       <label>תבנית מהמחירון — אופציונלי<select id="proServiceTemplate"><option value="">ללא תבנית</option></select></label>
+      <div id="jobSuggestionSelected" class="job-suggestion-selected hidden"><span id="jobSuggestionPrice"></span><label id="jobSuggestionQuantityLabel" class="hidden"><span id="jobSuggestionQuantityTitle">כמות</span><input id="jobSuggestionQuantity" type="number" min="0.01" step="0.01" value="1" inputmode="decimal" /></label><small id="jobSuggestionHint">המחיר הוא אינדיקציה בלבד. הוצאות נוספות שהזנת יתווספו בשלב התמחור, ואפשר לשנות את המחיר.</small></div>
       <label>מה הלקוח ביקש?<textarea id="proJobDescription" required placeholder="אפשר לכתוב או להקליט את הודעת הלקוח"></textarea></label>
       <button id="proVoiceBtn" type="button" class="voice">🎤 הקלט את פרטי הפנייה</button><p id="proVoiceStatus" class="note"></p>
       <label>מועד מתוכנן<input id="proScheduledAt" type="datetime-local" /></label>
@@ -502,7 +501,7 @@ fbq('track','PageView',{content_name:'Mehirli'});
 <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"></script>
 <script src="traffic.js?v=113"></script>
 <script src="job-suggestions.js?v=142"></script>
-<script src="app.js?v=146"></script>
+<script src="app.js?v=147"></script>
 <script src="home-dashboard.js?v=139"></script>
 <script src="finance-core.js?v=140"></script>
 <script src="finance.js?v=140"></script>

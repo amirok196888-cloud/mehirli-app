@@ -526,7 +526,7 @@ function renderServiceTemplateOptions(trade,query=''){
 }
 const jobSuggestions=window.MehirliJobSuggestions||[];
 let selectedJobSuggestion=null;
-function clearJobSuggestion(){selectedJobSuggestion=null;$('#jobSuggestionSelected').classList.add('hidden');$('#jobSuggestionResults').classList.add('hidden')}
+function clearJobSuggestion(){selectedJobSuggestion=null;$('#jobSuggestionSelected').classList.add('hidden')}
 function jobSearchText(job){
   const painting=/צביע|צבע|סיוד/.test(job.name);
   const category=painting?'צבעות צבעים צבעי צביעה סיוד':job.trade==='home'?'שיפוץ שיפוצים שיפוצניק':
@@ -535,39 +535,32 @@ function jobSearchText(job){
 }
 function jobSearchWords(query){return query.trim().split(/\s+/).filter(Boolean).map(word=>/^(צבעות|צבעים|צבעי|צבע|לצבוע)$/.test(word)?'צב':word)}
 function renderJobSuggestions(){
-  const query=$('#proJobType').value.trim(),box=$('#jobSuggestionResults');
+  const query=$('#proJobType').value.trim();
   renderServiceTemplateOptions($('#proJobTrade').value,query.length>=2?query:'');
-  if(query.length<2){box.classList.add('hidden');box.innerHTML='';return}
-  const words=jobSearchWords(query);
-  const matches=jobSuggestions.map((job,index)=>({...job,index})).filter(job=>words.every(word=>jobSearchText(job).includes(word))).sort((a,b)=>Number(b.name.includes(query))-Number(a.name.includes(query)));
-  box.innerHTML=matches.length?matches.map(job=>`<button type="button" data-suggested-job="${job.index}"><span>${esc(job.name)}</span><b>כ־${money(job.price)}${job.unit?' '+esc(job.unit):''}</b></button>`).join(''):'<p role="status">לא נמצא מחיר מוצע לעבודה הזו. אפשר לכתוב את העבודה ולהמשיך לתמחור חופשי.</p>';
-  box.classList.remove('hidden');
-  box.querySelectorAll('[data-suggested-job]').forEach(button=>button.onclick=()=>chooseJobSuggestion(jobSuggestions[Number(button.dataset.suggestedJob)]));
 }
 function chooseJobSuggestion(job){
   selectedJobSuggestion=job;$('#proJobType').value=job.name;
   if(!$('#proJobDescription').value.trim())$('#proJobDescription').value=job.name;
-  $('#jobSuggestionResults').classList.add('hidden');
   $('#jobSuggestionQuantityLabel').classList.toggle('hidden',!job.unit);
   $('#jobSuggestionQuantityTitle').textContent=job.unit==='למ״ר'?'שטח במ״ר':job.unit==='למטר אורך'?'אורך במטרים':'כמות';
   $('#jobSuggestionQuantity').value=1;
   $('#jobSuggestionPrice').textContent=`${job.name}: כ־${money(job.price)}${job.unit?' '+job.unit:''}`;
   $('#jobSuggestionHint').textContent=job.trade==='electrician'?'המחיר הוא אינדיקציה בלבד. עבודת חשמל תבוצע רק בידי בעל רישיון מתאים. הוצאות נוספות שהזנת יתווספו, ואפשר לשנות את המחיר.':'המחיר הוא אינדיקציה בלבד. הוצאות נוספות שהזנת יתווספו בשלב התמחור, ואפשר לשנות את המחיר.';
   $('#jobSuggestionSelected').classList.remove('hidden');
-  saveProJobDraft();
+  applyJobSuggestionPrice();
 }
 $('#proJobType').addEventListener('input',()=>{selectedJobSuggestion=null;$('#jobSuggestionSelected').classList.add('hidden');renderJobSuggestions()});
-$('#jobSuggestionQuantity').addEventListener('input',()=>{if(selectedJobSuggestion)saveProJobDraft()});
-$('#useJobSuggestionPrice').onclick=()=>{
+$('#jobSuggestionQuantity').addEventListener('input',()=>{if(selectedJobSuggestion)applyJobSuggestionPrice()});
+function applyJobSuggestionPrice(){
   const job=selectedJobSuggestion;if(!job)return;
   const quantity=job.unit?Number($('#jobSuggestionQuantity').value):1;
-  if(!Number.isFinite(quantity)||quantity<=0){$('#jobSuggestionQuantity').reportValidity();return}
+  if(!Number.isFinite(quantity)||quantity<=0)return;
   $('#priceFloor').dataset.manualOverride='false';$('#proQuotedPrice').dataset.manualOverride='false';
   setPricingMode('fixed',false);$('#proLaborHours').value=1;
   $('#proBasePrice').value=Math.round(job.price*quantity);
   if(job.unit)$('#proQuoteScope').value=`${job.name} — ${quantity} ${job.unit==='למ״ר'?'מ״ר':job.unit==='למטר אורך'?'מטר':'יחידות'}`;
-  calculateProPrice(true);saveProJobDraft();toast('המחיר הוכנס כבסיס וניתן לשינוי בשלב התמחור');
-};
+  calculateProPrice(true);saveProJobDraft();
+}
 function setTrade(trade){
   $('#proJobTrade').value=trade;renderJobTypeOptions(trade);renderServiceTemplateOptions(trade);
 }
@@ -717,7 +710,7 @@ $('#proQuotedPrice').oninput=()=>{$('#proQuotedPrice').dataset.manualOverride='t
 $('#resetQuotedPriceBtn').onclick=()=>{$('#proQuotedPrice').dataset.manualOverride='false';calculateProPrice(true);toast('המחיר חזר למחיר המחושב')};
 $('#addQuoteItemBtn').onclick=()=>addQuoteItem();
 $('#proCustomerSelect').onchange=e=>{const c=state.proCustomers.find(x=>x.id===e.target.value);if(!c)return;$('#proCustomerName').value=c.name;$('#proCustomerPhone').value=c.phone;$('#proCustomerCity').value=c.city||'';saveProJobDraft()};
-$('#proServiceTemplate').onchange=e=>{if(e.target.value.startsWith('suggestion:')){const job=jobSuggestions[Number(e.target.value.slice(11))];if(!job)return;chooseJobSuggestion(job);$('#useJobSuggestionPrice').click();return}const t=serviceTemplatesForTrade($('#proJobTrade').value).find(x=>x.id===e.target.value);if(!t)return;clearJobSuggestion();$('#priceFloor').dataset.manualOverride='false';$('#proQuotedPrice').dataset.manualOverride='false';$('#proJobType').value=t.name;$('#proJobDescription').value=t.name;$('#proLaborHours').value=(t.default_hours||1)/pricingUnitHours(t.pricing_mode);$('#proMaterialsCost').value=t.default_materials_cost||0;$('#proQuoteScope').value=t.quote_scope||t.name;setPricingMode(t.pricing_mode||'fixed',false);$('#proBasePrice').value=Number(t.base_price)||0;state.quoteItems=[];renderQuoteItemsEditor();calculateProPrice(true);saveProJobDraft()};
+$('#proServiceTemplate').onchange=e=>{if(e.target.value.startsWith('suggestion:')){const job=jobSuggestions[Number(e.target.value.slice(11))];if(!job)return;chooseJobSuggestion(job);return}const t=serviceTemplatesForTrade($('#proJobTrade').value).find(x=>x.id===e.target.value);if(!t)return;clearJobSuggestion();$('#priceFloor').dataset.manualOverride='false';$('#proQuotedPrice').dataset.manualOverride='false';$('#proJobType').value=t.name;$('#proJobDescription').value=t.name;$('#proLaborHours').value=(t.default_hours||1)/pricingUnitHours(t.pricing_mode);$('#proMaterialsCost').value=t.default_materials_cost||0;$('#proQuoteScope').value=t.quote_scope||t.name;setPricingMode(t.pricing_mode||'fixed',false);$('#proBasePrice').value=Number(t.base_price)||0;state.quoteItems=[];renderQuoteItemsEditor();calculateProPrice(true);saveProJobDraft()};
 if(SpeechRecognition){const proRec=new SpeechRecognition();proRec.lang='he-IL';$('#proVoiceBtn').onclick=()=>{try{proRec.start();$('#proVoiceStatus').textContent='מקשיב…'}catch{}};proRec.onresult=e=>{$('#proJobDescription').value=e.results[0][0].transcript||'';$('#proVoiceStatus').textContent='הטקסט נקלט. אפשר לבדוק ולערוך אותו.'}}else{$('#proVoiceBtn').disabled=true;$('#proVoiceStatus').textContent='הכתבה קולית אינה נתמכת בדפדפן הזה.'}
 $('#proJobForm').onsubmit=async e=>{
   e.preventDefault();if(!requireServiceAccess())return;
