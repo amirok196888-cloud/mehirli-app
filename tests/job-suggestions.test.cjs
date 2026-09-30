@@ -27,6 +27,14 @@ test('job lookup works across trades and only applies an indicative price when c
   assert.equal($('#proPricingMode').value,'fixed');
   $('#proJobType').value='צביעת חדר';$('#proJobType').input();
   assert.match($('#jobSuggestionResults').innerHTML,/צביעת דירת חדר/);
+  $('#proJobType').value='צבעות';$('#proJobType').input();
+  assert.match($('#jobSuggestionResults').innerHTML,/צביעת דירת/);
+  for(const [query,expected] of [['חשמלאי','החלפת שקע'],['שיפוצים','פירוק ריצוף'],['מזגנים','ביקור טכנאי'],['הנדימן','תליית טלוויזיה']]){
+    $('#proJobType').value=query;$('#proJobType').input();
+    assert.match($('#jobSuggestionResults').innerHTML,new RegExp(expected),query);
+  }
+  $('#proJobType').value='עבודה אחרת לגמרי';$('#proJobType').input();
+  assert.match($('#jobSuggestionResults').innerHTML,/תמחור חופשי/);
   $('#proJobType').value='הדבקת ריצוף';$('#proJobType').input();
   vm.runInContext("chooseJobSuggestion(jobSuggestions.find(job=>job.name==='הדבקת ריצוף'))",ctx);
   $('#jobSuggestionQuantity').value='10';$('#useJobSuggestionPrice').onclick();

@@ -521,13 +521,19 @@ function renderServiceTemplateOptions(trade){const select=$('#proServiceTemplate
 const jobSuggestions=window.MehirliJobSuggestions||[];
 let selectedJobSuggestion=null;
 function clearJobSuggestion(){selectedJobSuggestion=null;$('#jobSuggestionSelected').classList.add('hidden');$('#jobSuggestionResults').classList.add('hidden')}
+function jobSearchText(job){
+  const painting=/צביע|צבע|סיוד/.test(job.name);
+  const category=job.trade==='home'?(painting?'צבעות צבעים צבעי צביעה סיוד':'שיפוץ שיפוצים שיפוצניק'):
+    ({electrician:'חשמל חשמלאי חשמלאים',air_conditioning:'מזגן מזגנים מיזוג טכנאי מזגנים',handyman:'הנדימן הנדמן תיקונים בבית'})[job.trade]||'';
+  return `${job.name} ${category}`;
+}
 function renderJobSuggestions(){
   const query=$('#proJobType').value.trim(),box=$('#jobSuggestionResults');
   if(query.length<2){box.classList.add('hidden');box.innerHTML='';return}
-  const words=query.split(/\s+/).filter(Boolean);
-  const matches=jobSuggestions.map((job,index)=>({...job,index})).filter(job=>words.every(word=>job.name.includes(word))).sort((a,b)=>Number(b.name.includes(query))-Number(a.name.includes(query))).slice(0,8);
-  box.innerHTML=matches.map(job=>`<button type="button" data-suggested-job="${job.index}"><span>${esc(job.name)}</span><b>כ־${money(job.price)}${job.unit?' '+esc(job.unit):''}</b></button>`).join('');
-  box.classList.toggle('hidden',matches.length===0);
+  const words=query.split(/\s+/).filter(Boolean).map(word=>/^(צבעות|צבעים|צבעי|צבע|לצבוע)$/.test(word)?'צב':word);
+  const matches=jobSuggestions.map((job,index)=>({...job,index})).filter(job=>words.every(word=>jobSearchText(job).includes(word))).sort((a,b)=>Number(b.name.includes(query))-Number(a.name.includes(query))).slice(0,8);
+  box.innerHTML=matches.length?matches.map(job=>`<button type="button" data-suggested-job="${job.index}"><span>${esc(job.name)}</span><b>כ־${money(job.price)}${job.unit?' '+esc(job.unit):''}</b></button>`).join(''):'<p role="status">לא נמצא מחיר מוצע לעבודה הזו. אפשר לכתוב את העבודה ולהמשיך לתמחור חופשי.</p>';
+  box.classList.remove('hidden');
   box.querySelectorAll('[data-suggested-job]').forEach(button=>button.onclick=()=>chooseJobSuggestion(jobSuggestions[Number(button.dataset.suggestedJob)]));
 }
 function chooseJobSuggestion(job){
