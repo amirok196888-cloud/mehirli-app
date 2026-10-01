@@ -1,4 +1,4 @@
-const CACHE='mehirli-v149-blog';
+const CACHE='mehirli-v150-home-blog';
 const ASSETS=['./','./index.html','./landing.css?v=130','./mechirli-hero-profit-v68.webp','./mehirli-hero-v43.jpg','./mehirli-explainer-poster-v62.jpg','./app-design.css?v=142','./app.html','./reset-password.html','./style.css?v=130','./traffic.js?v=113','./job-suggestions.js?v=148','./app.js?v=148','./home-dashboard.js?v=139','./finance.js?v=140','./finance-core.js?v=140','./finance.css?v=119','./sample-quote.html','./quote.html','./quote-preview-v61.jpg','./manifest.webmanifest','./icon-192.png','./icon-512.png','./icon-maskable-192.png','./share-preview-v20.jpg','./share.html'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
