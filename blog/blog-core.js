@@ -23,7 +23,7 @@ function render(s){
   else if(!l.trim()){flush();}else{if(list){html+='</ul>';list=false;}p.push(l);}
  }flush();return html;
 }
-const articleURL=s=>BASE+'blog/article.html?slug='+encodeURIComponent(s);
+const articleURL=s=>BASE+'blog/'+encodeURIComponent(s)+'/';
 const api={BASE,API,KEY,escape,render,validSlug,articleURL};
 if(typeof module!=='undefined')module.exports=api;else root.BlogCore=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
