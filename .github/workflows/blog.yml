@@ -1,19 +1,13 @@
-name: Update published blog
+name: Build blog preview
 on:
   push:
     branches: [main]
     paths: ['blog/**', 'scripts/build-blog.cjs', '.github/workflows/blog.yml']
-  schedule:
-    - cron: '17,47 * * * *'
   workflow_dispatch:
 permissions:
-  contents: write
-  pages: write
-concurrency:
-  group: blog-publication
-  cancel-in-progress: false
+  contents: read
 jobs:
-  update:
+  preview:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,19 +15,9 @@ jobs:
         with:
           node-version: '22'
       - run: node scripts/build-blog.cjs
-      - name: Save public pages
-        id: save
-        run: |
-          git add blog sitemap.xml
-          if ! git diff --cached --quiet; then
-            git config user.name 'github-actions[bot]'
-            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git commit -m 'Refresh published blog pages and sitemap'
-            git push origin HEAD:main
-            echo 'changed=true' >> "$GITHUB_OUTPUT"
-          fi
-      - name: Request GitHub Pages build
-        if: steps.save.outputs.changed == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh api --method POST repos/${{ github.repository }}/pages/builds
+      - uses: actions/upload-artifact@v4
+        with:
+          name: blog-public-pages
+          path: |
+            blog/
+            sitemap.xml
