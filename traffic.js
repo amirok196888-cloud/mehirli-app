@@ -52,5 +52,35 @@
     const s=visit();return send('track_visit_v113',{p_visit_id:s.id,p_visitor_id:visitor(),p_source:s.source,p_campaign:s.campaign},client);
   }
   async function event(name,client){if(excluded())return false;const a=attribution();return send('track_app_event_v40',{p_visitor_id:visitor(),p_event_name:name,p_source:a.source,p_campaign:a.campaign},client)}
-  root.MehirliTraffic={visitor,attribution,trackVisit,event,resolve};
+
+  // Google Ads: only successful trial activation is a conversion.
+  const GOOGLE_TAG='AW-18445003355',GOOGLE_TRIAL='AW-18445003355/93i3CJyoyowdENvUodtE';
+  const trialMemory=new Set();
+  function initGoogleTag(){
+    if(excluded()||new URLSearchParams(root.location.search).has('quote'))return false;
+    if(typeof root.gtag!=='function'){
+      root.dataLayer=root.dataLayer||[];
+      root.gtag=function(){root.dataLayer.push(arguments)};
+      root.gtag('set','allow_ad_personalization_signals',false);
+      root.gtag('js',new Date());
+      root.gtag('config',GOOGLE_TAG,{send_page_view:false});
+      const tag=root.document.createElement('script');
+      tag.async=true;tag.src='https://www.googletagmanager.com/gtag/js?id='+GOOGLE_TAG;
+      root.document.head.appendChild(tag);
+    }
+    return true;
+  }
+  function trialStarted(userId){
+    if(!userId||excluded())return false;
+    const key='mehirli_google_trial_v1:'+userId;
+    if(trialMemory.has(key)||read(storage('localStorage'),key))return false;
+    if(!initGoogleTag())return false;
+    let transactionId=uuid();
+    // The account ID stays in local storage; Google receives only a random event ID.
+    root.gtag('event','conversion',{send_to:GOOGLE_TRIAL,transaction_id:transactionId});
+    trialMemory.add(key);write(storage('localStorage'),key,{transactionId});
+    return true;
+  }
+  initGoogleTag();
+  root.MehirliTraffic={visitor,attribution,trackVisit,event,resolve,trialStarted};
 })(window);

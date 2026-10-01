@@ -247,7 +247,7 @@ async function activateTrialAfterInstall(){
   if(error){toast('לא ניתן להפעיל את הניסיון כרגע. נסה לפתוח שוב את מחירלי.');return false}
   if(!data?.activated){toast('תקופת הניסיון לא הופעלה. פנה לתמיכה.');return false}
   $('#postSignupInstall')?.classList.add('hidden');
-  trackMetaLifecycle('StartTrial',state.user);await loadSubscription();trackAppEvent('trial_activated');show('#homeView');showFirstQuoteWelcome();toast('14 ימי הניסיון התחילו עכשיו ✅');return true
+  trackMetaLifecycle('StartTrial',state.user);window.MehirliTraffic?.trialStarted(state.user?.id);await loadSubscription();trackAppEvent('trial_activated');show('#homeView');showFirstQuoteWelcome();toast('14 ימי הניסיון התחילו עכשיו ✅');return true
 }
 async function ensureLegalConsent(){
   const {data,error}=await db.rpc('has_accepted_legal_terms_v40',{p_document_version:LEGAL_VERSION});

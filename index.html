@@ -93,7 +93,7 @@
 <script>
 (()=>{const r=document.getElementById('ml-review'),q=s=>r.querySelector(s);let step=0;const screens=[['לקוח לדוגמה','נתניה · פרטי קשר שמורים'],['צביעת חדר','הכנת קירות וצביעה בשתי שכבות'],['מחיר ההצעה: 1,200 ₪','עבודה: 1,000 ₪ · חומרים: 200 ₪'],['הצעה מוכנה לבדיקה','לקוח לדוגמה · צביעת חדר · 1,200 ₪']];function render(){q('[data-screen]').replaceChildren();screens[step].forEach(t=>{const p=document.createElement('p');p.textContent=t;q('[data-screen]').append(p)});r.querySelectorAll('[data-step]').forEach(b=>{b.classList.toggle('active',+b.dataset.step===step);b.setAttribute('aria-pressed',String(+b.dataset.step===step))});q('[data-next]').textContent=step===3?'שמירה ושליחה בוואטסאפ':'הבא ←';q('[data-chat]').hidden=true}r.querySelectorAll('[data-step]').forEach(b=>b.onclick=()=>{step=+b.dataset.step;render()});q('[data-next]').onclick=()=>{if(step<3){step++;render()}else q('[data-chat]').hidden=false};render()})();
 </script>
-</main>  <script src="traffic.js?v=113"></script>
+</main>  <script src="traffic.js?v=151"></script>
   <script>
     (function(){
       function track(name){try{return Promise.resolve(window.MehirliTraffic?.event(name)).catch(function(){})}catch(e){return Promise.resolve()}}
