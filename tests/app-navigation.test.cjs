@@ -10,6 +10,7 @@ function setup(){
  for(const x of document.querySelectorAll('input,select,textarea')){x.checkValidity=()=>true;x.reportValidity=()=>{};x.willValidate=false;x.scrollIntoView=()=>{};}
  for(const x of document.querySelectorAll('[data-job-step]'))x.scrollIntoView=()=>{};
  for(const file of ['app.js','home-dashboard.js','finance-core.js','finance.js'])vm.runInContext(fs.readFileSync(path.join(root,file),'utf8'),context);
+ document.querySelector('#authForm').scrollIntoView=()=>{window.scrolledToAuth=true};
  const run=code=>vm.runInContext(code,context),q=selector=>document.querySelector(selector);
  return {run,q,db,window,events,opened,calls,document};
 }
@@ -116,4 +117,17 @@ test('missing install prompt shows instructions inside the installation dialog',
  await a.q('#postSignupInstallBtn').onclick({preventDefault(){}});
  assert.equal(a.q('#postSignupInstallHelp').hidden,false);
  assert.match(a.q('#postSignupInstallHelp').textContent,/תפריט הדפדפן/);
+});
+
+test('hero registration button switches to signup and scrolls to email fields',()=>{
+ const a=setup();let focused=false;a.q('#authEmail').focus=()=>{focused=true};
+ a.run("setAuthMode('login')");let prevented=false;
+ a.q('.auth-hero-cta').onclick({preventDefault(){prevented=true}});
+ assert.equal(prevented,true);assert.equal(a.q('#signupFields').classList.contains('hidden'),false);
+ assert.equal(a.window.scrolledToAuth,true);assert.equal(focused,true);
+});
+test('signup entry from the landing page scrolls after auth view is ready',async()=>{
+ const a=setup();a.run("location.search='?view=signup';");
+ a.db.auth.getSession=async()=>({data:{session:null}});
+ await a.run('boot()');assert.equal(a.window.scrolledToAuth,true);assert.equal(a.q('#signupFields').classList.contains('hidden'),false);
 });

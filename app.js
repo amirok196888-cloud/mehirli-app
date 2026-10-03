@@ -40,9 +40,18 @@ function setAuthMode(mode='login'){
   $('#showLoginModeBtn')?.classList.toggle('active',!signup);$('#showSignupModeBtn')?.classList.toggle('active',signup);
   $('#signupFields')?.classList.toggle('hidden',!signup);$('.auth-login')?.classList.toggle('hidden',signup);$('#forgotPasswordBtn')?.classList.toggle('hidden',signup);
   if($('#authFormBadge'))$('#authFormBadge').textContent=signup?'14 ימים עלינו':'ברוכים השבים';
-  if($('#authFormTitle'))$('#authFormTitle').textContent=signup?'נרשמים, ואז מתקינים בטלפון':'כניסה למחירלי';
-  if($('#authFormSubtitle'))$('#authFormSubtitle').textContent=signup?'לאחר ההרשמה יש להתקין את אפליקציית מחירלי בטלפון. בלי כרטיס אשראי ובלי התחייבות.':'מכניסים אימייל וסיסמה ונכנסים מיד.';
+  if($('#authFormTitle'))$('#authFormTitle').textContent=signup?'הרשמה למחירלי':'כניסה למחירלי';
+  if($('#authFormSubtitle'))$('#authFormSubtitle').textContent=signup?'ממלאים פרטים, ואז מתקינים בטלפון.':'מכניסים אימייל וסיסמה ונכנסים מיד.';
   if(!signup&&$('#authName'))$('#authName').value='';
+}
+function scrollToAuthForm(focusEmail=false){
+  const form=$('#authForm');if(!form)return;
+  form.scrollIntoView({behavior:'instant',block:'start'});
+  if(focusEmail)$('#authEmail')?.focus({preventScroll:true})
+}
+function openSignupForm(e){
+  e?.preventDefault();setAuthMode('signup');show('#authView');
+  trackAppEvent('signup_form_open');scrollToAuthForm(true)
 }
 function showExistingAccountLogin(){
   setAuthMode('login');
@@ -382,9 +391,10 @@ async function boot(){updateGreeting();const params=new URLSearchParams(location
   const switchAccount=confirm('כבר מחובר חשבון במכשיר הזה. לפתיחת חשבון חדש צריך להתנתק ממנו. להתנתק ולעבור להרשמה?');
   if(switchAccount){const {error}=await db.auth.signOut({scope:'local'});if(error){toast('לא ניתן להתנתק כרגע. נסה שוב.');await loadMe();await routeAfterLogin();return}state.user=null;state.isAdmin=false;stopNotificationPolling()}
 }
-if(signupHandoff||installHandoff){const url=new URL(location.href);url.searchParams.delete('view');history.replaceState({},'',url.pathname+url.search+url.hash)}if(state.user){await loadMe();if(!state.isAdmin){trackAppEvent('app_open');if(isStandaloneMode())trackAppEvent('standalone_open')}if(paymentReturn())await handlePaymentReturn();else await routeAfterLogin()}else{trackAppEvent('app_open');if(signupHandoff)trackAppEvent('signup_form_open');setAuthMode(signupHandoff?'signup':'login');show('#authView');if(params.get('password_reset')==='success')$('#authNote').textContent='הסיסמה שונתה בהצלחה. אפשר להתחבר עם הסיסמה החדשה.';else if(isPasswordRecovery())$('#authNote').textContent='קישור האיפוס אינו תקף או שפג תוקפו. בקשו קישור חדש.';else if(installHandoff)$('#authNote').textContent='החשבון כבר נוצר. להשלמת ההתקנה בטלפון, היכנסו עם האימייל והסיסמה שנרשמתם איתם. אין צורך להירשם שוב.';else if(signupHandoff)$('#authNote').textContent='לאחר ההרשמה יש להתקין את אפליקציית מחירלי בטלפון.';if(isAndroidInAppBrowser())$('#inAppBrowserNotice')?.classList.remove('hidden')}}
+if(signupHandoff||installHandoff){const url=new URL(location.href);url.searchParams.delete('view');history.replaceState({},'',url.pathname+url.search+url.hash)}if(state.user){await loadMe();if(!state.isAdmin){trackAppEvent('app_open');if(isStandaloneMode())trackAppEvent('standalone_open')}if(paymentReturn())await handlePaymentReturn();else await routeAfterLogin()}else{trackAppEvent('app_open');if(signupHandoff)trackAppEvent('signup_form_open');setAuthMode(signupHandoff?'signup':'login');show('#authView');if(params.get('password_reset')==='success')$('#authNote').textContent='הסיסמה שונתה בהצלחה. אפשר להתחבר עם הסיסמה החדשה.';else if(isPasswordRecovery())$('#authNote').textContent='קישור האיפוס אינו תקף או שפג תוקפו. בקשו קישור חדש.';else if(installHandoff)$('#authNote').textContent='החשבון כבר נוצר. להשלמת ההתקנה בטלפון, היכנסו עם האימייל והסיסמה שנרשמתם איתם. אין צורך להירשם שוב.';else if(signupHandoff)$('#authNote').textContent='לאחר ההרשמה יש להתקין את אפליקציית מחירלי בטלפון.';if(isAndroidInAppBrowser())$('#inAppBrowserNotice')?.classList.remove('hidden');if(signupHandoff||installHandoff||location.hash==='#authForm')scrollToAuthForm()}}
 $('#showLoginModeBtn').onclick=()=>setAuthMode('login');
-$('#showSignupModeBtn').onclick=()=>{setAuthMode('signup');trackAppEvent('signup_form_open')};
+$('#showSignupModeBtn').onclick=openSignupForm;
+$('.auth-hero-cta').onclick=openSignupForm;
 $('#authForm').onsubmit=async e=>{e.preventDefault();$('#authNote').textContent='מתחבר…';const {data,error}=await db.auth.signInWithPassword({email:$('#authEmail').value.trim(),password:$('#authPassword').value});if(error){$('#authNote').textContent=authErrorMessage(error);return}state.user=data.user;await loadMe();$('#authNote').textContent='';if(paymentReturn())await handlePaymentReturn();else await routeAfterLogin()};
 $('#forgotPasswordBtn').onclick=async()=>{
   const email=$('#authEmail').value.trim(),note=$('#authNote'),button=$('#forgotPasswordBtn');

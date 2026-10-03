@@ -101,3 +101,30 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 #postSignupCopyLinkBtn{width:100%;margin-top:8px;min-height:44px}
 #postSignupInstallHelp[hidden],#postSignupBrowserWarning[hidden],#postSignupBrowserFallback[hidden]{display:none}
 @media(max-width:520px){.post-signup-install-card{padding:18px 16px;border-radius:20px}.post-signup-install-card h2{font-size:22px}.post-signup-install-card>span{font-size:32px}.post-signup-install-card .install-edit-btn{font-size:14px;min-height:44px;padding:10px}}
+
+/* Compact mobile signup; keep the email and password controls easy to reach. */
+#authForm{scroll-margin-top:12px}
+@media(max-width:720px){
+ .auth-showcase{min-height:0;border-radius:18px}
+ .auth-product-visual{height:160px}
+ .auth-showcase-copy{padding:18px 16px}
+ .auth-showcase h2{font-size:27px;line-height:1.25;letter-spacing:-.4px;margin:8px 0}
+ .auth-showcase p{font-size:14px;line-height:1.5;margin:8px 0 12px}
+ .auth-hero-cta{min-height:44px;font-size:15px;padding:10px 14px}
+ .auth-kicker{font-size:11px;padding:5px 8px;margin-bottom:6px}
+ .auth-workflow{margin:12px 0;gap:6px}.auth-workflow div{padding:10px;font-size:12px}
+ #authForm{padding:18px 14px;border-radius:18px}
+ .auth-form-head h3,#authFormTitle{font-size:21px;line-height:1.3;margin:8px 0}
+ #authFormSubtitle{font-size:13px;line-height:1.45}
+ #authForm label{font-size:14px;margin:10px 0}
+ #authForm input:not([type=checkbox]){min-height:44px;padding:10px 12px;font-size:16px}
+ #authForm .auth-mode-switch button{font-size:13px;min-height:44px;padding:9px 6px}
+ #authForm .legal-check{font-size:12px;padding:9px;min-height:44px}
+ #authForm .auth-install-note{font-size:12px;padding:8px 10px}
+ #authForm .big{min-height:46px;padding:11px;font-size:15px}
+ .in-app-browser-notice{padding:10px;margin-bottom:12px;border-width:1px;border-radius:12px}
+ .in-app-browser-notice b{font-size:13px}.in-app-browser-notice span{font-size:12px}
+ .post-signup-install-card{padding:16px 14px}.post-signup-install-card>span{font-size:26px}
+ .post-signup-install-card h2{font-size:20px;line-height:1.3;margin:10px 0}
+ .post-signup-install-card p{font-size:14px;line-height:1.45}
+}
