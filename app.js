@@ -50,7 +50,7 @@ function scrollToAuthForm(focusEmail=false){
   if(focusEmail)$('#authEmail')?.focus({preventScroll:true})
 }
 function openSignupForm(e){
-  e?.preventDefault();setAuthMode('signup');show('#authView');
+  e?.preventDefault();setAuthMode('signup');show('#authView',{scrollTop:false});
   trackAppEvent('signup_form_open');scrollToAuthForm(true)
 }
 function showExistingAccountLogin(){
@@ -141,7 +141,7 @@ const ANALYSIS_RULES={
   }
 };
 function toast(t){const x=$('#toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),2600)}
-function show(id){if(id!=='#proJobDetailView'&&state.timerInterval){clearInterval(state.timerInterval);state.timerInterval=null}$$('.view').forEach(v=>v.classList.remove('active'));$(id).classList.add('active');if(typeof updateAppNavigation==='function')updateAppNavigation(id);if(id==='#homeView'&&typeof refreshHomeDashboard==='function')refreshHomeDashboard();window.scrollTo({top:0,behavior:'smooth'})}
+function show(id,{scrollTop=true}={}){if(id!=='#proJobDetailView'&&state.timerInterval){clearInterval(state.timerInterval);state.timerInterval=null}$$('.view').forEach(v=>v.classList.remove('active'));$(id).classList.add('active');if(typeof updateAppNavigation==='function')updateAppNavigation(id);if(id==='#homeView'&&typeof refreshHomeDashboard==='function')refreshHomeDashboard();if(scrollTop)window.scrollTo({top:0,behavior:'instant'})}
 function esc(s=''){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function icon(c){return({רכב:'🚗',מיזוג:'❄️',לבית:'🏠',הנדימן:'🔨',היינדמן:'🔨',חשמלאי:'⚡'})[c]||'🧰'}
 function tradeIcon(trade){return ({handyman:'🔨',electrician:'⚡',home:'🏠',air_conditioning:'❄️'})[trade]||'🧰'}
@@ -253,7 +253,7 @@ function openPendingSignupEdit(){
   $('#authPassword').value='';$('#authPassword').disabled=true;$('#authPassword').placeholder='הסיסמה כבר נשמרה';
   $('#authName').value=state.user?.user_metadata?.full_name||state.profile?.full_name||'';
   $('#signupLegalConsent').checked=true;$('#signupLegalConsent').disabled=true;
-  show('#authView');$('#authForm').scrollIntoView({behavior:'smooth',block:'start'})
+  show('#authView',{scrollTop:false});scrollToAuthForm()
 }
 function resetPendingSignupEdit(){
   const button=$('#signupBtn');delete button.dataset.mode;button.textContent='📲 הרשמה והמשך להתקנת האפליקציה';
@@ -391,11 +391,22 @@ async function boot(){updateGreeting();const params=new URLSearchParams(location
   const switchAccount=confirm('כבר מחובר חשבון במכשיר הזה. לפתיחת חשבון חדש צריך להתנתק ממנו. להתנתק ולעבור להרשמה?');
   if(switchAccount){const {error}=await db.auth.signOut({scope:'local'});if(error){toast('לא ניתן להתנתק כרגע. נסה שוב.');await loadMe();await routeAfterLogin();return}state.user=null;state.isAdmin=false;stopNotificationPolling()}
 }
-if(signupHandoff||installHandoff){const url=new URL(location.href);url.searchParams.delete('view');history.replaceState({},'',url.pathname+url.search+url.hash)}if(state.user){await loadMe();if(!state.isAdmin){trackAppEvent('app_open');if(isStandaloneMode())trackAppEvent('standalone_open')}if(paymentReturn())await handlePaymentReturn();else await routeAfterLogin()}else{trackAppEvent('app_open');if(signupHandoff)trackAppEvent('signup_form_open');setAuthMode(signupHandoff?'signup':'login');show('#authView');if(params.get('password_reset')==='success')$('#authNote').textContent='הסיסמה שונתה בהצלחה. אפשר להתחבר עם הסיסמה החדשה.';else if(isPasswordRecovery())$('#authNote').textContent='קישור האיפוס אינו תקף או שפג תוקפו. בקשו קישור חדש.';else if(installHandoff)$('#authNote').textContent='החשבון כבר נוצר. להשלמת ההתקנה בטלפון, היכנסו עם האימייל והסיסמה שנרשמתם איתם. אין צורך להירשם שוב.';else if(signupHandoff)$('#authNote').textContent='לאחר ההרשמה יש להתקין את אפליקציית מחירלי בטלפון.';if(isAndroidInAppBrowser())$('#inAppBrowserNotice')?.classList.remove('hidden');if(signupHandoff||installHandoff||location.hash==='#authForm')scrollToAuthForm()}}
+if(signupHandoff||installHandoff){const url=new URL(location.href);url.searchParams.delete('view');history.replaceState({},'',url.pathname+url.search+url.hash)}if(state.user){await loadMe();if(!state.isAdmin){trackAppEvent('app_open');if(isStandaloneMode())trackAppEvent('standalone_open')}if(paymentReturn())await handlePaymentReturn();else await routeAfterLogin()}else{trackAppEvent('app_open');if(signupHandoff)trackAppEvent('signup_form_open');setAuthMode(signupHandoff?'signup':'login');show('#authView',{scrollTop:!(signupHandoff||installHandoff||location.hash==='#authForm')});if(params.get('password_reset')==='success')$('#authNote').textContent='הסיסמה שונתה בהצלחה. אפשר להתחבר עם הסיסמה החדשה.';else if(isPasswordRecovery())$('#authNote').textContent='קישור האיפוס אינו תקף או שפג תוקפו. בקשו קישור חדש.';else if(installHandoff)$('#authNote').textContent='החשבון כבר נוצר. להשלמת ההתקנה בטלפון, היכנסו עם האימייל והסיסמה שנרשמתם איתם. אין צורך להירשם שוב.';else if(signupHandoff)$('#authNote').textContent='לאחר ההרשמה יש להתקין את אפליקציית מחירלי בטלפון.';if(isAndroidInAppBrowser())$('#inAppBrowserNotice')?.classList.remove('hidden');if(signupHandoff||installHandoff||location.hash==='#authForm')scrollToAuthForm()}}
 $('#showLoginModeBtn').onclick=()=>setAuthMode('login');
 $('#showSignupModeBtn').onclick=openSignupForm;
 $('.auth-hero-cta').onclick=openSignupForm;
-$('#authForm').onsubmit=async e=>{e.preventDefault();$('#authNote').textContent='מתחבר…';const {data,error}=await db.auth.signInWithPassword({email:$('#authEmail').value.trim(),password:$('#authPassword').value});if(error){$('#authNote').textContent=authErrorMessage(error);return}state.user=data.user;await loadMe();$('#authNote').textContent='';if(paymentReturn())await handlePaymentReturn();else await routeAfterLogin()};
+$('#authForm').onsubmit=async e=>{
+  e.preventDefault();
+  if(!$('#signupFields').classList.contains('hidden'))return $('#signupBtn').onclick();
+  const note=$('#authNote'),button=$('.auth-login');if(button.disabled)return;
+  button.disabled=true;note.textContent='מתחבר…';
+  try{
+    const {data,error}=await db.auth.signInWithPassword({email:$('#authEmail').value.trim(),password:$('#authPassword').value});
+    if(error){note.textContent=authErrorMessage(error);return}
+    state.user=data.user;await loadMe();note.textContent='';
+    if(paymentReturn())await handlePaymentReturn();else await routeAfterLogin()
+  }catch{note.textContent='החיבור נקטע. נסו להתחבר שוב.'}finally{button.disabled=false}
+};
 $('#forgotPasswordBtn').onclick=async()=>{
   const email=$('#authEmail').value.trim(),note=$('#authNote'),button=$('#forgotPasswordBtn');
   if(!email){note.textContent='הזינו קודם את כתובת האימייל שלכם.';$('#authEmail').focus();return}
@@ -427,7 +438,7 @@ $('#signupBtn').onclick=async()=>{
 };
 let legalReturnView='#authView';
 $$('[data-open-legal]').forEach(button=>button.onclick=()=>{const active=$('.view.active');legalReturnView=active?.id?`#${active.id}`:(state.user?'#homeView':'#authView');show('#legalInfoView')});
-$('#legalInfoBackBtn').onclick=()=>show(legalReturnView||'#authView');
+$('#legalInfoBackBtn').onclick=()=>{show(legalReturnView||'#authView',{scrollTop:legalReturnView!=='#authView'});if(legalReturnView==='#authView')scrollToAuthForm()};
 $('#existingLegalConsent').onchange=e=>$('#acceptLegalConsentBtn').disabled=!e.target.checked;
 $('#acceptLegalConsentBtn').onclick=async()=>{const button=$('#acceptLegalConsentBtn');if(!$('#existingLegalConsent').checked)return;button.disabled=true;button.textContent='שומר את האישור…';const {error}=await db.rpc('accept_legal_terms_v40',{p_document_version:LEGAL_VERSION,p_accepted_via:'app'});button.textContent='אישור והמשך למחירלי';if(error){toast('לא ניתן לשמור את האישור: '+error.message);button.disabled=false;return}await routeAfterLogin()};
 $('#legalConsentLogoutBtn').onclick=async()=>{stopNotificationPolling();await db.auth.signOut();state.user=null;refreshDeveloperSupportLink();show('#authView')};
@@ -1422,7 +1433,9 @@ if('serviceWorker' in navigator){
   const hadServiceWorkerController=Boolean(navigator.serviceWorker.controller);
   navigator.serviceWorker.addEventListener('controllerchange',()=>{
     if(reloadingForUpdate||!hadServiceWorkerController)return;
-    if(document.querySelector('.view.active form')){toast('עדכון מוכן. הוא יופיע בפתיחה הבאה של האפליקציה.');return}
+    const form=document.querySelector('.view.active form');
+    const authStarted=form?.id==='authForm'&&Array.from(form.querySelectorAll('input')).some(input=>input.type==='checkbox'?input.checked:!input.disabled&&Boolean(input.value));
+    if(form&&(form.id!=='authForm'||authStarted)){toast('עדכון מוכן. הוא יופיע בפתיחה הבאה של האפליקציה.');return}
     reloadingForUpdate=true;
     location.reload();
   });

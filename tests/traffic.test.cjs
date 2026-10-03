@@ -2,8 +2,9 @@ const fs=require('fs'),vm=require('vm'),assert=require('assert/strict'),{randomU
 const code=fs.readFileSync(__dirname+'/../traffic.js','utf8');
 const storage=()=>{const m=new Map();return {getItem:k=>m.get(k)||null,setItem:(k,v)=>m.set(k,v)}};
 let time=Date.now();const calls=[];
-const w={location:{search:'?gclid=test',hostname:'example.test'},document:{referrer:''},localStorage:storage(),sessionStorage:storage(),crypto:{randomUUID},setTimeout:fn=>{fn();return 1},fetch:async(url,opt)=>{calls.push({url,payload:JSON.parse(opt.body)});return {ok:true,json:async()=>true}}};
-vm.runInNewContext(code,{window:w,URLSearchParams,URL,Date:{now:()=>time},Promise});
+const w={location:{search:'?gclid=test',hostname:'example.test'},document:{referrer:'',createElement:()=>({}),head:{appendChild(){}}},localStorage:storage(),sessionStorage:storage(),crypto:{randomUUID},setTimeout:fn=>{fn();return 1},fetch:async(url,opt)=>{calls.push({url,payload:JSON.parse(opt.body)});return {ok:true,json:async()=>true}}};
+class TestDate extends Date{static now(){return time}}
+vm.runInNewContext(code,{window:w,URLSearchParams,URL,Date:TestDate,Promise});
 const t=w.MehirliTraffic;
 const cases=[['?gclid=x','','google_paid'],['?gbraid=x','','google_paid'],['?wbraid=x','','google_paid'],['?utm_source=google&utm_medium=cpc','','google_paid'],['','https://www.google.co.il/search?q=x','google_organic'],['?utm_source=facebook&utm_medium=paid_social','','facebook_paid'],['?utm_source=facebook&utm_medium=social&utm_campaign=post','','facebook_organic'],['?fbclid=x','','facebook_unknown'],['?utm_source=instagram&utm_medium=cpc','','instagram_paid'],['?ttclid=x','','tiktok_paid'],['','','direct']];
 for(const [q,r,expected] of cases)assert.equal(t.resolve(q,r,'example.test').source,expected);

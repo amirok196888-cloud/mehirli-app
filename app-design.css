@@ -107,7 +107,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 @media(max-width:720px){
  .auth-showcase{min-height:0;border-radius:18px}
  .auth-product-visual{height:160px}
- .auth-showcase-copy{padding:18px 16px}
+ .auth-showcase-copy{min-height:0;padding:18px 16px}
  .auth-showcase h2{font-size:27px;line-height:1.25;letter-spacing:-.4px;margin:8px 0}
  .auth-showcase p{font-size:14px;line-height:1.5;margin:8px 0 12px}
  .auth-hero-cta{min-height:44px;font-size:15px;padding:10px 14px}

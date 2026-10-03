@@ -131,3 +131,28 @@ test('signup entry from the landing page scrolls after auth view is ready',async
  a.db.auth.getSession=async()=>({data:{session:null}});
  await a.run('boot()');assert.equal(a.window.scrolledToAuth,true);assert.equal(a.q('#signupFields').classList.contains('hidden'),false);
 });
+
+test('registration does not launch a competing scroll to the top',()=>{
+ const a=setup(),scrolls=[];a.window.scrollTo=options=>scrolls.push(options);a.q('#authEmail').focus=()=>{};
+ a.q('.auth-hero-cta').onclick({preventDefault(){}});
+ assert.equal(scrolls.length,0);assert.equal(a.window.scrolledToAuth,true);
+ a.run("show('#homeView')");assert.equal(scrolls.length,1);assert.equal(scrolls[0].behavior,'instant');
+});
+test('Enter in signup submits registration instead of trying to log in',async()=>{
+ const a=setup();a.run("setAuthMode('signup')");
+ a.q('#authName').value='בדיקת הרשמה';a.q('#authEmail').value='test@example.test';a.q('#authPassword').value='test-only-placeholder';a.q('#signupLegalConsent').checked=true;
+ let loginCalls=0;a.db.auth.signInWithPassword=async()=>{loginCalls++;throw Error('wrong flow')};
+ await a.q('#authForm').onsubmit({preventDefault(){}});
+ assert.equal(loginCalls,0);assert.match(a.q('#authNote').textContent,/אימייל לאישור/);
+});
+test('login recovers after interrupted network and allows a retry',async()=>{
+ const a=setup();a.run("setAuthMode('login')");a.db.auth.signInWithPassword=async()=>{throw Error('offline')};
+ await a.q('#authForm').onsubmit({preventDefault(){}});
+ assert.equal(a.q('.auth-login').disabled,false);assert.match(a.q('#authNote').textContent,/החיבור נקטע/);
+});
+test('legal information returns to the registration fields without losing input',()=>{
+ const a=setup();a.run("setAuthMode('signup')");a.q('#authEmail').value='test@example.test';
+ a.q('[data-open-legal]').onclick();assert.equal(a.q('#legalInfoView').classList.contains('active'),true);
+ a.q('#legalInfoBackBtn').onclick();assert.equal(a.q('#authView').classList.contains('active'),true);
+ assert.equal(a.q('#authEmail').value,'test@example.test');assert.equal(a.window.scrolledToAuth,true);
+});
