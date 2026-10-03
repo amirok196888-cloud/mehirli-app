@@ -64,3 +64,41 @@ test('saved proposals keep a WhatsApp button when reopened and after opening sha
  await a.run('sendDigitalQuoteToWhatsapp(state.selectedProJob)');assert.ok(a.q('[data-job-action="quote-whatsapp"]'));
  await a.run('renderProJobDetail()');assert.ok(a.q('[data-job-action="quote-whatsapp"]'));
 });
+
+test('Facebook registration stays in browser and preserves campaign attribution',async()=>{
+ const {document}=parseHTML(fs.readFileSync(path.join(root,'index.html'),'utf8'));
+ const href='https://example.test/mehirli-app/?utm_source=facebook';
+ const navigations=[];
+ const context=vm.createContext({document,navigator:{userAgent:'Android FBAV/123',connection:{saveData:true}},location:{href,search:'?utm_source=facebook',assign:u=>navigations.push(u)},URL,URLSearchParams,window:{MehirliTraffic:{event:async()=>{},trackVisit(){}}},matchMedia:()=>({matches:true}),setTimeout:()=>0});
+ const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+ vm.runInContext(html.slice(html.lastIndexOf('<script>')+8,html.lastIndexOf('</script>')),context);
+ const cta=document.querySelector('[data-cta]');
+ cta.href=new URL(cta.getAttribute('href'),href).href;
+ cta.dispatchEvent(new document.defaultView.Event('click',{cancelable:true}));
+ await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(navigations.length,1);
+ const destination=new URL(navigations[0]);
+ assert.equal(destination.protocol,'https:');assert.equal(destination.searchParams.get('view'),'signup');assert.equal(destination.searchParams.get('utm_source'),'facebook');
+});
+test('Chrome installation handoff opens existing-account login without credentials',async()=>{
+ const a=setup();
+ a.run("navigator.userAgent='Android FBAV/123';location.search='?view=signup&utm_source=facebook';location.hash='#authForm';markOnboardingStep=async()=>{}");
+ await a.q('#postSignupInstallBtn').onclick();
+ const handoff=a.run('location.href');
+ assert.match(handoff,/^intent:/);assert.match(handoff,/view=install/);assert.match(handoff,/utm_source=facebook/);
+ assert.doesNotMatch(handoff,/view=signup|authForm|password|access_token/);
+});
+test('Chrome handoff chooses login and does not attempt a second registration',async()=>{
+ const a=setup();a.run("location.search='?view=install';location.hash='';");
+ a.db.auth.getSession=async()=>({data:{session:null}});
+ await a.run('boot()');
+ assert.equal(a.q('#signupFields').classList.contains('hidden'),true);
+ assert.match(a.q('#authNote').textContent,/אין צורך להירשם שוב/);
+});
+test('installation handoff keeps an existing authenticated session',async()=>{
+ const a=setup();a.run("location.search='?view=install';location.hash='';loadMe=async()=>{};routeAfterLogin=async()=>{window.routed=true}");
+ let signedOut=false;a.db.auth.signOut=async()=>{signedOut=true;return {}};
+ a.db.auth.getSession=async()=>({data:{session:{user:{id:'existing'}}}});
+ await a.run('boot()');
+ assert.equal(signedOut,false);assert.equal(a.window.routed,true);
+});
