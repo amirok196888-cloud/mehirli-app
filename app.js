@@ -71,7 +71,9 @@ function updateGreeting(){
 }
 function isStandaloneMode(){return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true}
 function isAndroidInAppBrowser(){const ua=navigator.userAgent||'';return /Android/i.test(ua)&&/(FBAN|FBAV|Instagram)/i.test(ua)}
-function openInChrome(){const url=new URL(location.href);url.searchParams.set('view','install');url.searchParams.delete('code');url.hash='';const target=`intent://${url.host}${url.pathname}${url.search}#Intent;scheme=https;package=com.android.chrome;end`;location.href=target}
+function installationUrl(){const url=new URL('app.html',location.href),current=new URLSearchParams(location.search);for(const key of ['from','utm_source','utm_medium','utm_campaign','utm_term','utm_content','gclid','fbclid','msclkid'])if(current.has(key))url.searchParams.set(key,current.get(key));url.searchParams.set('view','install');return url.href}
+function chromeInstallIntent(){const url=new URL(installationUrl());return `intent://${url.host}${url.pathname}${url.search}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(url.href)};end`}
+function openInChrome(){location.href=chromeInstallIntent()}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)updateGreeting()});
 const quotePdfCache=new Map();
 const catDb={'רכב':'vehicle','מיזוג':'air_conditioning','לבית':'home','הנדימן':'handyman','היינדמן':'handyman','חשמלאי':'electrician'}, catHe={vehicle:'רכב',air_conditioning:'מיזוג',home:'לבית',handyman:'הנדימן',electrician:'חשמלאי'};
@@ -207,10 +209,16 @@ async function routeAfterLogin(){
 }
 function showPostSignupInstall(){
   const overlay=$('#postSignupInstall'),button=$('#postSignupInstallBtn');if(!overlay)return;
-  if(button)button.textContent=isAndroidInAppBrowser()?'המשך להתקנה בטלפון — פתיחה ב־Chrome':isIosDevice()?' הוראות התקנה באייפון':'⬇ התקנת אפליקציה באנדרואיד';
-  if($('#postSignupInstallText'))$('#postSignupInstallText').textContent=isAndroidInAppBrowser()?'החשבון נוצר. עכשיו צריך להתקין את אפליקציית מחירלי בטלפון. הכפתור יפתח את מחירלי ב־Chrome. אם פייסבוק יציג הודעת יציאה מהאפליקציה, בחרו ״המשך״. ב־Chrome היכנסו עם האימייל והסיסמה שנרשמתם איתם, ואז לחצו על התקנה. אין צורך להירשם שוב.':isIosDevice()?'כעת יש להתקין את אפליקציית מחירלי בטלפון. באייפון פותחים את מחירלי ב־Safari ומתחברים עם אותו אימייל וסיסמה. לאחר מכן: שיתוף ← הוספה למסך הבית ← הוסף. אחרי ההתקנה נכנסים מהסמל במסך הבית.':'כעת יש להתקין את אפליקציית מחירלי בטלפון. לוחצים על הכפתור ומאשרים את ההתקנה. לאחר מכן אפשר לחזור למחירלי דרך הסמל במסך הבית.';
+  const facebook=isAndroidInAppBrowser();
+  if(button){button.textContent=facebook?'המשך להתקנה ב־Chrome':isIosDevice()?'הוראות התקנה באייפון':'התקנת מחירלי בטלפון';button.href=facebook?chromeInstallIntent():'#'}
+  if($('#postSignupInstallText'))$('#postSignupInstallText').textContent=facebook?'כדי להתקין בטלפון, פותחים את מחירלי ב־Chrome. נכנסים עם אותו אימייל וסיסמה — אין צורך להירשם שוב.':isIosDevice()?'פתחו את מחירלי ב־Safari והיכנסו עם אותו אימייל וסיסמה. להתקנה: שיתוף ← הוספה למסך הבית.':'אשרו את ההתקנה, ואז פתחו את מחירלי מהסמל במסך הבית.';
+  $('#postSignupBrowserWarning').hidden=!facebook;
+  $('#postSignupBrowserFallback').hidden=!facebook;
+  $('#postSignupInstallHelp').hidden=true;
+  $('#postSignupInstallLink').value=installationUrl();
   overlay.classList.remove('hidden')
 }
+
 const dismissedQuoteWelcome=new Set();
 function quoteWelcomeKey(){return 'mehirli:quote-welcome-dismissed:'+state.user?.id}
 function showFirstQuoteWelcome(){
@@ -1360,7 +1368,8 @@ async function requestAppInstall(){
     // Installation completes at appinstalled or on a later standalone launch.
     return
   }
-  toast('בתפריט הדפדפן בחר ״התקנת אפליקציה״ — לא ״הוסף קיצור דרך״.')
+  const help=$('#postSignupInstallHelp');if(help){help.textContent='להתקנה, פתחו את תפריט הדפדפן ⋮ ובחרו ״התקנת אפליקציה״ או ״הוספה למסך הבית״, ואז אשרו התקנה.';help.hidden=false}
+  toast('פתחו את תפריט הדפדפן ⋮ ובחרו התקנת אפליקציה.')
 }
 window.addEventListener('beforeinstallprompt',e=>{
   e.preventDefault();
@@ -1376,7 +1385,19 @@ window.addEventListener('appinstalled',async()=>{
   toast('מחירלי הותקנה כאפליקציה ✅');
 });
 if(installBtn)installBtn.onclick=requestAppInstall;
-$('#postSignupInstallBtn').onclick=requestAppInstall;
+$('#postSignupInstallBtn').onclick=e=>{
+  if(isAndroidInAppBrowser()){
+    $('#postSignupInstallBtn').href=chromeInstallIntent();
+    markOnboardingStep('install_clicked').catch(()=>{});
+    return
+  }
+  e?.preventDefault();return requestAppInstall()
+};
+$('#postSignupCopyLinkBtn').onclick=async()=>{
+  const input=$('#postSignupInstallLink'),note=$('#postSignupCopyNote');
+  try{await navigator.clipboard.writeText(input.value);note.textContent='הקישור הועתק. פתחו Chrome, הדביקו בשורת הכתובת והיכנסו.'}
+  catch{input.focus();input.select();note.textContent='לחצו לחיצה ארוכה על הקישור ובחרו העתקה. לאחר מכן הדביקו בשורת הכתובת ב־Chrome.'}
+};
 $('#postSignupEditBtn').onclick=openPendingSignupEdit;
 $('#firstQuoteWelcomeBtn').onclick=async()=>{dismissFirstQuoteWelcome();await openNewProJob()};
 $('#firstQuoteWelcomeClose').onclick=dismissFirstQuoteWelcome;
