@@ -83,8 +83,10 @@ test('Facebook registration stays in browser and preserves campaign attribution'
 test('Chrome installation handoff opens existing-account login without credentials',async()=>{
  const a=setup();
  a.run("navigator.userAgent='Android FBAV/123';location.search='?view=signup&utm_source=facebook';location.hash='#authForm';markOnboardingStep=async()=>{}");
- await a.q('#postSignupInstallBtn').onclick();
- const handoff=a.run('location.href');
+ let prevented=false;await a.q('#postSignupInstallBtn').onclick({preventDefault(){prevented=true}});
+ assert.equal(prevented,false);
+ assert.equal(a.q('#postSignupInstallBtn').tagName,'A');
+ const handoff=a.q('#postSignupInstallBtn').getAttribute('href');
  assert.match(handoff,/^intent:/);assert.match(handoff,/view=install/);assert.match(handoff,/utm_source=facebook/);
  assert.doesNotMatch(handoff,/view=signup|authForm|password|access_token/);
 });
@@ -101,4 +103,17 @@ test('installation handoff keeps an existing authenticated session',async()=>{
  a.db.auth.getSession=async()=>({data:{session:{user:{id:'existing'}}}});
  await a.run('boot()');
  assert.equal(signedOut,false);assert.equal(a.window.routed,true);
+});
+
+test('installation fallback stays visible when Chrome cannot launch',()=>{
+ const a=setup();a.run("navigator.userAgent='Android FBAV/123';showPostSignupInstall()");
+ assert.equal(a.q('#postSignupBrowserFallback').hidden,false);
+ assert.match(a.q('#postSignupInstallLink').value,/view=install/);
+ assert.equal(a.q('#postSignupBrowserWarning').hidden,false);
+});
+test('missing install prompt shows instructions inside the installation dialog',async()=>{
+ const a=setup();a.run("markOnboardingStep=async()=>{};showPostSignupInstall()");
+ await a.q('#postSignupInstallBtn').onclick({preventDefault(){}});
+ assert.equal(a.q('#postSignupInstallHelp').hidden,false);
+ assert.match(a.q('#postSignupInstallHelp').textContent,/תפריט הדפדפן/);
 });
