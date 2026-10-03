@@ -40,8 +40,8 @@ function setAuthMode(mode='login'){
   $('#showLoginModeBtn')?.classList.toggle('active',!signup);$('#showSignupModeBtn')?.classList.toggle('active',signup);
   $('#signupFields')?.classList.toggle('hidden',!signup);$('.auth-login')?.classList.toggle('hidden',signup);$('#forgotPasswordBtn')?.classList.toggle('hidden',signup);
   if($('#authFormBadge'))$('#authFormBadge').textContent=signup?'14 ימים עלינו':'ברוכים השבים';
-  if($('#authFormTitle'))$('#authFormTitle').textContent=signup?'פותחים חשבון ומתחילים לעבוד':'כניסה למחירלי';
-  if($('#authFormSubtitle'))$('#authFormSubtitle').textContent=signup?'הקמה קצרה. בלי כרטיס אשראי ובלי התחייבות.':'מכניסים אימייל וסיסמה ונכנסים מיד.';
+  if($('#authFormTitle'))$('#authFormTitle').textContent=signup?'נרשמים, ואז מתקינים בטלפון':'כניסה למחירלי';
+  if($('#authFormSubtitle'))$('#authFormSubtitle').textContent=signup?'לאחר ההרשמה יש להתקין את אפליקציית מחירלי בטלפון. בלי כרטיס אשראי ובלי התחייבות.':'מכניסים אימייל וסיסמה ונכנסים מיד.';
   if(!signup&&$('#authName'))$('#authName').value='';
 }
 function showExistingAccountLogin(){
@@ -71,7 +71,7 @@ function updateGreeting(){
 }
 function isStandaloneMode(){return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true}
 function isAndroidInAppBrowser(){const ua=navigator.userAgent||'';return /Android/i.test(ua)&&/(FBAN|FBAV|Instagram)/i.test(ua)}
-function openInChrome(){const url=new URL(location.href);url.searchParams.set('view','signup');url.hash='';const target=`intent://${url.host}${url.pathname}${url.search}#Intent;scheme=https;package=com.android.chrome;end`;location.href=target}
+function openInChrome(){const url=new URL(location.href);url.searchParams.set('view','install');url.searchParams.delete('code');url.hash='';const target=`intent://${url.host}${url.pathname}${url.search}#Intent;scheme=https;package=com.android.chrome;end`;location.href=target}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)updateGreeting()});
 const quotePdfCache=new Map();
 const catDb={'רכב':'vehicle','מיזוג':'air_conditioning','לבית':'home','הנדימן':'handyman','היינדמן':'handyman','חשמלאי':'electrician'}, catHe={vehicle:'רכב',air_conditioning:'מיזוג',home:'לבית',handyman:'הנדימן',electrician:'חשמלאי'};
@@ -207,8 +207,8 @@ async function routeAfterLogin(){
 }
 function showPostSignupInstall(){
   const overlay=$('#postSignupInstall'),button=$('#postSignupInstallBtn');if(!overlay)return;
-  if(button)button.textContent=isAndroidInAppBrowser()?'פתיחת מחירלי ב־Chrome להתקנה':isIosDevice()?' הוראות התקנה באייפון':'⬇ התקנת אפליקציה באנדרואיד';
-  if($('#postSignupInstallText'))$('#postSignupInstallText').textContent=isAndroidInAppBrowser()?'פייסבוק אינו מאפשר התקנת אפליקציות. בלחיצה הבאה מחירלי תיפתח ב־Chrome, ושם ניתן יהיה להתקין.':isIosDevice()?'באייפון מתקינים דרך Safari: שיתוף ← הוספה למסך הבית ← הוסף.':'באנדרואיד לוחצים על הכפתור ומאשרים התקנת אפליקציה.';
+  if(button)button.textContent=isAndroidInAppBrowser()?'המשך להתקנה בטלפון — פתיחה ב־Chrome':isIosDevice()?' הוראות התקנה באייפון':'⬇ התקנת אפליקציה באנדרואיד';
+  if($('#postSignupInstallText'))$('#postSignupInstallText').textContent=isAndroidInAppBrowser()?'החשבון נוצר. עכשיו צריך להתקין את אפליקציית מחירלי בטלפון. הכפתור יפתח את מחירלי ב־Chrome. אם פייסבוק יציג הודעת יציאה מהאפליקציה, בחרו ״המשך״. ב־Chrome היכנסו עם האימייל והסיסמה שנרשמתם איתם, ואז לחצו על התקנה. אין צורך להירשם שוב.':isIosDevice()?'כעת יש להתקין את אפליקציית מחירלי בטלפון. באייפון פותחים את מחירלי ב־Safari ומתחברים עם אותו אימייל וסיסמה. לאחר מכן: שיתוף ← הוספה למסך הבית ← הוסף. אחרי ההתקנה נכנסים מהסמל במסך הבית.':'כעת יש להתקין את אפליקציית מחירלי בטלפון. לוחצים על הכפתור ומאשרים את ההתקנה. לאחר מכן אפשר לחזור למחירלי דרך הסמל במסך הבית.';
   overlay.classList.remove('hidden')
 }
 const dismissedQuoteWelcome=new Set();
@@ -370,11 +370,11 @@ async function promptLoginIfSessionExpired(){
   $('#authNote').textContent='החיבור פג. יש להתחבר מחדש כדי לשמור עבודות ופגישות.';
   return true
 }
-async function boot(){updateGreeting();const params=new URLSearchParams(location.search),signupHandoff=params.get('view')==='signup';const quoteToken=currentPublicQuoteToken();if(quoteToken){await loadPublicQuote(quoteToken);return}const {data:{session}}=await db.auth.getSession();state.user=session?.user||null;if(isPasswordRecovery()&&state.user){showPasswordReset();return}if(signupHandoff&&state.user){
+async function boot(){updateGreeting();const params=new URLSearchParams(location.search),signupHandoff=params.get('view')==='signup',installHandoff=params.get('view')==='install';const quoteToken=currentPublicQuoteToken();if(quoteToken){await loadPublicQuote(quoteToken);return}const {data:{session}}=await db.auth.getSession();state.user=session?.user||null;if(isPasswordRecovery()&&state.user){showPasswordReset();return}if(signupHandoff&&state.user){
   const switchAccount=confirm('כבר מחובר חשבון במכשיר הזה. לפתיחת חשבון חדש צריך להתנתק ממנו. להתנתק ולעבור להרשמה?');
   if(switchAccount){const {error}=await db.auth.signOut({scope:'local'});if(error){toast('לא ניתן להתנתק כרגע. נסה שוב.');await loadMe();await routeAfterLogin();return}state.user=null;state.isAdmin=false;stopNotificationPolling()}
 }
-if(signupHandoff){const url=new URL(location.href);url.searchParams.delete('view');history.replaceState({},'',url.pathname+url.search+url.hash)}if(state.user){await loadMe();if(!state.isAdmin){trackAppEvent('app_open');if(isStandaloneMode())trackAppEvent('standalone_open')}if(paymentReturn())await handlePaymentReturn();else await routeAfterLogin()}else{trackAppEvent('app_open');if(signupHandoff)trackAppEvent('signup_form_open');setAuthMode(signupHandoff?'signup':'login');show('#authView');if(params.get('password_reset')==='success')$('#authNote').textContent='הסיסמה שונתה בהצלחה. אפשר להתחבר עם הסיסמה החדשה.';else if(isPasswordRecovery())$('#authNote').textContent='קישור האיפוס אינו תקף או שפג תוקפו. בקשו קישור חדש.';else if(signupHandoff)$('#authNote').textContent='המשך הרשמה או התחבר לחשבון שיצרת כדי להתקין את מחירלי.';if(isAndroidInAppBrowser())$('#inAppBrowserNotice')?.classList.remove('hidden')}}
+if(signupHandoff||installHandoff){const url=new URL(location.href);url.searchParams.delete('view');history.replaceState({},'',url.pathname+url.search+url.hash)}if(state.user){await loadMe();if(!state.isAdmin){trackAppEvent('app_open');if(isStandaloneMode())trackAppEvent('standalone_open')}if(paymentReturn())await handlePaymentReturn();else await routeAfterLogin()}else{trackAppEvent('app_open');if(signupHandoff)trackAppEvent('signup_form_open');setAuthMode(signupHandoff?'signup':'login');show('#authView');if(params.get('password_reset')==='success')$('#authNote').textContent='הסיסמה שונתה בהצלחה. אפשר להתחבר עם הסיסמה החדשה.';else if(isPasswordRecovery())$('#authNote').textContent='קישור האיפוס אינו תקף או שפג תוקפו. בקשו קישור חדש.';else if(installHandoff)$('#authNote').textContent='החשבון כבר נוצר. להשלמת ההתקנה בטלפון, היכנסו עם האימייל והסיסמה שנרשמתם איתם. אין צורך להירשם שוב.';else if(signupHandoff)$('#authNote').textContent='לאחר ההרשמה יש להתקין את אפליקציית מחירלי בטלפון.';if(isAndroidInAppBrowser())$('#inAppBrowserNotice')?.classList.remove('hidden')}}
 $('#showLoginModeBtn').onclick=()=>setAuthMode('login');
 $('#showSignupModeBtn').onclick=()=>{setAuthMode('signup');trackAppEvent('signup_form_open')};
 $('#authForm').onsubmit=async e=>{e.preventDefault();$('#authNote').textContent='מתחבר…';const {data,error}=await db.auth.signInWithPassword({email:$('#authEmail').value.trim(),password:$('#authPassword').value});if(error){$('#authNote').textContent=authErrorMessage(error);return}state.user=data.user;await loadMe();$('#authNote').textContent='';if(paymentReturn())await handlePaymentReturn();else await routeAfterLogin()};
@@ -1376,7 +1376,6 @@ window.addEventListener('appinstalled',async()=>{
   toast('מחירלי הותקנה כאפליקציה ✅');
 });
 if(installBtn)installBtn.onclick=requestAppInstall;
-$('#openChromeBtn').onclick=openInChrome;
 $('#postSignupInstallBtn').onclick=requestAppInstall;
 $('#postSignupEditBtn').onclick=openPendingSignupEdit;
 $('#firstQuoteWelcomeBtn').onclick=async()=>{dismissFirstQuoteWelcome();await openNewProJob()};
