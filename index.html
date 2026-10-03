@@ -99,22 +99,16 @@
     (function(){
       function track(name){try{return Promise.resolve(window.MehirliTraffic?.event(name)).catch(function(){})}catch(e){return Promise.resolve()}}
       try{window.MehirliTraffic?.trackVisit()}catch(e){}
-      function isAndroidFacebookBrowser(){var ua=navigator.userAgent||'';return /Android/i.test(ua)&&/(FBAN|FBAV|Instagram)/i.test(ua)}
-      function chromeIntent(target){var url=new URL(target,location.href);url.searchParams.set('view','signup');url.hash='';return 'intent://'+url.host+url.pathname+url.search+'#Intent;scheme=https;package=com.android.chrome;end'}
       track('landing_page_view');
       var current=new URLSearchParams(location.search);
       document.querySelectorAll('.app-link').forEach(function(link){
         var url=new URL(link.getAttribute('href'),location.href);
         current.forEach(function(value,key){if(!url.searchParams.has(key))url.searchParams.set(key,value)});
         link.href=url.pathname+url.search+url.hash;
-        if(isAndroidFacebookBrowser()){
-          link.dataset.chromeIntent=chromeIntent(url.href);
-          if(!link.hasAttribute('data-cta'))link.addEventListener('click',function(event){event.preventDefault();location.href=link.dataset.chromeIntent});
-        }
       });
       document.querySelectorAll('[data-cta]').forEach(function(link){
         link.addEventListener('click',async function(event){
-          event.preventDefault();var target=link.dataset.chromeIntent||link.href;
+          event.preventDefault();var target=link.href;
           if(typeof fbq==='function')fbq('trackCustom','MehirliTrialClick',{placement:link.dataset.cta});
           await Promise.race([track('landing_cta_click'),new Promise(function(resolve){setTimeout(resolve,700)})]);
           location.assign(target);
