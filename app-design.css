@@ -83,3 +83,21 @@ button:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid #9c
 .job-suggestion-selected>span{font-weight:700;color:#145c4d}
 .job-suggestion-selected>small{line-height:1.5;color:#52635e}
 .job-suggestion-selected label{max-width:180px}
+
+/* Keep installation controls reachable in short in-app browser viewports. */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+.post-signup-install{overflow-y:auto;overscroll-behavior:contain;align-items:safe center;padding:12px}
+.post-signup-install-card{max-height:calc(100vh - 24px);max-height:calc(100dvh - 24px);overflow-y:auto;overscroll-behavior:contain;padding:20px;box-sizing:border-box}
+.post-signup-install-card>span{font-size:36px;line-height:1.1}
+.post-signup-install-card h2{font-size:23px;line-height:1.3;margin:12px 0}
+.post-signup-install-card p{font-size:15px;line-height:1.5;margin:0 0 14px}
+#postSignupInstallBtn{display:flex;align-items:center;justify-content:center;min-height:48px;padding:12px;text-decoration:none;font-size:16px;line-height:1.4}
+.post-signup-install-card .install-browser-warning{font-size:13px;margin:10px 0;color:#596b68}
+.post-signup-install-card .install-inline-help{margin-top:12px;padding:10px;background:#edf3ef;border-radius:10px}
+#postSignupBrowserFallback{text-align:right;margin-top:12px;font-size:13px}
+#postSignupBrowserFallback summary{cursor:pointer;font-weight:700;padding:8px 0}
+#postSignupBrowserFallback p{font-size:13px;margin:8px 0}
+#postSignupInstallLink{width:100%;min-width:0;font-size:13px;padding:8px}
+#postSignupCopyLinkBtn{width:100%;margin-top:8px;min-height:44px}
+#postSignupInstallHelp[hidden],#postSignupBrowserWarning[hidden],#postSignupBrowserFallback[hidden]{display:none}
+@media(max-width:520px){.post-signup-install-card{padding:18px 16px;border-radius:20px}.post-signup-install-card h2{font-size:22px}.post-signup-install-card>span{font-size:32px}.post-signup-install-card .install-edit-btn{font-size:14px;min-height:44px;padding:10px}}
