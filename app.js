@@ -4,7 +4,7 @@ const AUTH_RECOVERY_INTENT=new URLSearchParams(location.search).get('reset')==='
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const QUOTE_PDF_BUCKET='quote-pdfs';
 const QUOTE_LINK_SECONDS=30*24*60*60;
-const ROKACH_DIGITAL_WHATSAPP='972552715782';
+const ROKACH_DIGITAL_WHATSAPP='972552997673';
 const LEGAL_VERSION='2026-09-15-v2';
 const QUOTE_CONSENT_VERSION='quote-approval-2026-09-v1';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
