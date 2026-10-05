@@ -128,3 +128,12 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
  .post-signup-install-card h2{font-size:20px;line-height:1.3;margin:10px 0}
  .post-signup-install-card p{font-size:14px;line-height:1.45}
 }
+
+.admin-article-views{margin-top:16px;padding:16px;border:1px solid var(--border);border-radius:16px;background:#fff}
+.admin-article-views h3{margin:0 0 10px;font-size:17px}
+.admin-article-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--border);font-size:14px}
+.admin-article-row a{font-weight:700;color:#195657;text-decoration:none}
+.admin-article-row a:hover{text-decoration:underline}
+.admin-article-row span{white-space:nowrap;color:var(--muted)}
+.admin-article-row b{color:var(--text)}
+@media(max-width:520px){.admin-article-row{align-items:flex-start;flex-direction:column;gap:4px}}
