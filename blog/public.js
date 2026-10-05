@@ -7,7 +7,7 @@
   const response=await fetch(C.API+'/rest/v1/blog_publications?'+query,{headers:{apikey:C.KEY}});
   if(!response.ok)throw new Error('load');const rows=await response.json();
   if(!single){
-  const staticSlugs=new Set([...target.querySelectorAll('.card a[href]')].map(link=>{try{return new URL(link.href).pathname.match(/\\/blog\\/([^/]+)\\/?$/)?.[1]||''}catch{return ''}}).filter(Boolean));
+  const staticSlugs=new Set([...target.querySelectorAll('.card a[href]')].map(link=>{try{const parts=new URL(link.href).pathname.split('/').filter(Boolean);const i=parts.lastIndexOf('blog');return i>=0?(parts[i+1]||''):''}catch{return ''}}).filter(Boolean));
   const dynamic=rows.filter(a=>!staticSlugs.has(a.slug)).map(a=>`<section class="card"><h2><a href="${C.BASE+'blog/article.html?slug='+encodeURIComponent(a.slug)}">${C.escape(a.title)}</a></h2><p>${C.escape(a.excerpt)}</p><p class="meta">${C.escape(a.author)} · ${new Date(a.published_at).toLocaleDateString('he-IL')}</p><a href="${C.BASE+'blog/article.html?slug='+encodeURIComponent(a.slug)}">לקריאת המאמר ←</a></section>`).join('');
   if(dynamic)target.insertAdjacentHTML('afterbegin',dynamic);
   return;
