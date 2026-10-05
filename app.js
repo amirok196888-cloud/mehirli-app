@@ -264,7 +264,7 @@ async function activateTrialAfterInstall(){
   if(error){toast('לא ניתן להפעיל את הניסיון כרגע. נסה לפתוח שוב את מחירלי.');return false}
   if(!data?.activated){toast('תקופת הניסיון לא הופעלה. פנה לתמיכה.');return false}
   $('#postSignupInstall')?.classList.add('hidden');
-  trackMetaLifecycle('StartTrial',state.user);window.MehirliTraffic?.trialStarted(state.user?.id);await loadSubscription();trackAppEvent('trial_activated');show('#homeView');showFirstQuoteWelcome();toast('14 ימי הניסיון התחילו עכשיו ✅');return true
+  trackMetaLifecycle('StartTrial',state.user);window.MehirliTraffic?.trialStarted(state.user?.id);await loadSubscription();trackAppEvent('trial_activated');show('#homeView');showFirstQuoteWelcome();toast('60 ימי הניסיון התחילו עכשיו ✅');return true
 }
 async function ensureLegalConsent(){
   const {data,error}=await db.rpc('has_accepted_legal_terms_v40',{p_document_version:LEGAL_VERSION});
@@ -1231,7 +1231,7 @@ async function loadAdmin(){
   $('#adminBusinessesCount').textContent=sum.businesses||0;$('#adminJobsCount').textContent=sum.jobs||0;
   $('#adminActiveSubscriptionsCount').textContent=sum.active_subscriptions||0;$('#adminSuspendedCount').textContent=sum.suspended_subscriptions||0;
   $('#adminPendingPaymentsCount').textContent=sum.pending_payments||0;$('#adminSubscriptionRevenue').textContent=money(sum.subscription_revenue||0);
-  $('#adminMonthlyPrice').value=state.billingSettings.monthly_price??39;$('#adminTrialDays').value=state.billingSettings.trial_days??14;$('#adminGraceDays').value=2;
+  $('#adminMonthlyPrice').value=state.billingSettings.monthly_price??39;$('#adminTrialDays').value=state.billingSettings.trial_days??60;$('#adminGraceDays').value=2;
   $('#adminSubscriptionPaymentUrl').value=state.billingSettings.payment_url||'';$('#adminSupportWhatsapp').value=state.billingSettings.support_whatsapp||'';
   const modeStatus=$('#adminBillingModeStatus'),automatic=state.billingSettings.payment_mode==='cardcom';
   if(modeStatus){modeStatus.classList.toggle('connected',automatic);modeStatus.classList.toggle('not-connected',!automatic);modeStatus.textContent=automatic?'✓ סליקת API אוטומטית של מחירלי פעילה':'חיבור API לקארדקום מוכן בקוד וממתין לאישור ולהפעלה'}
