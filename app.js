@@ -1189,6 +1189,16 @@ async function loadPublicQuote(token){
   const btn=$('#approvePublicQuoteBtn'),consent=$('#publicQuoteConsent');if(btn&&consent){consent.onchange=()=>btn.disabled=!consent.checked;btn.onclick=async()=>{if(!consent.checked)return;btn.disabled=true;btn.textContent='מאשר…';const {error}=await db.rpc('approve_public_job_quote_v40',{p_token:token,p_consent_version:QUOTE_CONSENT_VERSION});if(error){toast('לא ניתן לאשר: '+error.message);btn.disabled=false;btn.textContent='אישור הצעת המחיר';return}toast('ההצעה אושרה בהצלחה');await loadPublicQuote(token)}}
 }
 
+async function loadAdminArticleViews(){
+  const box=$('#adminArticleAnalytics');
+  if(!box||!state.isAdmin)return false;
+  const {data,error}=await db.rpc('admin_blog_article_views_v1',{p_range:adminAnalyticsRange});
+  if(error){box.innerHTML='<p class="analytics-note">לא ניתן לטעון כרגע את נתוני המאמרים.</p>';return false}
+  const rows=Array.isArray(data?.articles)?data.articles:[];
+  box.innerHTML=rows.length?rows.map(row=>`<div class="admin-article-row"><a href="blog/${encodeURIComponent(row.slug)}/" target="_blank" rel="noopener">${esc(row.title||row.slug)}</a><span><b>${Number(row.views||0)}</b> כניסות · ${Number(row.readers||0)} קוראים</span></div>`).join(''):'<p class="analytics-note">עדיין אין כניסות למאמרים בטווח שנבחר.</p>';
+  return true
+}
+
 function renderAdminMarketing(funnel={}){
   $('#adminTotalVisits').textContent=funnel.total_visits??0;
   $('#adminUniqueVisitors').textContent=funnel.unique_visitors_30d??funnel.unique_visitors??0;
@@ -1208,7 +1218,7 @@ async function loadAdminMarketing(range=adminAnalyticsRange){
   adminAnalyticsRange=['today','30d','all'].includes(range)?range:'today';
   const {data,error}=await db.rpc('admin_marketing_summary_v113',{p_range:adminAnalyticsRange});
   if(error){$('#adminAnalyticsNote').textContent='הרענון נכשל — הנתונים המוצגים הם מהעדכון הקודם.';toast('לא ניתן לרענן את נתוני הכניסות');return false}
-  renderAdminMarketing(data||{});return true
+  renderAdminMarketing(data||{});loadAdminArticleViews();return true
 }
 async function loadAdmin(){
   if(!state.isAdmin){toast('אין הרשאת מנהל');return false}
@@ -1217,7 +1227,7 @@ async function loadAdmin(){
   ]);
   if(se||je||be||bse||me){toast((se||je||be||bse||me).message||'לא ניתן לטעון את אזור המנהל');return false}
   const sum=summary||{};state.adminJobs=jobs||[];state.adminBusinesses=businesses||[];state.billingSettings=billing||{};
-  renderAdminMarketing(marketing||{});
+  renderAdminMarketing(marketing||{});loadAdminArticleViews();
   $('#adminBusinessesCount').textContent=sum.businesses||0;$('#adminJobsCount').textContent=sum.jobs||0;
   $('#adminActiveSubscriptionsCount').textContent=sum.active_subscriptions||0;$('#adminSuspendedCount').textContent=sum.suspended_subscriptions||0;
   $('#adminPendingPaymentsCount').textContent=sum.pending_payments||0;$('#adminSubscriptionRevenue').textContent=money(sum.subscription_revenue||0);
