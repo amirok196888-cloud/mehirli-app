@@ -40,9 +40,20 @@
 <li>הצעות מחיר, עבודות, לקוחות והכנסות והוצאות במקום אחד.</li>
 </ul>
 <p>אחרי תקופת הניסיון, מי שבוחר להמשיך משלם 39 ₪ לחודש. אין חיוב אוטומטי. אם לא מסדירים תשלום, החשבון ננעל בתום 60 הימים.</p>
-<a class="cta" href="https://amirok196888-cloud.github.io/mehirli-app/app.html?from=trial60&amp;view=signup&amp;utm_source=facebook&amp;utm_medium=organic_social&amp;utm_campaign=mehirli_trial_60d_20261005#authForm">פתיחת חשבון והתחלת ניסיון ←</a>
+<a class="cta" id="trialSignupCta" href="../app.html?from=trial60&amp;view=signup&amp;utm_source=facebook&amp;utm_medium=organic_social&amp;utm_campaign=mehirli_trial_60d_20261005#authForm">פתיחת חשבון והתחלת ניסיון ←</a>
 <p class="note">מחיר כולל מע״מ. תקופת הניסיון מתחילה רק לאחר התקנת האפליקציה בטלפון.</p>
 </main>
+<script>
+const signup = new URL("../app.html", location.href);
+signup.searchParams.set("from", "trial60");
+signup.searchParams.set("view", "signup");
+signup.hash = "authForm";
+const incoming = new URLSearchParams(location.search);
+for (const key of ["utm_source", "utm_medium", "utm_campaign"]) {
+  if (incoming.has(key)) signup.searchParams.set(key, incoming.get(key));
+}
+document.getElementById("trialSignupCta").href = signup.href;
+</script>
 <footer class="foot">מחירלי מבית רוקח דיגיטל · <a href="https://amirok196888-cloud.github.io/mehirli-app/">לדף הבית</a></footer>
 </div>
 </body>
