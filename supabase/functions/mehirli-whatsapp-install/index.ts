@@ -22,7 +22,7 @@ Deno.serve(async (req: Request) => {
   const phone = String(metadata.whatsapp_install_phone ?? "").trim();
   const optedIn = metadata.whatsapp_install_opt_in === true;
   const consentAt = String(metadata.whatsapp_install_opt_in_at ?? "").trim();
-  if (!optedIn || !consentAt || !/^\\+9725\\d{8}$/.test(phone)) {
+  if (!optedIn || !consentAt || !/^\+9725\d{8}$/.test(phone)) {
     return json(req, { sent: false, error: "whatsapp_opt_in_required" }, 400);
   }
 
@@ -34,7 +34,7 @@ Deno.serve(async (req: Request) => {
   if (!accessToken || !phoneNumberId || !templateName || !graphVersion) {
     return json(req, { sent: false, error: "whatsapp_not_configured" }, 503);
   }
-  if (!/^v\\d+\\.\\d+$/.test(graphVersion)) {
+  if (!/^v\d+\.\d+$/.test(graphVersion)) {
     return json(req, { sent: false, error: "whatsapp_configuration_invalid" }, 503);
   }
 

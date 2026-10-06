@@ -426,10 +426,10 @@ $('#passwordResetForm').onsubmit=async e=>{
   $('#authPassword').value='';$('#newPassword').value='';$('#confirmNewPassword').value='';show('#authView');$('#authNote').textContent='הסיסמה שונתה בהצלחה. אפשר להתחבר עם הסיסמה החדשה.'
 };
 function normalizeIsraeliPhone(value){
-  const compact=value.trim().replace(/[\\s()-]/g,'');
-  if(/^05\\d{8}$/.test(compact))return '+972'+compact.slice(1);
-  if(/^\\+9725\\d{8}$/.test(compact))return compact;
-  if(/^9725\\d{8}$/.test(compact))return '+'+compact;
+  const compact=value.trim().replace(/[\s()-]/g,'');
+  if(/^05\d{8}$/.test(compact))return '+972'+compact.slice(1);
+  if(/^\+9725\d{8}$/.test(compact))return compact;
+  if(/^9725\d{8}$/.test(compact))return '+'+compact;
   return null
 }
 async function sendWhatsAppInstallLink(user,notify=false){
