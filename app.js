@@ -5,7 +5,7 @@ const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const QUOTE_PDF_BUCKET='quote-pdfs';
 const QUOTE_LINK_SECONDS=30*24*60*60;
 const ROKACH_DIGITAL_WHATSAPP='972552997673';
-const LEGAL_VERSION='2026-09-15-v2';
+const LEGAL_VERSION='2026-10-06-v3';
 const QUOTE_CONSENT_VERSION='quote-approval-2026-09-v1';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const state={user:null,profile:null,businessProfile:null,role:'pro',credits:0,requests:[],offers:[],jobs:[],selectedRequest:null,selectedJob:null,isAdmin:false,notifications:[],unreadNotifications:0,notificationTimer:null,timerInterval:null,lastNotificationSeenAt:null,proSettings:null,proJobs:[],selectedProJob:null,proJobMedia:[],proCustomers:[],proServices:[],proReminders:[],proAppointments:[],proTimeEntries:[],quoteItems:[],adminJobs:[],adminBusinesses:[],subscription:null,billingSettings:null,onboarding:null};
@@ -452,7 +452,7 @@ $('#signupBtn').onclick=async()=>{
     if(!name){toast('יש להזין את השם שלך');return}
     const phoneRaw=$('#authPhone').value.trim();
     const phone=phoneRaw?normalizeIsraeliPhone(phoneRaw):null;
-    if(phoneRaw&&!phone){toast('הזן מספר טלפון ישראלי תקין או השאר את השדה ריק');return}
+    if(phoneRaw&&!phone){toast('הזן מספר טלפון ישראלי תקין');return}
     const whatsappOptIn=!!phone
     const whatsappFields={whatsapp_install_opt_in:whatsappOptIn,whatsapp_install_opt_in_at:whatsappOptIn?new Date().toISOString():null,whatsapp_install_consent_version:'2026-10-06',whatsapp_install_phone:phone};
     const {data,error}=await db.auth.updateUser({data:{...state.user.user_metadata,full_name:name,...whatsappFields}});
@@ -469,7 +469,7 @@ $('#signupBtn').onclick=async()=>{
   if(!$('#signupLegalConsent').checked){toast('כדי להירשם יש לאשר את תנאי השימוש ומדיניות הפרטיות');return}
   const phoneRaw=$('#authPhone').value.trim();
   const phone=phoneRaw?normalizeIsraeliPhone(phoneRaw):null;
-  if(phoneRaw&&!phone){toast('הזן מספר טלפון ישראלי תקין או השאר את השדה ריק');return}
+  if(phoneRaw&&!phone){toast('הזן מספר טלפון ישראלי תקין');return}
   const whatsappOptIn=!!phone
   const whatsappFields={whatsapp_install_opt_in:whatsappOptIn,whatsapp_install_opt_in_at:whatsappOptIn?new Date().toISOString():null,whatsapp_install_consent_version:'2026-10-06',whatsapp_install_phone:phone};
   trackAppEvent('signup_attempt');
