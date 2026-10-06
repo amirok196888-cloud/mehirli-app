@@ -137,3 +137,39 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .admin-article-row span{white-space:nowrap;color:var(--muted)}
 .admin-article-row b{color:var(--text)}
 @media(max-width:520px){.admin-article-row{align-items:flex-start;flex-direction:column;gap:4px}}
+
+
+/* Signup entry: keep the decision and form in view, with calm type sizes. */
+#authView.signup-mode .auth-showcase,
+#authView.signup-mode .auth-workflow,
+#authView.signup-mode .auth-benefits{display:none!important}
+#authView.signup-mode .auth-form-premium{margin:14px auto 10px;padding:24px 22px;max-width:540px;border-radius:22px;background:#fff;box-shadow:0 12px 34px rgba(32,55,42,.09)}
+#authView.signup-mode .auth-mode-switch{margin-bottom:18px}
+#authView.signup-mode .auth-form-head{margin-bottom:18px}
+#authView.signup-mode .auth-form-head h3{font-size:24px;line-height:1.25;margin:8px 0 4px}
+#authView.signup-mode #authFormSubtitle{font-size:14px;line-height:1.45}
+#authView.signup-mode .auth-trial-summary{display:grid;gap:4px;margin:15px auto 0;padding:13px 15px;border:1px solid #d5e5d8;border-radius:15px;background:#f3f8f3;color:#284735;text-align:center}
+#authView.signup-mode .auth-trial-summary b{font-size:18px;color:#195c3b}
+#authView.signup-mode .auth-trial-summary span{font-size:14px;font-weight:750}
+#authView.signup-mode .auth-trial-summary small{font-size:12px;line-height:1.45;color:#64776a}
+#authView.signup-mode #authForm label:not(.legal-check){display:block;margin:10px 0;color:#34483b;font-size:15px;font-weight:700;text-align:right}
+#authView.signup-mode #authForm input:not([type=checkbox]){min-height:48px;margin-top:5px;padding:11px 13px;border:1px solid #cfd9d0;border-radius:12px;background:#fff;font-size:16px}
+#authView.signup-mode #authForm .legal-check{display:flex;align-items:flex-start;gap:9px;margin:10px 0 13px!important;padding:11px 12px;min-height:0;text-align:right;font-size:12px;line-height:1.55}
+#authView.signup-mode #authForm .legal-check span{flex:1;text-align:right}
+#authView.signup-mode #authForm .legal-check input{flex:0 0 20px;width:20px;height:20px;min-height:20px;margin:1px 0 0}
+#authView.signup-mode #authForm .auth-signup{min-height:50px;border:0;border-radius:13px;background:#2f7652;color:#fff;box-shadow:0 7px 16px rgba(35,102,68,.17);font-size:16px;font-weight:800}
+#authView.signup-mode #authForm .auth-install-note{margin:8px 0 0;padding:0;border:0;background:transparent;color:#738078;font-size:12px;line-height:1.45;text-align:center}
+#authView.signup-mode .in-app-browser-notice{display:grid;gap:3px;margin:0 0 13px;padding:10px 12px;border:1px solid #d9e6dc;border-radius:12px;background:#f5faf6;color:#42584a;text-align:right}
+#authView.signup-mode .in-app-browser-notice b{font-size:13px}
+#authView.signup-mode .in-app-browser-notice span{font-size:12px;line-height:1.4}
+#authView.signup-mode .auth-support-link{margin:12px auto;color:#286447}
+@media(max-width:720px){
+ #authView.signup-mode .auth-form-premium{margin:8px auto;padding:19px 15px;border-radius:18px}
+ #authView.signup-mode .auth-form-head{margin-bottom:14px}
+ #authView.signup-mode .auth-form-head h3{font-size:22px}
+ #authView.signup-mode .auth-trial-summary{margin-top:12px;padding:11px}
+ #authView.signup-mode #authForm label:not(.legal-check){margin:9px 0;font-size:14px}
+ #authView.signup-mode #authForm input:not([type=checkbox]){min-height:46px;font-size:16px}
+}
+
+#authView.signup-mode{-webkit-text-size-adjust:100%;text-size-adjust:100%}

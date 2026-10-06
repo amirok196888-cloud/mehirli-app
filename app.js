@@ -38,10 +38,10 @@ function isExistingAccountError(error){const message=String(error?.message||'').
 function setAuthMode(mode='login'){
   const signup=mode==='signup';
   $('#showLoginModeBtn')?.classList.toggle('active',!signup);$('#showSignupModeBtn')?.classList.toggle('active',signup);
-  $('#signupFields')?.classList.toggle('hidden',!signup);$('.auth-login')?.classList.toggle('hidden',signup);$('#forgotPasswordBtn')?.classList.toggle('hidden',signup);
-  if($('#authFormBadge'))$('#authFormBadge').textContent=signup?'14 ימים עלינו':'ברוכים השבים';
+  $('#signupFields')?.classList.toggle('hidden',!signup);$('#authTrialSummary')?.classList.toggle('hidden',!signup);$('#authView')?.classList.toggle('signup-mode',signup);$('.auth-login')?.classList.toggle('hidden',signup);$('#forgotPasswordBtn')?.classList.toggle('hidden',signup);
+  if($('#authFormBadge'))$('#authFormBadge').textContent=signup?'פתיחת חשבון':'ברוכים השבים';
   if($('#authFormTitle'))$('#authFormTitle').textContent=signup?'הרשמה למחירלי':'כניסה למחירלי';
-  if($('#authFormSubtitle'))$('#authFormSubtitle').textContent=signup?'ממלאים פרטים, ואז מתקינים בטלפון.':'מכניסים אימייל וסיסמה ונכנסים מיד.';
+  if($('#authFormSubtitle'))$('#authFormSubtitle').textContent=signup?'כמה פרטים קצרים ויוצאים לדרך.':'מכניסים אימייל וסיסמה ונכנסים מיד.';
   if(!signup&&$('#authName'))$('#authName').value='';
 }
 function scrollToAuthForm(focusEmail=false){

@@ -43,7 +43,7 @@ fbq('track','PageView',{content_name:'Mehirli'});
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="finance.css?v=119" />
-<link rel="stylesheet" href="app-design.css?v=156" />
+<link rel="stylesheet" href="app-design.css?v=157" />
 </head>
 <body data-app-release="140">
 <div class="app-shell">
@@ -73,15 +73,15 @@ fbq('track','PageView',{content_name:'Mehirli'});
 
   <form id="authForm" class="card form-card auth-form-premium">
     <div class="auth-mode-switch" role="tablist" aria-label="כניסה או הרשמה"><button id="showLoginModeBtn" class="active" type="button">כניסה לחשבון קיים</button><button id="showSignupModeBtn" type="button">הרשמה חדשה</button></div>
-    <div class="auth-form-head"><span id="authFormBadge">ברוכים השבים</span><h3 id="authFormTitle">כניסה למחירלי</h3><p id="authFormSubtitle">מכניסים אימייל וסיסמה ונכנסים מיד.</p></div>
-    <div id="inAppBrowserNotice" class="in-app-browser-notice hidden"><b>פתחת את מחירלי מתוך פייסבוק</b><span>נרשמים כאן. לאחר ההרשמה יש להתקין את אפליקציית מחירלי בטלפון. בשלב ההתקנה נעבור ל־Chrome ונציג לכם הסבר לפני המעבר.</span></div>
+    <div class="auth-form-head"><span id="authFormBadge">ברוכים השבים</span><h3 id="authFormTitle">כניסה למחירלי</h3><p id="authFormSubtitle">מכניסים אימייל וסיסמה ונכנסים מיד.</p><div id="authTrialSummary" class="auth-trial-summary hidden"><b>60 יום בחינם</b><span>אחרי תקופת הניסיון: 39 ₪ לחודש</span><small>בלי כרטיס אשראי · הניסיון מתחיל אחרי התקנת האפליקציה</small></div></div>
+    <div id="inAppBrowserNotice" class="in-app-browser-notice hidden"><b>ההרשמה מתבצעת כאן</b><span>בסיום נעזור לך להתקין את מחירלי בטלפון.</span></div>
     <label>אימייל<input id="authEmail" type="email" required autocomplete="email" /></label>
-    <label>סיסמה<input id="authPassword" type="password" required minlength="6" autocomplete="current-password" /></label>
+    <label id="authPasswordLabel">סיסמה (לפחות 6 תווים)<input id="authPassword" type="password" required minlength="6" autocomplete="current-password" /></label>
     <div id="signupFields" class="hidden">
-      <label>השם שלך<input id="authName" autocomplete="name" placeholder="למשל: ישראל ישראלי" /></label>
+      <label>שם מלא<input id="authName" autocomplete="name" placeholder="למשל: ישראל ישראלי" /></label>
       <label class="legal-check"><input id="signupLegalConsent" type="checkbox" /><span>בהרשמה אני מאשר/ת שקראתי את <button class="text-link" type="button" data-open-legal>תנאי השימוש ומדיניות הפרטיות</button>.</span></label>
-      <button id="signupBtn" class="primary big auth-signup" type="button">📲 הרשמה והמשך להתקנת האפליקציה</button>
-      <p class="auth-install-note"><strong>לאחר ההרשמה יש להתקין את אפליקציית מחירלי בטלפון.</strong> <strong>60 ימי הניסיון מתחילים רק אחרי ההתקנה.</strong></p>
+      <button id="signupBtn" class="primary big auth-signup" type="button">פתיחת חשבון והמשך להתקנה</button>
+      <p class="auth-install-note">בסיום ההרשמה תופיע הדרכה קצרה להתקנה בטלפון.</p>
     </div>
     <button class="secondary big auth-login" type="submit">כניסה לחשבון שלי</button>
     <button id="forgotPasswordBtn" class="text-link" type="button">שכחתי סיסמה</button>
