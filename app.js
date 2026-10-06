@@ -247,8 +247,7 @@ function openPendingSignupEdit(){
   $('#authEmail').value=state.user?.email||'';$('#authEmail').disabled=true;
   $('#authPassword').value='';$('#authPassword').disabled=true;$('#authPassword').placeholder='הסיסמה כבר נשמרה';
   $('#authName').value=state.user?.user_metadata?.full_name||state.profile?.full_name||'';
-  $('#authPhone').value=state.user?.user_metadata?.whatsapp_install_phone||'';
-  $('#whatsappInstallConsent').checked=state.user?.user_metadata?.whatsapp_install_opt_in===true;
+  $('#authPhone').value=state.user?.user_metadata?.whatsapp_install_opt_in===true?state.user.user_metadata.whatsapp_install_phone||'':'';
   $('#signupLegalConsent').checked=true;$('#signupLegalConsent').disabled=true;
   show('#authView',{scrollTop:false});scrollToAuthForm()
 }
@@ -451,9 +450,10 @@ $('#signupBtn').onclick=async()=>{
   const button=$('#signupBtn');
   if(button.dataset.mode==='edit'){
     if(!name){toast('יש להזין את השם שלך');return}
-    const whatsappOptIn=$('#whatsappInstallConsent').checked;
-    const phone=whatsappOptIn?normalizeIsraeliPhone($('#authPhone').value):null;
-    if(whatsappOptIn&&!phone){toast('כדי לקבל קישור בוואטסאפ, יש להזין מספר טלפון ישראלי תקין');return}
+    const phoneRaw=$('#authPhone').value.trim();
+    const phone=phoneRaw?normalizeIsraeliPhone(phoneRaw):null;
+    if(phoneRaw&&!phone){toast('הזן מספר טלפון ישראלי תקין או השאר את השדה ריק');return}
+    const whatsappOptIn=!!phone
     const whatsappFields={whatsapp_install_opt_in:whatsappOptIn,whatsapp_install_opt_in_at:whatsappOptIn?new Date().toISOString():null,whatsapp_install_consent_version:'2026-10-06',whatsapp_install_phone:phone};
     const {data,error}=await db.auth.updateUser({data:{...state.user.user_metadata,full_name:name,...whatsappFields}});
     if(error){toast('לא ניתן לשמור את השינוי כרגע');return}
@@ -467,9 +467,10 @@ $('#signupBtn').onclick=async()=>{
   if(!name){toast('יש להזין את השם שלך');return}
   if(!email||password.length<6){toast('הזן אימייל וסיסמה של לפחות 6 תווים');return}
   if(!$('#signupLegalConsent').checked){toast('כדי להירשם יש לאשר את תנאי השימוש ומדיניות הפרטיות');return}
-  const whatsappOptIn=$('#whatsappInstallConsent').checked;
-  const phone=whatsappOptIn?normalizeIsraeliPhone($('#authPhone').value):null;
-  if(whatsappOptIn&&!phone){toast('כדי לקבל קישור בוואטסאפ, יש להזין מספר טלפון ישראלי תקין');return}
+  const phoneRaw=$('#authPhone').value.trim();
+  const phone=phoneRaw?normalizeIsraeliPhone(phoneRaw):null;
+  if(phoneRaw&&!phone){toast('הזן מספר טלפון ישראלי תקין או השאר את השדה ריק');return}
+  const whatsappOptIn=!!phone
   const whatsappFields={whatsapp_install_opt_in:whatsappOptIn,whatsapp_install_opt_in_at:whatsappOptIn?new Date().toISOString():null,whatsapp_install_consent_version:'2026-10-06',whatsapp_install_phone:phone};
   trackAppEvent('signup_attempt');
   const {data,error}=await db.auth.signUp({email,password,options:{data:{role,full_name:name,legal_version:LEGAL_VERSION,legal_accepted_at:new Date().toISOString(),...whatsappFields}}});
