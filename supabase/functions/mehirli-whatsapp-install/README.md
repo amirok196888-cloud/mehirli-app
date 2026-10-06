@@ -1,12 +1,12 @@
 # Mehirli WhatsApp installation link
 
-This function sends one WhatsApp template message only when the professional voluntarily enters a phone number after seeing a clear disclosure next to the field and in the terms. No separate WhatsApp checkbox is shown; leaving the phone blank means no message. The template links to the Mehirli website; adding a home-screen icon is optional, and the website remains usable in a browser.
+This function sends one WhatsApp template message when the user enters a phone number and accepts the linked terms. The signup form shows one terms/privacy checkbox; the WhatsApp consent sentence is inside the terms, not beside the phone field. The template links directly to app.html. The website remains usable in a browser without adding a home-screen icon.
 
 ## Meta setup
 
 Create and get approval for a Hebrew **Utility** template with one body text variable (`{{1}}`). Suggested copy:
 
-> נרשמת למחירלי. אפשר להשתמש באתר גם בלי התקנה: {{1}} אם נוח לך, פתח/י את הקישור בטלפון ובחר/י ״הוספה למסך הבית״ כדי ליצור אייקון.
+> ההרשמה למחירלי הושלמה. לכניסה למחירלי ולהוספת קיצור דרך למסך הבית: {{1}} אפשר להשתמש גם דרך הדפדפן.
 
 Then set these secrets for the Supabase Edge Function. Keep all values in Supabase secrets; never put them in the browser or repository.
 

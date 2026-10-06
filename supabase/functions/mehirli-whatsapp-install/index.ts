@@ -56,7 +56,7 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  const installUrl = publicAppUrl().toString();
+  const installUrl = new URL("app.html", publicAppUrl()).toString();
   const endpoint = `https://graph.facebook.com/${graphVersion}/${phoneNumberId}/messages`;
   let response: Response;
   let result: Record<string, unknown> = {};
