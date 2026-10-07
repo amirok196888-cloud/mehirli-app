@@ -221,7 +221,7 @@ async function routeAfterLogin(){
   if(!state.isAdmin&&isStandaloneMode()&&pendingInstall){clearPendingPostSignupInstall();await markOnboardingStep('installed')}
   else if(!state.isAdmin&&isStandaloneMode()&&!state.onboarding?.installed_at)await markOnboardingStep('installed');
   if(!state.isAdmin&&hasPendingPostSignupInstall(state.user)){showPostSignupInstall();return}
-  if(!state.isAdmin&&deferredInstallPrompt&&installBtn)installBtn.classList.remove('hidden');
+  updateInstallButton();
   if(!state.isAdmin&&!hasServiceAccess()){await openSubscription();return}
   show('#homeView');
   if(!state.isAdmin&&!state.onboarding?.first_quote_created_at)showFirstQuoteWelcome()
@@ -492,7 +492,7 @@ $('#legalInfoBackBtn').onclick=()=>{show(legalReturnView||'#authView',{scrollTop
 $('#existingLegalConsent').onchange=e=>$('#acceptLegalConsentBtn').disabled=!e.target.checked;
 $('#acceptLegalConsentBtn').onclick=async()=>{const button=$('#acceptLegalConsentBtn');if(!$('#existingLegalConsent').checked)return;button.disabled=true;button.textContent='שומר את האישור…';const {error}=await db.rpc('accept_legal_terms_v40',{p_document_version:LEGAL_VERSION,p_accepted_via:'app'});button.textContent='אישור והמשך למחירלי';if(error){toast('לא ניתן לשמור את האישור: '+error.message);button.disabled=false;return}await routeAfterLogin()};
 $('#legalConsentLogoutBtn').onclick=async()=>{stopNotificationPolling();await db.auth.signOut();state.user=null;updateInstallButton();refreshDeveloperSupportLink();show('#authView')};
-$('#logoutBtn').onclick=async()=>{stopNotificationPolling();await db.auth.signOut();state.user=null;refreshDeveloperSupportLink();show('#authView')};
+$('#logoutBtn').onclick=async()=>{stopNotificationPolling();await db.auth.signOut();state.user=null;updateInstallButton();refreshDeveloperSupportLink();show('#authView')};
 $$('.category').forEach(b=>b.onclick=()=>{$('#reqCategory').value=b.dataset.category;show('#requestView')});
 $('#profileBtn').onclick=async()=>{if(!requireServiceAccess())return;await fillProfile();show('#profileView')};$$('.back:not(#legalInfoBackBtn)').forEach(b=>b.onclick=async()=>{if(!state.isAdmin&&!hasServiceAccess()){await openSubscription()}else if(b.dataset.backTo==='workspace'){await openProWorkspace()}else show('#homeView')});
 $('#whatsappSetupNotice').onclick=async()=>{if(!requireServiceAccess())return;await fillProfile();show('#profileView')};
