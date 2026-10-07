@@ -210,7 +210,7 @@ function renderSubscriptionBanner(){
 }
 async function routeAfterLogin(){
   if(!state.isAdmin&&isStandaloneMode()&&!state.onboarding?.installed_at)await markOnboardingStep('installed');
-  if(!state.isAdmin&&!state.onboarding?.installed_at){
+  if(!state.isAdmin&&!state.onboarding?.installed_at&&!state.onboarding?.install_skipped_at){
     markWelcomeTutorialPending();
     show('#authView',{scrollTop:false});
     showPostSignupInstall();return
@@ -1225,7 +1225,7 @@ function renderAdminBusinesses(){
     const status=b.subscription_status||'not_started',end=status==='trial'?b.trial_ends_at:status==='past_due'?b.grace_ends_at:b.current_period_ends_at;
     const paymentPending=Number(b.pending_payment_count||0)>0;
     const controls=b.is_admin?'':`<div class="subscription-admin-actions"><button type="button" class="approve-btn" data-sub-action="record_payment" data-professional="${b.professional_id}">✓ אשר תשלום ל־30 יום</button>${status==='suspended'||status==='cancelled'?`<button type="button" class="secondary" data-sub-action="activate" data-professional="${b.professional_id}">הפעל שירות</button>`:`<button type="button" class="suspend-action" data-sub-action="suspend" data-professional="${b.professional_id}">השהה שירות</button>`}<button type="button" class="secondary" data-sub-action="extend_trial" data-professional="${b.professional_id}">＋ 7 ימי ניסיון</button>${paymentPending?`<button type="button" class="reject-action" data-sub-action="reject_payment" data-professional="${b.professional_id}">דחה דיווח תשלום</button>`:''}</div>`;
-    const steps=[['registered_at','📝','נרשם'],['install_clicked_at','👆','לחץ התקנה'],['installed_at','📲','פתח מהאייקון'],['first_quote_created_at','🧾','יצר הצעה'],['first_quote_sent_at','💬','שלח הצעה']];
+    const steps=[['registered_at','📝','נרשם'],['install_clicked_at','👆','לחץ התקנה'],['install_skipped_at','➡️','המשיך בלי התקנה'],['installed_at','📲','פתח מהאייקון'],['first_quote_created_at','🧾','יצר הצעה'],['first_quote_sent_at','💬','שלח הצעה']];
     const progress=`<div class="onboarding-progress" aria-label="התקדמות הפעלת מחירלי">${steps.map(([key,icon,label])=>`<div class="onboarding-step ${b[key]?'done':''}"><span>${b[key]?'✓':icon}</span>${label}</div>`).join('')}</div>`;
     return `<div class="item admin-business"><div class="job-card-top"><h3>${esc(b.business_name||b.email||'בעל עסק')}</h3><span class="subscription-status status-${status}">${subscriptionStatusHe[status]||status}</span></div><p>${esc(b.email||'')}</p><div class="admin-user-meta"><span class="trade-badge ${b.trade}">${tradeIcon(b.trade)} ${tradeHe[b.trade]||'טרם הוגדר'}</span><span class="badge">${Number(b.job_count||0)} עבודות</span><span class="badge">הכנסות מעבודות ${money(b.revenue||0)}</span>${end?`<span class="badge">עד ${formatDate(end)}</span>`:''}${paymentPending?'<span class="badge payment-pending-badge">💳 תשלום ממתין לאישור</span>':''}</div>${progress}${controls}<div class="admin-record-actions"><button type="button" class="delete-action" data-admin-delete-business="${b.professional_id}" data-business-name="${esc(b.business_name||b.email||'בעל העסק')}">🗑️ מחק בעל עסק לצמיתות</button></div></div>`
   }).join(''):'<div class="card"><h3>עדיין אין בעלי עסקים</h3></div>';
@@ -1360,6 +1360,18 @@ function updateInstallButton(){
   installBtn.classList.toggle('hidden',isStandalone());
   if(!isStandalone())installBtn.textContent=isIosDevice()?' התקנה באייפון':'⬇ התקן אפליקציה';
 }
+async function continueWithoutInstall(){
+  const progress=await markOnboardingStep('install_skipped');
+  if(!progress?.install_skipped_at){toast('לא ניתן לשמור את הבחירה כרגע. נסה שוב.');return}
+  if(state.subscription?.failure_reason==='installation_required'){
+    const activated=await activateTrialAfterInstall();
+    if(!activated)return
+  }
+  await loadOnboardingProgress();
+  if(!hasServiceAccess()){await openSubscription();return}
+  if(openWelcomeTutorialIfPending())return;
+  show('#homeView');
+}
 async function requestAppInstall(){
   markOnboardingStep('install_clicked').catch(()=>{});
   if(isAndroidInAppBrowser()){openInChrome();return}
@@ -1409,6 +1421,7 @@ $('#postSignupCopyLinkBtn').onclick=async()=>{
   try{await navigator.clipboard.writeText(input.value);note.textContent='הקישור הועתק. פתחו Chrome, הדביקו בשורת הכתובת והיכנסו.'}
   catch{input.focus();input.select();note.textContent='לחצו לחיצה ארוכה על הקישור ובחרו העתקה. לאחר מכן הדביקו בשורת הכתובת ב־Chrome.'}
 };
+$('#postSignupContinueBtn').onclick=continueWithoutInstall;
 $('#postSignupEditBtn').onclick=openPendingSignupEdit;
 
 
