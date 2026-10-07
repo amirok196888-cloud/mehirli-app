@@ -7,6 +7,7 @@ const QUOTE_LINK_SECONDS=30*24*60*60;
 const ROKACH_DIGITAL_WHATSAPP='972552997673';
 const LEGAL_VERSION='2026-10-06-v3';
 const QUOTE_CONSENT_VERSION='quote-approval-2026-09-v1';
+const PENDING_POST_SIGNUP_INSTALL_KEY='mehirli:pending-post-signup-install';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const state={user:null,profile:null,businessProfile:null,role:'pro',credits:0,requests:[],offers:[],jobs:[],selectedRequest:null,selectedJob:null,isAdmin:false,notifications:[],unreadNotifications:0,notificationTimer:null,timerInterval:null,lastNotificationSeenAt:null,proSettings:null,proJobs:[],selectedProJob:null,proJobMedia:[],proCustomers:[],proServices:[],proReminders:[],proAppointments:[],proTimeEntries:[],quoteItems:[],adminJobs:[],adminBusinesses:[],subscription:null,billingSettings:null,onboarding:null};
 let adminAnalyticsRange='today',adminAnalyticsTimer=null;
@@ -204,9 +205,22 @@ function renderSubscriptionBanner(){
   else button.innerHTML='<b>🔒 השירות מושהה</b><span>המידע נשמר · יש להסדיר תשלום</span>';
   button.dataset.status=s.status||''
 }
+function rememberPendingPostSignupInstall(user){
+  try{if(user?.id)localStorage.setItem(PENDING_POST_SIGNUP_INSTALL_KEY,user.id)}catch{}
+}
+function hasPendingPostSignupInstall(user){
+  try{return !!user?.id&&localStorage.getItem(PENDING_POST_SIGNUP_INSTALL_KEY)===user.id}catch{return false}
+}
+function clearPendingPostSignupInstall(){
+  try{localStorage.removeItem(PENDING_POST_SIGNUP_INSTALL_KEY)}catch{}
+}
 async function routeAfterLogin(){
   if(!state.isAdmin&&!(await ensureLegalConsent()))return;
-  if(!state.isAdmin&&isStandaloneMode()&&!state.onboarding?.installed_at)await markOnboardingStep('installed');
+  const pendingInstall=!state.isAdmin&&hasPendingPostSignupInstall(state.user);
+  if(!state.isAdmin&&isStandaloneMode()&&pendingInstall){clearPendingPostSignupInstall();await markOnboardingStep('installed')}
+  else if(!state.isAdmin&&isStandaloneMode()&&!state.onboarding?.installed_at)await markOnboardingStep('installed');
+  if(!state.isAdmin&&hasPendingPostSignupInstall(state.user)){showPostSignupInstall();return}
+  if(!state.isAdmin&&deferredInstallPrompt&&installBtn)installBtn.classList.remove('hidden');
   if(!state.isAdmin&&!hasServiceAccess()){await openSubscription();return}
   show('#homeView');
   if(!state.isAdmin&&!state.onboarding?.first_quote_created_at)showFirstQuoteWelcome()
@@ -214,12 +228,13 @@ async function routeAfterLogin(){
 function showPostSignupInstall(){
   const overlay=$('#postSignupInstall'),button=$('#postSignupInstallBtn');if(!overlay)return;
   const facebook=isAndroidInAppBrowser();
-  if(button){button.textContent='הוספת אייקון למסך הבית';button.href=facebook?chromeInstallIntent():'#'}
-  if($('#postSignupInstallText'))$('#postSignupInstallText').textContent=facebook?'האתר עובד גם בלי התקנה. אם תרצו אייקון, פתחו את הקישור ב־Chrome והוסיפו את מחירלי למסך הבית.':isIosDevice()?'אפשר לעבוד באתר בלי התקנה. להוספת אייקון אופציונלית: פתחו ב־Safari ובחרו שיתוף ← הוספה למסך הבית.':'אפשר לעבוד באתר בלי התקנה. כדי ליצור אייקון, אשרו את ההוספה למסך הבית.';
+  if(button){button.textContent=facebook?'פתיחה ב־Chrome להוספת מחירלי':isIosDevice()?'הוראות הוספה למסך הבית':'הוספת מחירלי למסך הבית';button.href=facebook?chromeInstallIntent():'#'}
+  if($('#postSignupInstallText'))$('#postSignupInstallText').textContent=facebook?'התקינו את מחירלי במסך הבית כדי לפתוח אותה בקליק ולחזור בקלות להצעות ולעבודות. פתחו את הקישור ב־Chrome והתחברו עם אותו חשבון.':isIosDevice()?'הוסיפו את מחירלי למסך הבית כדי לפתוח אותה בקליק ולחזור בקלות להצעות ולעבודות. ב־Safari בחרו שיתוף ← הוספה למסך הבית.':'הוסיפו את מחירלי למסך הבית כדי לפתוח אותה בקליק ולחזור בקלות להצעות ולעבודות שלכם.';
   $('#postSignupBrowserWarning').hidden=!facebook;
   $('#postSignupBrowserFallback').hidden=!facebook;
   $('#postSignupInstallHelp').hidden=true;
   $('#postSignupInstallLink').value=installationUrl();
+  const editButton=$('#postSignupEditBtn');if(editButton)editButton.hidden=!state.user;
   overlay.classList.remove('hidden')
 }
 
@@ -482,9 +497,12 @@ $('#signupBtn').onclick=async()=>{
     const {error:consentError}=await db.rpc('accept_legal_terms_v40',{p_document_version:LEGAL_VERSION,p_accepted_via:'signup'});
     if(consentError){toast('ההרשמה נשמרה, אך אישור התנאים לא נשמר. נסה להתחבר מחדש.');return}
     if(whatsappOptIn)await sendWhatsAppInstallLink(data.user,true);
-    await routeAfterLogin()
+    rememberPendingPostSignupInstall(data.user);
+    showPostSignupInstall()
   }else{
-    $('#authNote').textContent=whatsappOptIn?'נשלח אליך אימייל לאישור ההרשמה. לאחר האישור והתחברות, יישלח קישור בוואטסאפ. אפשר להשתמש במחירלי גם דרך האתר.':'נשלח אליך אימייל לאישור ההרשמה. אחרי האישור אפשר להתחבר ולהשתמש במחירלי דרך האתר.'
+    $('#authNote').textContent=whatsappOptIn?'נשלח אליך אימייל לאישור ההרשמה. לאחר האישור והתחברות, יישלח קישור בוואטסאפ. אפשר להשתמש במחירלי גם דרך האתר.':'נשלח אליך אימייל לאישור ההרשמה. אחרי האישור אפשר להתחבר ולהשתמש במחירלי דרך האתר.';
+    rememberPendingPostSignupInstall(data.user);
+    showPostSignupInstall()
   }
 }
 const submitSignup=$('#signupBtn').onclick;
@@ -1463,10 +1481,11 @@ async function requestAppInstall(){
 window.addEventListener('beforeinstallprompt',e=>{
   e.preventDefault();
   deferredInstallPrompt=e;
-  if(installBtn) installBtn.classList.remove('hidden');
+  if(installBtn&&state.user) installBtn.classList.remove('hidden');
 });
 window.addEventListener('appinstalled',async()=>{
   deferredInstallPrompt=null;
+  clearPendingPostSignupInstall();
   trackAppEvent('app_installed');
   if(installBtn) installBtn.classList.add('hidden');
   if(state.subscription?.failure_reason==='installation_required')await activateTrialAfterInstall();
@@ -1474,7 +1493,13 @@ window.addEventListener('appinstalled',async()=>{
   toast('מחירלי הותקנה כאפליקציה ✅');
 });
 if(installBtn)installBtn.onclick=requestAppInstall;
+$('#postSignupContinueBtn').onclick=async()=>{
+  $('#postSignupInstall')?.classList.add('hidden');
+  if(state.user){clearPendingPostSignupInstall();await routeAfterLogin();return}
+  show('#authView',{scrollTop:false});
+};
 $('#postSignupInstallBtn').onclick=e=>{
+  markOnboardingStep('install_clicked').catch(()=>{});
   if(isAndroidInAppBrowser()){
     $('#postSignupInstallBtn').href=chromeInstallIntent();
     markOnboardingStep('install_clicked').catch(()=>{});
