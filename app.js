@@ -256,7 +256,7 @@ function openPendingSignupEdit(){
   show('#authView',{scrollTop:false});scrollToAuthForm()
 }
 function resetPendingSignupEdit(){
-  const button=$('#signupBtn');delete button.dataset.mode;button.textContent='📲 הרשמה והמשך להתקנת האפליקציה';
+  const button=$('#signupBtn');delete button.dataset.mode;button.textContent='פתיחת חשבון';
   $('#authEmail').disabled=false;$('#authPassword').disabled=false;$('#authPassword').placeholder='';$('#signupLegalConsent').disabled=false;$('.auth-login')?.classList.remove('hidden')
 }
 async function activateTrialAfterInstall(){
