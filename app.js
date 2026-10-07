@@ -214,7 +214,6 @@ async function routeAfterLogin(){
   if(!state.isAdmin&&state.subscription?.failure_reason==='installation_required')await activateTrialAfterInstall();
   if(!state.isAdmin&&!hasServiceAccess()){await openSubscription();return}
   show('#homeView');
-  if(!state.isAdmin&&!state.onboarding?.first_quote_created_at)showFirstQuoteWelcome()
 }
 function showPostSignupInstall(){
   const overlay=$('#postSignupInstall'),button=$('#postSignupInstallBtn');if(!overlay)return;
@@ -264,7 +263,7 @@ async function activateTrialAfterInstall(){
   if(error){toast('לא ניתן להפעיל את הניסיון כרגע. נסה לפתוח שוב את מחירלי.');return false}
   if(!data?.activated){toast('תקופת הניסיון לא הופעלה. פנה לתמיכה.');return false}
   $('#postSignupInstall')?.classList.add('hidden');
-  trackMetaLifecycle('StartTrial',state.user);window.MehirliTraffic?.trialStarted(state.user?.id);await loadSubscription();trackAppEvent('trial_activated');show('#homeView');showFirstQuoteWelcome();toast('60 ימי הניסיון התחילו עכשיו ✅');return true
+  trackMetaLifecycle('StartTrial',state.user);window.MehirliTraffic?.trialStarted(state.user?.id);await loadSubscription();trackAppEvent('trial_activated');show('#homeView');toast('60 ימי הניסיון התחילו עכשיו ✅');return true
 }
 async function ensureLegalConsent(){
   const {data,error}=await db.rpc('has_accepted_legal_terms_v40',{p_document_version:LEGAL_VERSION});
@@ -1411,8 +1410,9 @@ window.addEventListener('appinstalled',async()=>{
   deferredInstallPrompt=null;
   trackAppEvent('app_installed');
   if(installBtn) installBtn.classList.add('hidden');
+  $('#postSignupInstall')?.classList.add('hidden');
+  show('#homeView');
   if(state.subscription?.failure_reason==='installation_required')await activateTrialAfterInstall();
-  else if(!state.onboarding?.first_quote_created_at)showFirstQuoteWelcome();
   toast('מחירלי הותקנה כאפליקציה ✅');
 });
 if(installBtn)installBtn.onclick=requestAppInstall;
