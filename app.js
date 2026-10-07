@@ -227,23 +227,6 @@ function showPostSignupInstall(){
   overlay.classList.remove('hidden')
 }
 
-const dismissedQuoteWelcome=new Set();
-function quoteWelcomeKey(){return 'mehirli:quote-welcome-dismissed:'+state.user?.id}
-function showFirstQuoteWelcome(){
-  $('#postSignupInstall')?.classList.add('hidden');
-  if(!state.user||state.isAdmin||state.onboarding?.first_quote_created_at||state.onboarding?.quote_welcome_dismissed_at||dismissedQuoteWelcome.has(state.user.id))return;
-  try{if(localStorage.getItem(quoteWelcomeKey()))return}catch{}
-  $('#firstQuoteWelcome')?.classList.remove('hidden')
-}
-function dismissFirstQuoteWelcome(){
-  $('#firstQuoteWelcome')?.classList.add('hidden');
-  if(!state.user)return;
-  dismissedQuoteWelcome.add(state.user.id);
-  try{localStorage.setItem(quoteWelcomeKey(),'1')}catch{}
-  // Persist per account as well as locally; never hold up navigation for this request.
-  void db.rpc('dismiss_my_quote_welcome_v130').then(({error})=>{if(error)console.warn('Welcome preference sync pending')}).catch(()=>{});
-}
-
 function openPendingSignupEdit(){
   $('#postSignupInstall')?.classList.add('hidden');
   setAuthMode('signup');
@@ -1430,10 +1413,10 @@ $('#postSignupCopyLinkBtn').onclick=async()=>{
   catch{input.focus();input.select();note.textContent='לחצו לחיצה ארוכה על הקישור ובחרו העתקה. לאחר מכן הדביקו בשורת הכתובת ב־Chrome.'}
 };
 $('#postSignupEditBtn').onclick=openPendingSignupEdit;
-$('#firstQuoteWelcomeBtn').onclick=async()=>{dismissFirstQuoteWelcome();await openNewProJob()};
-$('#firstQuoteWelcomeClose').onclick=dismissFirstQuoteWelcome;
-$('#firstQuoteWelcomeLater').onclick=dismissFirstQuoteWelcome;
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#firstQuoteWelcome').classList.contains('hidden'))dismissFirstQuoteWelcome()});
+
+
+
+
 updateInstallButton();
 
 boot();
