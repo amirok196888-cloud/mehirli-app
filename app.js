@@ -216,6 +216,7 @@ function clearPendingPostSignupInstall(){
 }
 async function routeAfterLogin(){
   if(!state.isAdmin&&!(await ensureLegalConsent()))return;
+  updateInstallButton();
   const pendingInstall=!state.isAdmin&&hasPendingPostSignupInstall(state.user);
   if(!state.isAdmin&&isStandaloneMode()&&pendingInstall){clearPendingPostSignupInstall();await markOnboardingStep('installed')}
   else if(!state.isAdmin&&isStandaloneMode()&&!state.onboarding?.installed_at)await markOnboardingStep('installed');
@@ -490,7 +491,7 @@ $$('[data-open-legal]').forEach(button=>button.onclick=()=>{const active=$('.vie
 $('#legalInfoBackBtn').onclick=()=>{show(legalReturnView||'#authView',{scrollTop:legalReturnView!=='#authView'});if(legalReturnView==='#authView')scrollToAuthForm()};
 $('#existingLegalConsent').onchange=e=>$('#acceptLegalConsentBtn').disabled=!e.target.checked;
 $('#acceptLegalConsentBtn').onclick=async()=>{const button=$('#acceptLegalConsentBtn');if(!$('#existingLegalConsent').checked)return;button.disabled=true;button.textContent='שומר את האישור…';const {error}=await db.rpc('accept_legal_terms_v40',{p_document_version:LEGAL_VERSION,p_accepted_via:'app'});button.textContent='אישור והמשך למחירלי';if(error){toast('לא ניתן לשמור את האישור: '+error.message);button.disabled=false;return}await routeAfterLogin()};
-$('#legalConsentLogoutBtn').onclick=async()=>{stopNotificationPolling();await db.auth.signOut();state.user=null;refreshDeveloperSupportLink();show('#authView')};
+$('#legalConsentLogoutBtn').onclick=async()=>{stopNotificationPolling();await db.auth.signOut();state.user=null;updateInstallButton();refreshDeveloperSupportLink();show('#authView')};
 $('#logoutBtn').onclick=async()=>{stopNotificationPolling();await db.auth.signOut();state.user=null;refreshDeveloperSupportLink();show('#authView')};
 $$('.category').forEach(b=>b.onclick=()=>{$('#reqCategory').value=b.dataset.category;show('#requestView')});
 $('#profileBtn').onclick=async()=>{if(!requireServiceAccess())return;await fillProfile();show('#profileView')};$$('.back:not(#legalInfoBackBtn)').forEach(b=>b.onclick=async()=>{if(!state.isAdmin&&!hasServiceAccess()){await openSubscription()}else if(b.dataset.backTo==='workspace'){await openProWorkspace()}else show('#homeView')});
@@ -1448,8 +1449,9 @@ function showIosInstallHelp(){
 }
 function updateInstallButton(){
   if(!installBtn)return;
-  installBtn.classList.toggle('hidden',isStandalone());
-  if(!isStandalone())installBtn.textContent=isIosDevice()?' התקנה באייפון':'⬇ התקן אפליקציה';
+  const visible=Boolean(state.user&&!state.isAdmin&&!isStandalone());
+  installBtn.classList.toggle('hidden',!visible);
+  if(visible)installBtn.textContent=isIosDevice()?' הוספת מחירלי למסך הבית':'⬇ הוספת מחירלי למסך הבית';
 }
 async function requestAppInstall(){
   markOnboardingStep('install_clicked').catch(()=>{});
@@ -1473,7 +1475,7 @@ async function requestAppInstall(){
 window.addEventListener('beforeinstallprompt',e=>{
   e.preventDefault();
   deferredInstallPrompt=e;
-  if(installBtn&&state.user) installBtn.classList.remove('hidden');
+  updateInstallButton();
 });
 window.addEventListener('appinstalled',async()=>{
   deferredInstallPrompt=null;
@@ -1487,8 +1489,10 @@ window.addEventListener('appinstalled',async()=>{
 if(installBtn)installBtn.onclick=requestAppInstall;
 $('#postSignupContinueBtn').onclick=async()=>{
   $('#postSignupInstall')?.classList.add('hidden');
-  if(state.user){clearPendingPostSignupInstall();await routeAfterLogin();return}
-  show('#authView',{scrollTop:false});
+  if(!state.user){show('#authView',{scrollTop:false});return}
+  clearPendingPostSignupInstall();
+  updateInstallButton();
+  await openProWorkspace();
 };
 $('#postSignupInstallBtn').onclick=e=>{
   markOnboardingStep('install_clicked').catch(()=>{});
