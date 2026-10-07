@@ -213,7 +213,7 @@ async function routeAfterLogin(){
   if(!state.isAdmin&&isStandaloneMode()&&!state.onboarding?.installed_at)await markOnboardingStep('installed');
   if(!state.isAdmin&&!state.onboarding?.installed_at){
     markWelcomeTutorialPending();
-    show('#homeView');
+    show('#authView',{scrollTop:false});
     showPostSignupInstall();return
   }
   if(!state.isAdmin&&state.subscription?.failure_reason==='installation_required')await activateTrialAfterInstall();
@@ -222,7 +222,8 @@ async function routeAfterLogin(){
   show('#homeView');
 }
 function showPostSignupInstall(){
-  const overlay=$('#postSignupInstall'),button=$('#postSignupInstallBtn');if(!overlay)return;
+  const section=$('#postSignupInstall'),form=$('#authForm'),button=$('#postSignupInstallBtn');if(!section)return;
+  form?.classList.add('hidden');
   const facebook=isAndroidInAppBrowser();
   if(button){button.textContent=facebook?'המשך להתקנה ב־Chrome':isIosDevice()?'התקנה באייפון':'התקן את מחירלי עכשיו';button.href=facebook?chromeInstallIntent():'#'}
   if($('#postSignupInstallText'))$('#postSignupInstallText').textContent=facebook?'כדי להתקין בטלפון, פותחים את מחירלי ב־Chrome. נכנסים עם אותו אימייל וסיסמה — אין צורך להירשם שוב.':isIosDevice()?'פתחו את מחירלי ב־Safari והיכנסו עם אותו אימייל וסיסמה. להתקנה: שיתוף ← הוספה למסך הבית.':'אשרו את ההתקנה, ואז פתחו את מחירלי מהסמל במסך הבית.';
@@ -230,11 +231,12 @@ function showPostSignupInstall(){
   $('#postSignupBrowserFallback').hidden=!facebook;
   $('#postSignupInstallHelp').hidden=true;
   $('#postSignupInstallLink').value=installationUrl();
-  overlay.classList.remove('hidden')
+  section.classList.remove('hidden');
+  requestAnimationFrame(()=>section.scrollIntoView({behavior:'smooth',block:'center'}))
 }
-
 function openPendingSignupEdit(){
   $('#postSignupInstall')?.classList.add('hidden');
+  $('#authForm')?.classList.remove('hidden');
   setAuthMode('signup');
   const button=$('#signupBtn');button.dataset.mode='edit';button.textContent='שמירת הפרטים וחזרה להתקנה';
   $('#authEmail').value=state.user?.email||'';$('#authEmail').disabled=true;
@@ -429,8 +431,8 @@ $$('[data-open-legal]').forEach(button=>button.onclick=()=>{const active=$('.vie
 $('#legalInfoBackBtn').onclick=()=>{show(legalReturnView||'#authView',{scrollTop:legalReturnView!=='#authView'});if(legalReturnView==='#authView')scrollToAuthForm()};
 $('#existingLegalConsent').onchange=e=>$('#acceptLegalConsentBtn').disabled=!e.target.checked;
 $('#acceptLegalConsentBtn').onclick=async()=>{const button=$('#acceptLegalConsentBtn');if(!$('#existingLegalConsent').checked)return;button.disabled=true;button.textContent='שומר את האישור…';const {error}=await db.rpc('accept_legal_terms_v40',{p_document_version:LEGAL_VERSION,p_accepted_via:'app'});button.textContent='אישור והמשך למחירלי';if(error){toast('לא ניתן לשמור את האישור: '+error.message);button.disabled=false;return}await routeAfterLogin()};
-$('#legalConsentLogoutBtn').onclick=async()=>{stopNotificationPolling();await db.auth.signOut();state.user=null;refreshDeveloperSupportLink();show('#authView')};
-$('#logoutBtn').onclick=async()=>{stopNotificationPolling();await db.auth.signOut();state.user=null;refreshDeveloperSupportLink();show('#authView')};
+$('#legalConsentLogoutBtn').onclick=async()=>{stopNotificationPolling();await db.auth.signOut();state.user=null;refreshDeveloperSupportLink();$('#postSignupInstall')?.classList.add('hidden');$('#authForm')?.classList.remove('hidden');show('#authView')};
+$('#logoutBtn').onclick=async()=>{stopNotificationPolling();await db.auth.signOut();state.user=null;refreshDeveloperSupportLink();$('#postSignupInstall')?.classList.add('hidden');$('#authForm')?.classList.remove('hidden');show('#authView')};
 $$('.category').forEach(b=>b.onclick=()=>{$('#reqCategory').value=b.dataset.category;show('#requestView')});
 $('#profileBtn').onclick=async()=>{if(!requireServiceAccess())return;await fillProfile();show('#profileView')};$$('.back:not(#legalInfoBackBtn)').forEach(b=>b.onclick=async()=>{if(!state.isAdmin&&!hasServiceAccess()){await openSubscription()}else if(b.dataset.backTo==='workspace'){await openProWorkspace()}else show('#homeView')});
 $('#whatsappSetupNotice').onclick=async()=>{if(!requireServiceAccess())return;await fillProfile();show('#profileView')};
