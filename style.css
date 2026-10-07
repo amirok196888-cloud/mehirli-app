@@ -11,6 +11,7 @@ body{margin:0;min-height:100vh;background:
   radial-gradient(circle at 0 16%,rgba(66,191,232,.10),transparent 28%),
   linear-gradient(180deg,#081322 0%,#07111f 48%,#081524 100%);
   color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+html,body{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .app-shell{max-width:760px;margin:auto;padding:16px 14px 42px}
 .topbar{padding:8px 2px 22px}
 .brand{display:flex;gap:13px;align-items:center}
