@@ -262,7 +262,6 @@ function openPendingSignupEdit(){
   $('#authEmail').value=state.user?.email||'';$('#authEmail').disabled=true;
   $('#authPassword').value='';$('#authPassword').disabled=true;$('#authPassword').placeholder='הסיסמה כבר נשמרה';
   $('#authName').value=state.user?.user_metadata?.full_name||state.profile?.full_name||'';
-  $('#authPhone').value=state.user?.user_metadata?.whatsapp_install_opt_in===true?state.user.user_metadata.whatsapp_install_phone||'':'';
   $('#signupLegalConsent').checked=true;$('#signupLegalConsent').disabled=true;
   show('#authView',{scrollTop:false});scrollToAuthForm()
 }
@@ -402,7 +401,7 @@ async function boot(){updateGreeting();const params=new URLSearchParams(location
   const switchAccount=confirm('כבר מחובר חשבון במכשיר הזה. לפתיחת חשבון חדש צריך להתנתק ממנו. להתנתק ולעבור להרשמה?');
   if(switchAccount){const {error}=await db.auth.signOut({scope:'local'});if(error){toast('לא ניתן להתנתק כרגע. נסה שוב.');await loadMe();await routeAfterLogin();return}state.user=null;state.isAdmin=false;stopNotificationPolling()}
 }
-if(signupHandoff||installHandoff){const url=new URL(location.href);url.searchParams.delete('view');history.replaceState({},'',url.pathname+url.search+url.hash)}if(state.user){await loadMe();await sendWhatsAppInstallLink(state.user,false);if(!state.isAdmin){trackAppEvent('app_open');if(isStandaloneMode())trackAppEvent('standalone_open')}if(paymentReturn())await handlePaymentReturn();else await routeAfterLogin()}else{trackAppEvent('app_open');if(signupHandoff)trackAppEvent('signup_form_open');setAuthMode(signupHandoff?'signup':'login');show('#authView',{scrollTop:!(signupHandoff||installHandoff||location.hash==='#authForm')});if(params.get('password_reset')==='success')$('#authNote').textContent='הסיסמה שונתה בהצלחה. אפשר להתחבר עם הסיסמה החדשה.';else if(isPasswordRecovery())$('#authNote').textContent='קישור האיפוס אינו תקף או שפג תוקפו. בקשו קישור חדש.';else if(installHandoff)$('#authNote').textContent='החשבון כבר נוצר. להשלמת ההתקנה בטלפון, היכנסו עם האימייל והסיסמה שנרשמתם איתם. אין צורך להירשם שוב.';else if(signupHandoff)$('#authNote').textContent='';if(isAndroidInAppBrowser())$('#inAppBrowserNotice')?.classList.remove('hidden');if(signupHandoff||installHandoff||location.hash==='#authForm')scrollToAuthForm()}}
+if(signupHandoff||installHandoff){const url=new URL(location.href);url.searchParams.delete('view');history.replaceState({},'',url.pathname+url.search+url.hash)}if(state.user){await loadMe();if(!state.isAdmin){trackAppEvent('app_open');if(isStandaloneMode())trackAppEvent('standalone_open')}if(paymentReturn())await handlePaymentReturn();else await routeAfterLogin()}else{trackAppEvent('app_open');if(signupHandoff)trackAppEvent('signup_form_open');setAuthMode(signupHandoff?'signup':'login');show('#authView',{scrollTop:!(signupHandoff||installHandoff||location.hash==='#authForm')});if(params.get('password_reset')==='success')$('#authNote').textContent='הסיסמה שונתה בהצלחה. אפשר להתחבר עם הסיסמה החדשה.';else if(isPasswordRecovery())$('#authNote').textContent='קישור האיפוס אינו תקף או שפג תוקפו. בקשו קישור חדש.';else if(installHandoff)$('#authNote').textContent='החשבון כבר נוצר. להשלמת ההתקנה בטלפון, היכנסו עם האימייל והסיסמה שנרשמתם איתם. אין צורך להירשם שוב.';else if(signupHandoff)$('#authNote').textContent='';if(isAndroidInAppBrowser())$('#inAppBrowserNotice')?.classList.remove('hidden');if(signupHandoff||installHandoff||location.hash==='#authForm')scrollToAuthForm()}}
 $('#showLoginModeBtn').onclick=()=>setAuthMode('login');
 $('#showSignupModeBtn').onclick=openSignupForm;
 $('.auth-hero-cta').onclick=openSignupForm;
@@ -414,7 +413,7 @@ $('#authForm').onsubmit=async e=>{
   try{
     const {data,error}=await db.auth.signInWithPassword({email:$('#authEmail').value.trim(),password:$('#authPassword').value});
     if(error){note.textContent=authErrorMessage(error);return}
-    state.user=data.user;await loadMe();note.textContent='';await sendWhatsAppInstallLink(data.user,true);
+    state.user=data.user;await loadMe();note.textContent='';
     if(paymentReturn())await handlePaymentReturn();else await routeAfterLogin()
   }catch{note.textContent='החיבור נקטע. נסו להתחבר שוב.'}finally{button.disabled=false}
 };
@@ -446,49 +445,24 @@ function normalizeIsraeliPhone(value){
   if(/^9725\d{8}$/.test(compact))return '+'+compact;
   return null
 }
-async function sendWhatsAppInstallLink(user,notify=false){
-  const metadata=user?.user_metadata||{};
-  if(metadata.whatsapp_install_opt_in!==true||!metadata.whatsapp_install_phone)return false;
-  try{
-    const {data,error}=await db.functions.invoke('mehirli-whatsapp-install',{body:{}});
-    if(error||!data){if(notify)toast('ההרשמה הושלמה. לא הצלחנו לשלוח כרגע קישור בוואטסאפ; אפשר להשתמש במחירלי באתר.');return false}
-    if(data.sent===true&&notify)toast('שלחנו קישור בוואטסאפ. אפשר להשתמש במחירלי גם דרך האתר, בלי להתקין.');
-    else if(data.sent!==true&&data.already_sent!==true&&notify)toast('אפשר להמשיך להשתמש במחירלי באתר. קישור ההתקנה לא נשלח כרגע.');
-    return data.sent===true
-  }catch{
-    if(notify)toast('ההרשמה הושלמה. אפשר להשתמש במחירלי באתר; קישור וואטסאפ לא נשלח כרגע.');
-    return false
-  }
-}
 $('#signupBtn').onclick=async()=>{
   const name=$('#authName').value.trim();
   const button=$('#signupBtn');
   if(button.dataset.mode==='edit'){
     if(!name){toast('יש להזין את השם שלך');return}
-    const phoneRaw=$('#authPhone').value.trim();
-    const phone=phoneRaw?normalizeIsraeliPhone(phoneRaw):null;
-    if(phoneRaw&&!phone){toast('הזן מספר טלפון ישראלי תקין');return}
-    const whatsappOptIn=!!phone
-    const whatsappFields={whatsapp_install_opt_in:whatsappOptIn,whatsapp_install_opt_in_at:whatsappOptIn?new Date().toISOString():null,whatsapp_install_consent_version:'2026-10-06',whatsapp_install_phone:phone};
-    const {data,error}=await db.auth.updateUser({data:{...state.user.user_metadata,full_name:name,...whatsappFields}});
+    const {data,error}=await db.auth.updateUser({data:{...state.user.user_metadata,full_name:name}});
     if(error){toast('לא ניתן לשמור את השינוי כרגע');return}
     state.user=data.user;
     await db.from('profiles').update({full_name:name}).eq('id',state.user.id);
     resetPendingSignupEdit();
-    await sendWhatsAppInstallLink(state.user,true);
     showPostSignupInstall();toast('פרטי ההרשמה עודכנו');return
   }
   const email=$('#authEmail').value.trim(),password=$('#authPassword').value,role='professional';
   if(!name){toast('יש להזין את השם שלך');return}
   if(!email||password.length<6){toast('הזן אימייל וסיסמה של לפחות 6 תווים');return}
   if(!$('#signupLegalConsent').checked){toast('כדי להירשם יש לאשר את תנאי השימוש ומדיניות הפרטיות');return}
-  const phoneRaw=$('#authPhone').value.trim();
-  const phone=phoneRaw?normalizeIsraeliPhone(phoneRaw):null;
-  if(phoneRaw&&!phone){toast('הזן מספר טלפון ישראלי תקין');return}
-  const whatsappOptIn=!!phone
-  const whatsappFields={whatsapp_install_opt_in:whatsappOptIn,whatsapp_install_opt_in_at:whatsappOptIn?new Date().toISOString():null,whatsapp_install_consent_version:'2026-10-06',whatsapp_install_phone:phone};
   trackAppEvent('signup_attempt');
-  const {data,error}=await db.auth.signUp({email,password,options:{data:{role,full_name:name,legal_version:LEGAL_VERSION,legal_accepted_at:new Date().toISOString(),...whatsappFields}}});
+  const {data,error}=await db.auth.signUp({email,password,options:{data:{role,full_name:name,legal_version:LEGAL_VERSION,legal_accepted_at:new Date().toISOString()}}});
   if(error){const message=authErrorMessage(error);toast(message);if(isExistingAccountError(error))showExistingAccountLogin();else $('#authNote').textContent=message;return}
   const isNewSignup=!!data.user&&(!Array.isArray(data.user.identities)||data.user.identities.length>0);
   if(isNewSignup){trackMetaLifecycle('CompleteRegistration',data.user);await trackAppEvent('trial_signup')}
@@ -496,11 +470,10 @@ $('#signupBtn').onclick=async()=>{
     state.user=data.user;await loadMe();
     const {error:consentError}=await db.rpc('accept_legal_terms_v40',{p_document_version:LEGAL_VERSION,p_accepted_via:'signup'});
     if(consentError){toast('ההרשמה נשמרה, אך אישור התנאים לא נשמר. נסה להתחבר מחדש.');return}
-    if(whatsappOptIn)await sendWhatsAppInstallLink(data.user,true);
     rememberPendingPostSignupInstall(data.user);
     showPostSignupInstall()
   }else{
-    $('#authNote').textContent=whatsappOptIn?'נשלח אליך אימייל לאישור ההרשמה. לאחר האישור והתחברות, יישלח קישור בוואטסאפ. אפשר להשתמש במחירלי גם דרך האתר.':'נשלח אליך אימייל לאישור ההרשמה. אחרי האישור אפשר להתחבר ולהשתמש במחירלי דרך האתר.';
+    $('#authNote').textContent='נשלח אליך אימייל לאישור ההרשמה. אחרי האישור אפשר להתחבר ולהשתמש במחירלי דרך האתר.';
     rememberPendingPostSignupInstall(data.user);
     showPostSignupInstall()
   }
