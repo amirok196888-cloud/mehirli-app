@@ -173,3 +173,5 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 }
 
 #authView.signup-mode{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+
+html.facebook-inapp,html.facebook-inapp body{-webkit-text-size-adjust:none!important;text-size-adjust:none!important}
