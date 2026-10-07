@@ -1368,6 +1368,25 @@ async function openAdmin(){
   if(!loaded)show('#homeView');
   else{clearInterval(adminAnalyticsTimer);adminAnalyticsTimer=setInterval(()=>{if(!$('#adminView')?.classList.contains('hidden')&&document.visibilityState==='visible')loadAdminMarketing()},30000)}
 }
+function setAdminSignupPreviewStep(step){
+  const preview=$('#adminSignupFlowPreview');if(!state.isAdmin||!preview)return;
+  $('[data-admin-preview-step]').forEach(panel=>{const active=panel.dataset.adminPreviewStep===String(step);panel.classList.toggle('hidden',!active);panel.hidden=!active});
+  const back=$('#adminSignupPreviewBack');if(back)back.hidden=step==='1';
+}
+function closeAdminSignupPreview(){
+  $('#adminSignupFlowPreview')?.classList.add('hidden');
+}
+function openAdminSignupPreview(){
+  if(!state.isAdmin){toast('אין הרשאת מנהל');return}
+  setAdminSignupPreviewStep('1');
+  $('#adminSignupFlowPreview')?.classList.remove('hidden');
+}
+$('#adminSignupPreviewBtn')?.addEventListener('click',openAdminSignupPreview);
+$('#adminSignupPreviewClose')?.addEventListener('click',closeAdminSignupPreview);
+$('#adminSignupPreviewCloseBottom')?.addEventListener('click',closeAdminSignupPreview);
+$('#adminSignupPreviewBack')?.addEventListener('click',()=>setAdminSignupPreviewStep('1'));
+$('[data-admin-preview-next]')?.addEventListener('click',()=>setAdminSignupPreviewStep('2'));
+
 const adminBtn=$('#adminBtn');if(adminBtn)adminBtn.addEventListener('click',openAdmin);
 $$('[data-admin-analytics-range]').forEach(button=>button.onclick=()=>loadAdminMarketing(button.dataset.adminAnalyticsRange));
 $('#adminAnalyticsRefresh').onclick=()=>loadAdminMarketing();
