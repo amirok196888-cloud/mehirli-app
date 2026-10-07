@@ -221,9 +221,10 @@ async function routeAfterLogin(){
   if(!state.isAdmin&&openWelcomeTutorialIfPending())return;
   show('#homeView');
 }
-function showPostSignupInstall(){
+function showPostSignupInstall({emailPending=false}={}){
   const section=$('#postSignupInstall'),form=$('#authForm'),button=$('#postSignupInstallBtn');if(!section)return;
   form?.classList.add('hidden');
+  const emailNotice=$('#postSignupEmailNotice');if(emailNotice){emailNotice.hidden=!emailPending;if(!emailPending)emailNotice.textContent=''}
   const facebook=isAndroidInAppBrowser();
   if(button){button.textContent=facebook?'המשך להתקנה ב־Chrome':isIosDevice()?'התקנה באייפון':'התקן את מחירלי עכשיו';button.href=facebook?chromeInstallIntent():'#'}
   if($('#postSignupInstallText'))$('#postSignupInstallText').textContent=facebook?'כדי להתקין בטלפון, פותחים את מחירלי ב־Chrome. נכנסים עם אותו אימייל וסיסמה — אין צורך להירשם שוב.':isIosDevice()?'פתחו את מחירלי ב־Safari והיכנסו עם אותו אימייל וסיסמה. להתקנה: שיתוף ← הוספה למסך הבית.':'אשרו את ההתקנה, ואז פתחו את מחירלי מהסמל במסך הבית.';
@@ -418,7 +419,7 @@ $('#passwordResetForm').onsubmit=async e=>{
   const url=new URL(location.href);url.searchParams.delete('reset');url.searchParams.delete('code');url.hash='';history.replaceState({},'',url.pathname+url.search);
   $('#authPassword').value='';$('#newPassword').value='';$('#confirmNewPassword').value='';show('#authView');$('#authNote').textContent='הסיסמה שונתה בהצלחה. אפשר להתחבר עם הסיסמה החדשה.'
 };
-$('#signupBtn').onclick=async()=>{const name=$('#authName').value.trim();if($('#signupBtn').dataset.mode==='edit'){if(!name){toast('יש להזין את השם שלך');return}const {data,error}=await db.auth.updateUser({data:{...state.user.user_metadata,full_name:name}});if(error){toast('לא ניתן לשמור את השינוי כרגע');return}state.user=data.user;await db.from('profiles').update({full_name:name}).eq('id',state.user.id);resetPendingSignupEdit();showPostSignupInstall();toast('פרטי ההרשמה עודכנו');return}const email=$('#authEmail').value.trim(),password=$('#authPassword').value,role='professional';if(!name){toast('יש להזין את השם שלך');return}if(!email||password.length<6){toast('הזן אימייל וסיסמה של לפחות 6 תווים');return}if(!$('#signupLegalConsent').checked){toast('כדי להירשם יש לאשר את תנאי השימוש ומדיניות הפרטיות');return}trackAppEvent('signup_attempt');const {data,error}=await db.auth.signUp({email,password,options:{data:{role,full_name:name,legal_version:LEGAL_VERSION,legal_accepted_at:new Date().toISOString()}}});if(error){const message=authErrorMessage(error);toast(message);if(isExistingAccountError(error))showExistingAccountLogin();else $('#authNote').textContent=message;return}const isNewSignup=!!data.user&&(!Array.isArray(data.user.identities)||data.user.identities.length>0);if(isNewSignup){markWelcomeTutorialPending(data.user.id);trackMetaLifecycle('CompleteRegistration',data.user);await trackAppEvent('trial_signup');}if(data.session){state.user=data.user;await loadMe();const {error:consentError}=await db.rpc('accept_legal_terms_v40',{p_document_version:LEGAL_VERSION,p_accepted_via:'signup'});if(consentError){toast('ההרשמה נשמרה, אך אישור התנאים לא נשמר. נסה להתחבר מחדש.');return}await routeAfterLogin()}else{$('#authNote').textContent='נשלח אליך אימייל לאישור ההרשמה. לאחר האישור חזור והתחבר.'}};
+$('#signupBtn').onclick=async()=>{const name=$('#authName').value.trim();if($('#signupBtn').dataset.mode==='edit'){if(!name){toast('יש להזין את השם שלך');return}const {data,error}=await db.auth.updateUser({data:{...state.user.user_metadata,full_name:name}});if(error){toast('לא ניתן לשמור את השינוי כרגע');return}state.user=data.user;await db.from('profiles').update({full_name:name}).eq('id',state.user.id);resetPendingSignupEdit();showPostSignupInstall();toast('פרטי ההרשמה עודכנו');return}const email=$('#authEmail').value.trim(),password=$('#authPassword').value,role='professional';if(!name){toast('יש להזין את השם שלך');return}if(!email||password.length<6){toast('הזן אימייל וסיסמה של לפחות 6 תווים');return}if(!$('#signupLegalConsent').checked){toast('כדי להירשם יש לאשר את תנאי השימוש ומדיניות הפרטיות');return}trackAppEvent('signup_attempt');const {data,error}=await db.auth.signUp({email,password,options:{data:{role,full_name:name,legal_version:LEGAL_VERSION,legal_accepted_at:new Date().toISOString()}}});if(error){const message=authErrorMessage(error);toast(message);if(isExistingAccountError(error))showExistingAccountLogin();else $('#authNote').textContent=message;return}const isNewSignup=!!data.user&&(!Array.isArray(data.user.identities)||data.user.identities.length>0);if(isNewSignup){markWelcomeTutorialPending(data.user.id);trackMetaLifecycle('CompleteRegistration',data.user);await trackAppEvent('trial_signup');}if(data.session){state.user=data.user;await loadMe();const {error:consentError}=await db.rpc('accept_legal_terms_v40',{p_document_version:LEGAL_VERSION,p_accepted_via:'signup'});if(consentError){toast('ההרשמה נשמרה, אך אישור התנאים לא נשמר. נסה להתחבר מחדש.');return}await routeAfterLogin()}else if(isNewSignup){state.user=data.user;$('#authPassword').value='';$('#postSignupEmailNotice').textContent='ההרשמה נשמרה. בדקו את האימייל ואשרו את החשבון. לאחר מכן היכנסו למחירלי כדי לפתוח את העבודות והחומרים שלכם.';showPostSignupInstall({emailPending:true})}else{$('#authNote').textContent='ייתכן שהחשבון כבר קיים. עברו לכניסה לחשבון קיים.'}};
 const submitSignup=$('#signupBtn').onclick;
 $('#signupBtn').onclick=async()=>{
   const button=$('#signupBtn');if(button.disabled)return;
@@ -1401,8 +1402,17 @@ window.addEventListener('appinstalled',async()=>{
   deferredInstallPrompt=null;
   trackAppEvent('app_installed');
   if(installBtn) installBtn.classList.add('hidden');
-  await markOnboardingStep('installed');
+  const {data:{session}}=await db.auth.getSession();
   $('#postSignupInstall')?.classList.add('hidden');
+  if(!session){
+    $('#authForm')?.classList.remove('hidden');
+    setAuthMode('login');
+    $('#authEmail').value=state.user?.email||$('#authEmail').value;
+    $('#authPassword').value='';
+    $('#authNote').textContent='מחירלי הותקנה. אשרו את כתובת האימייל, ואז היכנסו כדי להגיע לעבודות ולחומרים שלכם.';
+    show('#authView',{scrollTop:false});scrollToAuthForm();return
+  }
+  await markOnboardingStep('installed');
   if(state.subscription?.failure_reason==='installation_required')await activateTrialAfterInstall();
   if(openWelcomeTutorialIfPending())return;
   show('#homeView');
