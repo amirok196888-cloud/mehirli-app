@@ -219,7 +219,7 @@ async function routeAfterLogin(){
 function showPostSignupInstall(){
   const overlay=$('#postSignupInstall'),button=$('#postSignupInstallBtn');if(!overlay)return;
   const facebook=isAndroidInAppBrowser();
-  if(button){button.textContent=facebook?'המשך להתקנה ב־Chrome':isIosDevice()?'הוראות התקנה באייפון':'התקנת מחירלי בטלפון';button.href=facebook?chromeInstallIntent():'#'}
+  if(button){button.textContent=facebook?'המשך להתקנה ב־Chrome':isIosDevice()?'התקנה באייפון':'התקן את מחירלי עכשיו';button.href=facebook?chromeInstallIntent():'#'}
   if($('#postSignupInstallText'))$('#postSignupInstallText').textContent=facebook?'כדי להתקין בטלפון, פותחים את מחירלי ב־Chrome. נכנסים עם אותו אימייל וסיסמה — אין צורך להירשם שוב.':isIosDevice()?'פתחו את מחירלי ב־Safari והיכנסו עם אותו אימייל וסיסמה. להתקנה: שיתוף ← הוספה למסך הבית.':'אשרו את ההתקנה, ואז פתחו את מחירלי מהסמל במסך הבית.';
   $('#postSignupBrowserWarning').hidden=!facebook;
   $('#postSignupBrowserFallback').hidden=!facebook;
