@@ -80,6 +80,10 @@ function updateGreeting(){
 }
 function isStandaloneMode(){return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true}
 function isAndroidInAppBrowser(){const ua=navigator.userAgent||'';return /Android/i.test(ua)&&/(FBAN|FBAV|Instagram)/i.test(ua)}
+function welcomeTutorialPendingKey(userId=state.user?.id){return userId?`mehirli:welcome-tutorial-pending:${userId}`:''}
+function markWelcomeTutorialPending(){const key=welcomeTutorialPendingKey();if(key)try{localStorage.setItem(key,'1')}catch{}}
+function clearWelcomeTutorialPending(userId=state.user?.id){const key=welcomeTutorialPendingKey(userId);if(key)try{localStorage.removeItem(key)}catch{}}
+function openWelcomeTutorialIfPending(){const key=welcomeTutorialPendingKey();if(!key)return false;try{if(localStorage.getItem(key)==='1'){location.replace('sample-quote.html?welcome=1');return true}}catch{}return false}
 function installationUrl(){const url=new URL('app.html',location.href),current=new URLSearchParams(location.search);for(const key of ['from','utm_source','utm_medium','utm_campaign','utm_term','utm_content','gclid','fbclid','msclkid'])if(current.has(key))url.searchParams.set(key,current.get(key));url.searchParams.set('view','install');return url.href}
 function chromeInstallIntent(){const url=new URL(installationUrl());return `intent://${url.host}${url.pathname}${url.search}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(url.href)};end`}
 function openInChrome(){location.href=chromeInstallIntent()}
@@ -208,11 +212,13 @@ async function routeAfterLogin(){
   if(!state.isAdmin&&!(await ensureLegalConsent()))return;
   if(!state.isAdmin&&isStandaloneMode()&&!state.onboarding?.installed_at)await markOnboardingStep('installed');
   if(!state.isAdmin&&!state.onboarding?.installed_at){
+    markWelcomeTutorialPending();
     show('#homeView');
     showPostSignupInstall();return
   }
   if(!state.isAdmin&&state.subscription?.failure_reason==='installation_required')await activateTrialAfterInstall();
   if(!state.isAdmin&&!hasServiceAccess()){await openSubscription();return}
+  if(!state.isAdmin&&openWelcomeTutorialIfPending())return;
   show('#homeView');
 }
 function showPostSignupInstall(){
@@ -369,11 +375,11 @@ async function promptLoginIfSessionExpired(){
   $('#authNote').textContent='החיבור פג. יש להתחבר מחדש כדי לשמור עבודות ופגישות.';
   return true
 }
-async function boot(){updateGreeting();const params=new URLSearchParams(location.search),signupHandoff=params.get('view')==='signup',installHandoff=params.get('view')==='install';const quoteToken=currentPublicQuoteToken();if(quoteToken){await loadPublicQuote(quoteToken);return}const {data:{session}}=await db.auth.getSession();state.user=session?.user||null;if(isPasswordRecovery()&&state.user){showPasswordReset();return}if(signupHandoff&&state.user){
+async function boot(){updateGreeting();const params=new URLSearchParams(location.search),signupHandoff=params.get('view')==='signup',installHandoff=params.get('view')==='install';const quoteToken=currentPublicQuoteToken();if(quoteToken){await loadPublicQuote(quoteToken);return}const {data:{session}}=await db.auth.getSession();state.user=session?.user||null;if(params.get('welcome_tour')==='done'&&state.user)clearWelcomeTutorialPending(state.user.id);if(isPasswordRecovery()&&state.user){showPasswordReset();return}if(signupHandoff&&state.user){
   const switchAccount=confirm('כבר מחובר חשבון במכשיר הזה. לפתיחת חשבון חדש צריך להתנתק ממנו. להתנתק ולעבור להרשמה?');
   if(switchAccount){const {error}=await db.auth.signOut({scope:'local'});if(error){toast('לא ניתן להתנתק כרגע. נסה שוב.');await loadMe();await routeAfterLogin();return}state.user=null;state.isAdmin=false;stopNotificationPolling()}
 }
-if(signupHandoff||installHandoff){const url=new URL(location.href);url.searchParams.delete('view');history.replaceState({},'',url.pathname+url.search+url.hash)}if(state.user){await loadMe();if(!state.isAdmin){trackAppEvent('app_open');if(isStandaloneMode())trackAppEvent('standalone_open')}if(paymentReturn())await handlePaymentReturn();else await routeAfterLogin()}else{trackAppEvent('app_open');if(signupHandoff)trackAppEvent('signup_form_open');setAuthMode(signupHandoff?'signup':'login');show('#authView',{scrollTop:!(signupHandoff||installHandoff||location.hash==='#authForm')});if(params.get('password_reset')==='success')$('#authNote').textContent='הסיסמה שונתה בהצלחה. אפשר להתחבר עם הסיסמה החדשה.';else if(isPasswordRecovery())$('#authNote').textContent='קישור האיפוס אינו תקף או שפג תוקפו. בקשו קישור חדש.';else if(installHandoff)$('#authNote').textContent='החשבון כבר נוצר. להשלמת ההתקנה בטלפון, היכנסו עם האימייל והסיסמה שנרשמתם איתם. אין צורך להירשם שוב.';else if(signupHandoff)$('#authNote').textContent='';if(isAndroidInAppBrowser())$('#inAppBrowserNotice')?.classList.remove('hidden');if(signupHandoff||installHandoff||location.hash==='#authForm')scrollToAuthForm()}}
+if(signupHandoff||installHandoff||params.has('welcome_tour')){const url=new URL(location.href);url.searchParams.delete('view');url.searchParams.delete('welcome_tour');history.replaceState({},'',url.pathname+url.search+url.hash)}if(state.user){await loadMe();if(!state.isAdmin){trackAppEvent('app_open');if(isStandaloneMode())trackAppEvent('standalone_open')}if(paymentReturn())await handlePaymentReturn();else await routeAfterLogin()}else{trackAppEvent('app_open');if(signupHandoff)trackAppEvent('signup_form_open');setAuthMode(signupHandoff?'signup':'login');show('#authView',{scrollTop:!(signupHandoff||installHandoff||location.hash==='#authForm')});if(params.get('password_reset')==='success')$('#authNote').textContent='הסיסמה שונתה בהצלחה. אפשר להתחבר עם הסיסמה החדשה.';else if(isPasswordRecovery())$('#authNote').textContent='קישור האיפוס אינו תקף או שפג תוקפו. בקשו קישור חדש.';else if(installHandoff)$('#authNote').textContent='החשבון כבר נוצר. להשלמת ההתקנה בטלפון, היכנסו עם האימייל והסיסמה שנרשמתם איתם. אין צורך להירשם שוב.';else if(signupHandoff)$('#authNote').textContent='';if(isAndroidInAppBrowser())$('#inAppBrowserNotice')?.classList.remove('hidden');if(signupHandoff||installHandoff||location.hash==='#authForm')scrollToAuthForm()}}
 $('#showLoginModeBtn').onclick=()=>setAuthMode('login');
 $('#showSignupModeBtn').onclick=openSignupForm;
 $('.auth-hero-cta').onclick=openSignupForm;
@@ -1393,9 +1399,11 @@ window.addEventListener('appinstalled',async()=>{
   deferredInstallPrompt=null;
   trackAppEvent('app_installed');
   if(installBtn) installBtn.classList.add('hidden');
+  await markOnboardingStep('installed');
   $('#postSignupInstall')?.classList.add('hidden');
-  show('#homeView');
   if(state.subscription?.failure_reason==='installation_required')await activateTrialAfterInstall();
+  if(openWelcomeTutorialIfPending())return;
+  show('#homeView');
   toast('מחירלי הותקנה כאפליקציה ✅');
 });
 if(installBtn)installBtn.onclick=requestAppInstall;
